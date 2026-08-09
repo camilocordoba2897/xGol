@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load formato %}
+
+{% block Titulo %}
+  Confirma tu plan
+{% endblock %}
+
+{% block content %}
+{# Los datos de la tarjeta ya NO se escriben aqui. Este formulario solo envia  #}
+{# la clave del plan; el precio, la referencia y la firma los calcula el       #}
+{# servidor y el usuario escribe su tarjeta dentro del checkout de Wompi.      #}
+<div style="max-width: 980px; margin: 0 auto;">
+
+  <h2 style="font-family: var(--ff-display); font-size: 1.7rem; color: var(--text-0); margin-bottom: 28px; display: flex; align-items: center; gap: 10px;">
+    <a href="{% url 'Suscripcion' %}" style="color: var(--text-2); text-decoration: none; font-size: 1.5rem;">‹</a>
+    Confirma tu plan
+  </h2>
+
+  {% if messages %}
+    {% for i in messages %}
+      <div class="card" style="border-left: 4px solid var(--warn); margin-bottom: 18px;">
+        <p style="color: var(--text-1);">{{ i }}</p>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start;">
+
+    <!-- MEDIOS DE PAGO (izquierda) -->
+    <div>
+      <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 6px; font-size: 1.1rem;">Cómo vas a pagar</h3>
+      <p style="color: var(--text-2); font-size: .9rem; margin-bottom: 18px;">
+        En la siguiente pantalla eliges entre tarjeta, PSE, Nequi y las demás
+        opciones que tenga disponibles la pasarela de Bancolombia.
+      </p>
+
+      <div style="background: var(--bg-2); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 12px; padding: 14px 16px;">
+        <p style="color: var(--text-2); font-size: .84rem; line-height: 1.6;">
+          🔒 xGol no recibe ni guarda los datos de tu tarjeta. Los escribes directamente
+          en la pasarela de pagos, que es quien los procesa.
+        </p>
+      </div>
+    </div>
+
+    <!-- RESUMEN DEL PLAN (derecha) -->
+    <div class="card" style="background: var(--bg-2);">
+      <h3 style="font-family: var(--ff-display); font-size: 1.5rem; color: var(--text-0); margin-bottom: 6px;">Plan {{ plan.nombre }}</h3>
+      <p style="color: var(--text-2); font-size: .9rem; margin-bottom: 18px;">Características principales</p>
+
+      <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 22px;">
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+          <span style="color: var(--accent); flex-shrink: 0;">⚡</span>
+          <span style="color: var(--text-1); font-size: .92rem;">Acceso completo al analizador de fútbol</span>
+        </div>
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+          <span style="color: var(--accent); flex-shrink: 0;">📊</span>
+          <span style="color: var(--text-1); font-size: .92rem;">Todos los mercados: 1X2, córners, tarjetas, props</span>
+        </div>
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+          <span style="color: var(--accent); flex-shrink: 0;">🎯</span>
+          <span style="color: var(--text-1); font-size: .92rem;">Modelos Poisson, Dixon-Coles y xG</span>
+        </div>
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+          <span style="color: var(--accent); flex-shrink: 0;">📋</span>
+          <span style="color: var(--text-1); font-size: .92rem;">Acceso por {{ plan.dias }} días</span>
+        </div>
+      </div>
+
+      <div style="border-top: 1px solid var(--line); padding-top: 16px;">
+        <div style="display: flex; justify-content: space-between; padding: 5px 0;">
+          <span style="color: var(--text-2);">Suscripción {{ plan.nombre }}</span>
+          <span style="color: var(--text-1); font-family: var(--ff-mono);">${{ subtotal|pesos }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 5px 0;">
+          <span style="color: var(--text-2);">IVA incluido (19%)</span>
+          <span style="color: var(--text-2); font-family: var(--ff-mono);">${{ iva|pesos }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 10px 0 4px; border-top: 1px solid var(--line); margin-top: 6px;">
+          <span style="color: var(--text-0); font-weight: 700;">Monto a pagar hoy</span>
+          <span style="color: var(--text-0); font-weight: 800; font-family: var(--ff-mono); font-size: 1.1rem;">${{ plan.precio|pesos }}</span>
+        </div>
+      </div>
+
+      {% if pasarela_lista %}
+        <form action="{% url 'ProcesarPago' clave_plan %}" method="post" id="formPago">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-primary" id="btnPagar"
+                  style="width: 100%; justify-content: center; margin-top: 18px; padding: 14px;">
+            Ir a pagar ${{ plan.precio|pesos }}
+          </button>
+        </form>
+      {% else %}
+        <div style="margin-top: 18px; padding: 14px; border: 1px solid var(--warn); border-radius: 12px; background: var(--warn-bg);">
+          <p style="color: var(--warn); font-size: .88rem;">
+            Los pagos están temporalmente fuera de servicio. Vuelve a intentarlo en unos minutos.
+          </p>
+        </div>
+      {% endif %}
+
+      {% if ambiente != "prod" %}
+        <p style="text-align: center; color: var(--warn); font-size: .75rem; margin-top: 12px;">
+          ⚠️ Modo de pruebas · no se hace ningún cobro real
+        </p>
+      {% else %}
+        <p style="text-align: center; color: var(--text-3); font-size: .75rem; margin-top: 12px;">
+          🔒 Pago procesado por Wompi (Bancolombia)
+        </p>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <p style="text-align: center; color: var(--text-3); font-size: .78rem; margin-top: 24px; max-width: 700px; margin-left: auto; margin-right: auto; line-height: 1.6;">
+    El acceso dura {{ plan.dias }} días y no se renueva solo: cuando termine, vuelves aquí si quieres seguir.
+    Al continuar aceptas los <a href="{% url 'TerminosCondiciones' %}" style="color: var(--text-2);">términos y condiciones</a>.
+  </p>
+
+</div>
+
+<script>
+  // Evita el doble envio: un segundo clic crearia otro intento de pago.
+  (function() {
+    var formulario = document.getElementById('formPago');
+    var boton = document.getElementById('btnPagar');
+    if (!formulario || !boton) return;
+    formulario.addEventListener('submit', function() {
+      boton.disabled = true;
+      boton.textContent = 'Abriendo la pasarela…';
+    });
+  })();
+</script>
+{% endblock %}
