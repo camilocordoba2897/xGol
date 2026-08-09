@@ -1,0 +1,522 @@
+{% extends 'base.html' %}
+{% load formato %}
+
+{% block Titulo %}
+  Control financiero
+{% endblock %}
+
+{% block content %}
+{# Estilos propios de esta pantalla. Van aqui y no en base.css para no obligar #}
+{# a subir la version del CSS ni tocar el resto del sitio.                     #}
+<style>
+  .fin-grid { display: grid; gap: 12px; margin-bottom: 24px; }
+  .fin-kpis { grid-template-columns: repeat(auto-fit, minmax(172px, 1fr)); }
+  .fin-kpi {
+    background: var(--bg-2); border: 1px solid var(--line);
+    border-radius: var(--radius-md); padding: 16px 16px;
+    overflow: hidden;
+  }
+  /* Misma tipografia que .plan-precio .val del home: display, 800, muy
+     apretada. Es la que ya usas para los precios, asi que el panel habla el
+     mismo idioma visual que la pagina de planes. */
+  .fin-kpi .v {
+    font-family: var(--ff-display); font-weight: 800;
+    /* Se encoge sola cuando la cifra crece: con clamp, $0 y $12.500.000
+       caben en la misma tarjeta sin desbordarse. */
+    font-size: clamp(1.15rem, 2.2vw, 1.6rem);
+    color: var(--text-0); line-height: 1.1; letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums; font-feature-settings: "tnum";
+    white-space: nowrap;
+  }
+  .fin-kpi .v.acc { color: var(--accent); }
+  .fin-kpi .l { font-size: .72rem; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; margin-top: 4px; }
+  .fin-kpi .s { font-size: .78rem; color: var(--text-2); margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .fin-kpi.alerta { border-color: var(--warn); }
+  .fin-kpi.alerta .v { color: var(--warn); }
+  .fin-kpi.mala { border-color: var(--bad); }
+  .fin-kpi.mala .v { color: var(--bad); }
+
+  .fin-panel {
+    background: var(--bg-2); border: 1px solid var(--line);
+    border-radius: var(--radius-md); padding: 18px; margin-bottom: 24px;
+  }
+  .fin-titulo {
+    font-family: var(--ff-display); color: var(--text-0); font-size: 1rem;
+    margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+  }
+  .fin-tabla { width: 100%; border-collapse: collapse; font-size: .86rem; }
+  .fin-tabla th {
+    font-family: var(--ff-display); text-align: left; padding: 11px 12px;
+    color: var(--text-1); text-transform: uppercase; font-size: .68rem;
+    letter-spacing: .06em; background: var(--bg-3); white-space: nowrap;
+  }
+  .fin-tabla td { padding: 10px 12px; border-top: 1px solid var(--line); color: var(--text-1); }
+  /* Toda cifra del panel comparte el mismo tratamiento: display, tabular y
+     sin monoespaciada. La monoespaciada es para codigo, no para dinero. */
+  .fin-cifra, .fin-tabla td.num, .fin-kpi .s {
+    font-family: var(--ff-display); font-weight: 700;
+    font-variant-numeric: tabular-nums; font-feature-settings: "tnum";
+    letter-spacing: -.01em;
+  }
+  .fin-ref {
+    font-family: var(--ff-mono); font-size: .72rem; color: var(--text-3);
+  }
+  .fin-tabla td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+  .fin-tabla tr:hover td { background: var(--bg-3); }
+
+  .fin-etiqueta {
+    display: inline-block; padding: 2px 9px; border-radius: 999px;
+    font-size: .72rem; font-weight: 600; white-space: nowrap;
+  }
+  .e-Aprobado { background: rgba(var(--accent-rgb), .14); color: var(--accent); }
+  .e-Pendiente { background: var(--warn-bg); color: var(--warn); }
+  .e-Rechazado, .e-Error { background: var(--bad-bg); color: var(--bad); }
+  .e-Anulado, .e-Reembolsado { background: var(--bg-3); color: var(--text-3); }
+
+  .fin-filtros { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 14px; }
+  .fin-campo { display: flex; flex-direction: column; gap: 4px; }
+  .fin-campo label { font-size: .7rem; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; }
+  .fin-campo input, .fin-campo select {
+    background: var(--bg-1); border: 1px solid var(--line); border-radius: 9px;
+    padding: 8px 11px; color: var(--text-1); font-family: var(--ff-body); font-size: .85rem;
+  }
+  .fin-campo input:focus, .fin-campo select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .fin-barra-fondo { fill: var(--bg-3); }
+  .fin-barra { fill: var(--accent); opacity: .85; }
+  .fin-barra:hover { opacity: 1; }
+  .fin-eje { fill: var(--text-3); font-size: 9px; font-family: var(--ff-display); font-weight: 600; letter-spacing: .02em; }
+
+  .fin-vacio { padding: 18px; text-align: center; color: var(--text-3); font-size: .88rem; }
+
+  .fin-volver {
+    /* Fijo en la esquina superior izquierda, encima del header, igual que
+       .volver-inicio en ingresar.html y editar_perfil.html. */
+    position: fixed; top: 14px; left: 14px; z-index: 9999;
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: var(--ff-body); font-size: .82rem; font-weight: 600;
+    color: var(--text-2); text-decoration: none;
+    padding: 8px 16px; border: 1px solid var(--line); border-radius: 8px;
+    background: rgba(0,0,0,.35); backdrop-filter: blur(6px);
+    transition: color .15s cubic-bezier(.16,1,.3,1), border-color .15s cubic-bezier(.16,1,.3,1), background-color .15s cubic-bezier(.16,1,.3,1);
+  }
+  .fin-volver:hover { color: var(--text-0); border-color: var(--text-3); background: var(--bg-2); }
+  .fin-volver svg { width: 15px; height: 15px; }
+  .fin-acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  @media (max-width: 720px) {
+    .fin-volver { top: 10px; left: 10px; padding: 7px 12px; font-size: .76rem; }
+    .fin-panel { padding: 14px; }
+    .fin-tabla { font-size: .78rem; }
+  }
+</style>
+
+  {# Mismo lenguaje visual que .volver-inicio de ingresar.html y editar_perfil.  #}
+  {# Va en linea (no fixed) porque aqui vive dentro del content-wrapper.        #}
+  <a href="{% url 'PanelAdmin' %}" class="fin-volver">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    Volver al panel
+  </a>
+
+  <div class="admin-banner">
+    <div class="admin-icon">💰</div>
+    <div class="admin-text">
+      <div class="admin-tag">Zona restringida</div>
+      <div class="admin-title">Control financiero</div>
+    </div>
+  </div>
+
+  {% if messages %}
+    {% for i in messages %}
+      <div class="card" style="border-left: 4px solid var(--accent); margin-bottom: 16px;">
+        <p style="color: var(--text-1);">{{ i }}</p>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if ambiente != "prod" or not pasarela_lista %}
+  <div class="card" style="border-left: 4px solid var(--warn); margin-bottom: 20px;">
+    <p style="color: var(--warn); font-size: .9rem;">
+      {% if not pasarela_lista %}
+        Faltan llaves de la pasarela en el archivo <code>.env</code>. Nadie puede pagar hasta que estén.
+      {% else %}
+        Estás en ambiente de <strong>pruebas</strong> ({{ ambiente }}). Las cifras de abajo son de sandbox, no dinero real.
+      {% endif %}
+    </p>
+  </div>
+  {% endif %}
+
+  <!-- ============ INGRESOS ============ -->
+  <h3 class="admin-section-title">📈 Ingresos</h3>
+  <div class="fin-grid fin-kpis">
+    <div class="fin-kpi">
+      <div class="v acc">${{ ingresos.hoy.total|pesos }}</div>
+      <div class="l">Hoy</div>
+      <div class="s">{{ ingresos.hoy.cuenta }} venta{{ ingresos.hoy.cuenta|pluralize:"s" }}</div>
+    </div>
+    <div class="fin-kpi">
+      <div class="v">${{ ingresos.semana.total|pesos }}</div>
+      <div class="l">Esta semana</div>
+      <div class="s">{{ ingresos.semana.cuenta }} venta{{ ingresos.semana.cuenta|pluralize:"s" }}</div>
+    </div>
+    <div class="fin-kpi">
+      <div class="v">${{ ingresos.mes.total|pesos }}</div>
+      <div class="l">Este mes</div>
+      <div class="s">{{ ingresos.mes.cuenta }} venta{{ ingresos.mes.cuenta|pluralize:"s" }}</div>
+    </div>
+    <div class="fin-kpi">
+      <div class="v">${{ ingresos.trimestre.total|pesos }}</div>
+      <div class="l">Este trimestre</div>
+      <div class="s">{{ ingresos.trimestre.cuenta }} venta{{ ingresos.trimestre.cuenta|pluralize:"s" }}</div>
+    </div>
+    <div class="fin-kpi">
+      <div class="v">${{ ingresos.anio.total|pesos }}</div>
+      <div class="l">Este año</div>
+      <div class="s">{{ ingresos.anio.cuenta }} venta{{ ingresos.anio.cuenta|pluralize:"s" }}</div>
+    </div>
+    <div class="fin-kpi">
+      <div class="v">${{ ingresos.historico.total|pesos }}</div>
+      <div class="l">Total histórico</div>
+      <div class="s">{{ ingresos.historico.cuenta }} venta{{ ingresos.historico.cuenta|pluralize:"s" }}</div>
+    </div>
+  </div>
+
+  <div class="fin-panel">
+    <div class="fin-titulo">Bruto, comisión y neto — histórico</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px;">
+      <div>
+        <div class="fin-cifra" style="font-size: 1.55rem; font-weight: 800; color: var(--text-0);">${{ ingresos.historico.total|pesos }}</div>
+        <div style="font-size: .74rem; color: var(--text-3);">Bruto cobrado</div>
+      </div>
+      <div>
+        <div class="fin-cifra" style="font-size: 1.55rem; font-weight: 800; color: var(--bad);">−${{ ingresos.historico.comision|pesos }}</div>
+        <div style="font-size: .74rem; color: var(--text-3);">Comisión estimada de la pasarela</div>
+      </div>
+      <div>
+        <div class="fin-cifra" style="font-size: 1.55rem; font-weight: 800; color: var(--accent);">${{ ingresos.historico.neto|pesos }}</div>
+        <div style="font-size: .74rem; color: var(--text-3);">Neto estimado a recibir</div>
+      </div>
+    </div>
+    <p style="color: var(--text-3); font-size: .78rem; margin-top: 12px; line-height: 1.5;">
+      La comisión es una <strong>estimación</strong> calculada con las tarifas de <code>TARIFAS_PASARELA</code>.
+      La cifra que manda es la que liquida la pasarela en su propio extracto.
+    </p>
+  </div>
+
+  <!-- ============ GRÁFICA ============ -->
+  <div class="fin-panel">
+    <div class="fin-titulo">Ingresos de los últimos 12 meses</div>
+    <svg viewBox="0 0 570 155" style="width: 100%; height: auto;" role="img" aria-label="Ingresos mensuales">
+      {% for b in barras %}
+        <rect class="fin-barra-fondo" x="{{ b.x }}" y="0" width="{{ b.ancho }}" height="120" rx="3"/>
+        <rect class="fin-barra" x="{{ b.x }}" y="{{ b.y }}" width="{{ b.ancho }}" height="{{ b.alto }}" rx="3">
+          <title>{{ b.etiqueta }}: ${{ b.total|pesos }} ({{ b.cuenta }} ventas)</title>
+        </rect>
+        <text class="fin-eje" x="{{ b.centro }}" y="136" text-anchor="middle">{{ b.etiqueta }}</text>
+      {% endfor %}
+    </svg>
+  </div>
+
+  <!-- ============ SUSCRIPCIONES E INCIDENCIAS ============ -->
+  <h3 class="admin-section-title">👥 Suscripciones</h3>
+  <div class="fin-grid fin-kpis">
+    <div class="fin-kpi"><div class="v acc">{{ suscripciones.activas }}</div><div class="l">Activas</div></div>
+    <div class="fin-kpi"><div class="v">{{ suscripciones.vencidas }}</div><div class="l">Vencidas</div></div>
+    <div class="fin-kpi {% if suscripciones.por_vencer %}alerta{% endif %}"><div class="v">{{ suscripciones.por_vencer }}</div><div class="l">Vencen en 5 días</div></div>
+    <div class="fin-kpi"><div class="v">{{ suscripciones.renovacion_automatica }}</div><div class="l">Renovación automática</div></div>
+    <div class="fin-kpi"><div class="v">{{ suscripciones.canceladas }}</div><div class="l">Canceladas</div></div>
+    <div class="fin-kpi"><div class="v">{{ suscripciones.sin_suscripcion }}</div><div class="l">Sin suscripción</div></div>
+  </div>
+
+  <h3 class="admin-section-title">⚠️ Incidencias</h3>
+  <div class="fin-grid fin-kpis">
+    <div class="fin-kpi {% if incidencias.pendientes %}alerta{% endif %}"><div class="v">{{ incidencias.pendientes }}</div><div class="l">Pagos pendientes</div></div>
+    <div class="fin-kpi"><div class="v">{{ incidencias.rechazados_30 }}</div><div class="l">Rechazados (30 d)</div></div>
+    <div class="fin-kpi {% if incidencias.errores_30 %}mala{% endif %}"><div class="v">{{ incidencias.errores_30 }}</div><div class="l">Errores de pago (30 d)</div></div>
+    <div class="fin-kpi"><div class="v">{{ incidencias.reembolsos }}</div><div class="l">Reembolsos</div><div class="s">${{ incidencias.reembolsado_total|pesos }}</div></div>
+    <div class="fin-kpi {% if incidencias.eventos_invalidos %}mala{% endif %}"><div class="v">{{ incidencias.eventos_invalidos }}</div><div class="l">Eventos con firma inválida</div></div>
+    <div class="fin-kpi {% if incidencias.eventos_sin_procesar %}alerta{% endif %}"><div class="v">{{ incidencias.eventos_sin_procesar }}</div><div class="l">Eventos sin procesar</div></div>
+  </div>
+
+  <!-- ============ DESGLOSES ============ -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+    <div class="fin-panel">
+      <div class="fin-titulo">Ventas por plan</div>
+      <table class="fin-tabla">
+        <thead><tr><th>Plan</th><th style="text-align:right">Ventas</th><th style="text-align:right">Ingreso</th></tr></thead>
+        <tbody>
+          {% for f in por_plan %}
+            <tr><td>{{ f.plan }}</td><td class="num">{{ f.cuenta }}</td><td class="num">${{ f.total|pesos }}</td></tr>
+          {% empty %}
+            <tr><td colspan="3" class="fin-vacio">Todavía no hay ventas aprobadas.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fin-panel">
+      <div class="fin-titulo">Ventas por medio de pago</div>
+      <table class="fin-tabla">
+        <thead><tr><th>Medio</th><th style="text-align:right">Ventas</th><th style="text-align:right">Ingreso</th></tr></thead>
+        <tbody>
+          {% for f in por_metodo %}
+            <tr><td>{{ f.metodo|default:"—" }}</td><td class="num">{{ f.cuenta }}</td><td class="num">${{ f.total|pesos }}</td></tr>
+          {% empty %}
+            <tr><td colspan="3" class="fin-vacio">Todavía no hay ventas aprobadas.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ PENDIENTES Y RENOVACIONES ============ -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
+    <div class="fin-panel">
+      <div class="fin-titulo">Pagos sin completar</div>
+      <table class="fin-tabla">
+        <thead><tr><th>Usuario</th><th>Plan</th><th>Inició</th><th></th></tr></thead>
+        <tbody>
+          {% for p in pendientes %}
+            <tr>
+              <td>{{ p.usuario.username }}</td>
+              <td>{{ p.plan }}</td>
+              <td class="fin-cifra" style="font-size: .8rem; color: var(--text-3); font-weight: 500;">{{ p.creado|date:"d/m H:i" }}</td>
+              <td>
+                {% if p.id_pasarela %}
+                <form action="{% url 'AdminSincronizarPago' p.id %}" method="post" style="display:inline">
+                  {% csrf_token %}
+                  <button type="submit" class="act-btn act-editar" style="cursor:pointer">Consultar</button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4" class="fin-vacio">Nadie dejó un pago a medias.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fin-panel">
+      <div class="fin-titulo">Vencen esta semana</div>
+      <table class="fin-tabla">
+        <thead><tr><th>Usuario</th><th>Plan</th><th style="text-align:right">Vence</th><th style="text-align:right">Renueva sola</th></tr></thead>
+        <tbody>
+          {% for s in renovaciones %}
+            <tr>
+              <td>{{ s.usuario.username }}</td>
+              <td>{{ s.plan }}</td>
+              <td class="num" style="color: var(--warn);">{{ s.vencimiento|date:"d/m/Y" }}</td>
+              <td class="num">{% if s.renovacion_automatica %}Sí{% else %}No{% endif %}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4" class="fin-vacio">Ninguna suscripción vence en los próximos 7 días.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ HISTORIAL DE TRANSACCIONES ============ -->
+  <h3 class="admin-section-title">🧾 Historial de transacciones</h3>
+
+  <form method="get" class="fin-filtros">
+    <div class="fin-campo">
+      <label for="f-q">Buscar</label>
+      <input id="f-q" type="text" name="q" value="{{ filtros.q }}" placeholder="Referencia, factura o usuario" style="min-width: 210px;">
+    </div>
+    <div class="fin-campo">
+      <label for="f-estado">Estado</label>
+      <select id="f-estado" name="estado">
+        <option value="todos">Todos</option>
+        <option value="Aprobado" {% if filtros.estado == "Aprobado" %}selected{% endif %}>Aprobado</option>
+        <option value="Pendiente" {% if filtros.estado == "Pendiente" %}selected{% endif %}>Pendiente</option>
+        <option value="Rechazado" {% if filtros.estado == "Rechazado" %}selected{% endif %}>Rechazado</option>
+        <option value="Anulado" {% if filtros.estado == "Anulado" %}selected{% endif %}>Anulado</option>
+        <option value="Error" {% if filtros.estado == "Error" %}selected{% endif %}>Error</option>
+        <option value="Reembolsado" {% if filtros.estado == "Reembolsado" %}selected{% endif %}>Reembolsado</option>
+      </select>
+    </div>
+    <div class="fin-campo">
+      <label for="f-plan">Plan</label>
+      <select id="f-plan" name="plan">
+        <option value="todos">Todos</option>
+        {% for clave, p in planes.items %}
+          <option value="{{ p.nombre }}" {% if filtros.plan == p.nombre %}selected{% endif %}>{{ p.nombre }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="fin-campo">
+      <label for="f-desde">Desde</label>
+      <input id="f-desde" type="date" name="desde" value="{{ filtros.desde|date:'Y-m-d' }}">
+    </div>
+    <div class="fin-campo">
+      <label for="f-hasta">Hasta</label>
+      <input id="f-hasta" type="date" name="hasta" value="{{ filtros.hasta|date:'Y-m-d' }}">
+    </div>
+    <button type="submit" class="btn btn-primary" style="padding: 9px 16px;">Filtrar</button>
+    <a href="{% url 'PanelFinanzas' %}" class="btn btn-secondary" style="padding: 9px 16px;">Limpiar</a>
+  </form>
+
+  <div class="fin-acciones" style="margin-bottom: 14px;">
+    <a class="btn btn-secondary" style="padding: 8px 14px; font-size: .84rem;"
+       href="{% url 'ExportarFinanzas' %}?formato=csv&amp;tipo=transacciones&amp;estado={{ filtros.estado }}&amp;plan={{ filtros.plan }}&amp;desde={{ filtros.desde|date:'Y-m-d' }}&amp;hasta={{ filtros.hasta|date:'Y-m-d' }}&amp;q={{ filtros.q|urlencode }}">⬇ CSV</a>
+    <a class="btn btn-secondary" style="padding: 8px 14px; font-size: .84rem;"
+       href="{% url 'ExportarFinanzas' %}?formato=xlsx&amp;tipo=transacciones&amp;estado={{ filtros.estado }}&amp;plan={{ filtros.plan }}&amp;desde={{ filtros.desde|date:'Y-m-d' }}&amp;hasta={{ filtros.hasta|date:'Y-m-d' }}&amp;q={{ filtros.q|urlencode }}">⬇ Excel</a>
+    <a class="btn btn-secondary" style="padding: 8px 14px; font-size: .84rem;"
+       href="{% url 'ExportarFinanzas' %}?formato=xlsx&amp;tipo=resumen">⬇ Resumen financiero</a>
+    <span style="align-self: center; color: var(--text-3); font-size: .82rem;">{{ total_filtrado }} transacción{{ total_filtrado|pluralize:"es" }}</span>
+  </div>
+
+  <div style="overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius-md); margin-bottom: 14px;">
+    <table class="fin-tabla">
+      <thead>
+        <tr>
+          <th>Fecha</th><th>Factura</th><th>Usuario</th><th>Plan</th><th>Medio</th>
+          <th>Estado</th><th style="text-align:right">Total</th><th style="text-align:right">Neto est.</th><th>Referencia</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pagina %}
+        <tr>
+          <td class="fin-cifra" style="font-size: .8rem; color: var(--text-2); font-weight: 500;">{{ p.creado|date:"d/m/Y H:i" }}</td>
+          <td class="fin-cifra" style="font-size: .8rem; font-weight: 500;">{{ p.numero_factura|default:"—" }}</td>
+          <td>{{ p.usuario.username }}</td>
+          <td>{{ p.plan }}</td>
+          <td style="font-size: .82rem; color: var(--text-2);">{{ p.metodo|default:"—" }}</td>
+          <td><span class="fin-etiqueta e-{{ p.estado }}">{{ p.estado }}</span></td>
+          <td class="num">${{ p.monto|pesos }}</td>
+          <td class="num" style="color: var(--text-3);">{% if p.neto %}${{ p.neto|pesos }}{% else %}—{% endif %}</td>
+          <td class="fin-ref">{{ p.referencia }}</td>
+          <td>
+            <div class="fin-acciones">
+              {% if p.estado == "Aprobado" %}
+                <a href="{% url 'DescargarFactura' p.id %}" class="act-btn act-editar">PDF</a>
+                <button type="button" class="act-btn act-cancelar" style="cursor:pointer"
+                        onclick="abrirReembolso({{ p.id }}, '{{ p.referencia }}', {{ p.monto }})">Reembolsar</button>
+              {% elif p.id_pasarela %}
+                <form action="{% url 'AdminSincronizarPago' p.id %}" method="post" style="display:inline">
+                  {% csrf_token %}
+                  <button type="submit" class="act-btn act-editar" style="cursor:pointer">Consultar</button>
+                </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="10" class="fin-vacio">Ninguna transacción coincide con estos filtros.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if pagina.has_other_pages %}
+  <div style="display: flex; gap: 10px; align-items: center; justify-content: center; margin-bottom: 28px;">
+    {% if pagina.has_previous %}
+      <a class="btn btn-secondary" style="padding: 7px 14px;" href="?pagina={{ pagina.previous_page_number }}&amp;estado={{ filtros.estado }}&amp;plan={{ filtros.plan }}&amp;q={{ filtros.q|urlencode }}">‹ Anterior</a>
+    {% endif %}
+    <span style="color: var(--text-3); font-size: .85rem;">Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+    {% if pagina.has_next %}
+      <a class="btn btn-secondary" style="padding: 7px 14px;" href="?pagina={{ pagina.next_page_number }}&amp;estado={{ filtros.estado }}&amp;plan={{ filtros.plan }}&amp;q={{ filtros.q|urlencode }}">Siguiente ›</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- ============ REEMBOLSOS Y BITÁCORA ============ -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
+    <div class="fin-panel">
+      <div class="fin-titulo">Reembolsos registrados</div>
+      <table class="fin-tabla">
+        <thead><tr><th>Fecha</th><th>Usuario</th><th style="text-align:right">Monto</th><th>Motivo</th></tr></thead>
+        <tbody>
+          {% for r in reembolsos %}
+            <tr>
+              <td class="fin-cifra" style="font-size: .8rem; font-weight: 500;">{{ r.creado|date:"d/m/Y" }}</td>
+              <td>{{ r.pago.usuario.username }}</td>
+              <td class="num" style="color: var(--bad);">−${{ r.monto|pesos }}</td>
+              <td style="font-size: .8rem; color: var(--text-2);">{{ r.motivo|default:"—" }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4" class="fin-vacio">No se ha registrado ningún reembolso.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fin-panel">
+      <div class="fin-titulo">Bitácora de suscripciones</div>
+      <table class="fin-tabla">
+        <thead><tr><th>Fecha</th><th>Usuario</th><th>Movimiento</th><th style="text-align:right">Días</th><th style="text-align:right">Vence</th></tr></thead>
+        <tbody>
+          {% for m in movimientos %}
+            <tr>
+              <td class="fin-cifra" style="font-size: .8rem; font-weight: 500;">{{ m.creado|date:"d/m/Y H:i" }}</td>
+              <td>{{ m.usuario.username }}</td>
+              <td style="font-size: .82rem;">{{ m.tipo }}</td>
+              <td class="num">{{ m.dias }}</td>
+              <td class="num" style="font-size: .82rem;">{{ m.vencimiento_nuevo|date:"d/m/Y"|default:"—" }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5" class="fin-vacio">Todavía no hay movimientos.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ MODAL DE REEMBOLSO ============ -->
+  <div id="modalReembolso" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,.72); z-index: 900; place-items: center; padding: 20px;">
+    <div class="card" style="max-width: 420px; width: 100%; background: var(--bg-2);">
+      <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 6px;">Registrar reembolso</h3>
+      <p style="color: var(--text-2); font-size: .86rem; margin-bottom: 16px; line-height: 1.55;">
+        Esto registra el reembolso en xGol. <strong>La devolución del dinero se ejecuta aparte</strong>,
+        desde el panel de la pasarela.
+      </p>
+      <form method="post" id="formReembolso">
+        {% csrf_token %}
+        <div class="fin-campo" style="margin-bottom: 12px;">
+          <label for="r-ref">Transacción</label>
+          <input id="r-ref" type="text" readonly style="width: 100%; color: var(--text-3);">
+        </div>
+        <div class="fin-campo" style="margin-bottom: 12px;">
+          <label for="r-monto">Monto a devolver</label>
+          <input id="r-monto" type="number" name="monto" min="0" step="1" required style="width: 100%;">
+        </div>
+        <div class="fin-campo" style="margin-bottom: 12px;">
+          <label for="r-motivo">Motivo</label>
+          <input id="r-motivo" type="text" name="motivo" maxlength="200" placeholder="Cobro duplicado, solicitud del cliente…" style="width: 100%;">
+        </div>
+        <label style="display: flex; gap: 9px; align-items: flex-start; color: var(--text-2); font-size: .85rem; margin-bottom: 18px; cursor: pointer;">
+          <input type="checkbox" name="revoca_dias" value="si" checked style="margin-top: 3px; accent-color: var(--accent);">
+          <span>Quitarle a la suscripción los días que este pago le dio</span>
+        </label>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button type="button" class="btn btn-secondary" style="padding: 9px 16px;" onclick="cerrarReembolso()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" style="padding: 9px 16px;">Registrar reembolso</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    var PLANTILLA_REEMBOLSO = "{% url 'AdminReembolso' 0 %}";
+
+    function abrirReembolso(id, referencia, monto) {
+      var modal = document.getElementById('modalReembolso');
+      document.getElementById('formReembolso').action = PLANTILLA_REEMBOLSO.replace(/0$/, id);
+      document.getElementById('r-ref').value = referencia;
+      document.getElementById('r-monto').value = monto;
+      document.getElementById('r-monto').max = monto;
+      modal.style.display = 'grid';
+    }
+
+    function cerrarReembolso() {
+      document.getElementById('modalReembolso').style.display = 'none';
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') cerrarReembolso();
+    });
+  </script>
+
+{% endblock %}
