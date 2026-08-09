@@ -1,0 +1,77 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block Titulo %}xGol{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'css/base.css' %}?v=8">
+
+  <script>
+    // Aplicamos el tema guardado ANTES de pintar para que no parpadee
+    // (misma clave que usa el Home, para que el acento sea coherente)
+    (function() {
+      var t = localStorage.getItem('xgol-tema');
+      if (t) { document.documentElement.setAttribute('data-tema', t); }
+    })();
+  </script>
+</head>
+
+<body>
+
+  <header>
+    <h1><span class="logo-x">x</span>Gol</h1>
+  </header>
+
+  <nav>
+      <a href="{% url 'Inicio' %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Inicio
+      </a>
+    
+      {% if request.resolver_match.url_name != 'TerminosCondiciones' and request.resolver_match.url_name != 'PoliticaPrivacidad' and request.resolver_match.url_name != 'AvisoLegal' and request.resolver_match.url_name != 'JuegoResponsable' %}
+      {% if rol_actual == "administrador" %}
+      <a href="{% url 'PanelAdmin' %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Admin
+      </a>
+      {% endif %}
+
+    {% if user.is_authenticated %}
+      <a href="{% url 'Salir' %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Salir
+      </a>
+    {% else %}
+      {% if request.resolver_match.url_name != 'Ingresar' %}
+      <a href="{% url 'Ingresar' %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Ingresar
+      </a>
+      {% endif %}
+      {% if request.resolver_match.url_name != 'Registro' and request.resolver_match.url_name != 'password_reset' and request.resolver_match.url_name != 'password_reset_done' %}
+      <a href="{% url 'Registro' %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        Registro
+      </a>
+      {% endif %}
+    {% endif %}
+      {% endif %}
+    
+  </nav>
+
+  <div class="content-wrapper">
+    {% block content %}
+    {% endblock %}
+  </div>
+
+  <footer>
+    <p><span><span class="logo-x">x</span>Gol · Terminal de Analisis</span></p>
+  </footer>
+
+</body>
+</html>

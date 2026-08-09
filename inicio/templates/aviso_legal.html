@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block Titulo %}
+  Aviso Legal · xGol
+{% endblock %}
+
+{% block content %}
+
+  <div style="max-width: 760px; margin: 0 auto;">
+    <h1 style="font-family: var(--ff-display); color: var(--text-0); font-size: 1.7rem; margin-bottom: 6px;">Aviso Legal y Descargo de Responsabilidad</h1>
+    <p style="color: var(--text-3); font-size: .82rem; margin-bottom: 28px;">Última actualización: 12 de julio de 2026</p>
+
+    <div class="card card--static" style="line-height: 1.75; color: var(--text-1); font-size: .92rem;">
+
+      <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 8px;">1. Naturaleza de xGol</h3>
+      <p style="margin-bottom: 20px;">
+        xGol es una herramienta de análisis estadístico y probabilístico de fútbol, con fines exclusivamente informativos
+        y educativos. <strong>xGol no es una casa de apuestas, corredor de apuestas, ni operador de juegos de suerte y azar.</strong>
+        No organiza, promueve, intermedia ni gestiona apuestas, y no recibe ni administra dinero destinado a apuestas de
+        ningún tipo.
+      </p>
+
+      <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 8px;">2. Naturaleza de las probabilidades mostradas</h3>
+      <p style="margin-bottom: 20px;">
+        Todas las probabilidades, proyecciones de goles, valores esperados (EV) y demás métricas mostradas por xGol son
+        <strong>estimaciones matemáticas</strong> generadas a partir de modelos estadísticos (incluyendo distribución de
+        Poisson y ajustes de calibración) sobre datos históricos. Estas estimaciones <strong>no garantizan resultados
+        futuros</strong> ni el desempeño de ningún equipo, jugador o mercado de apuestas.
+      </p>
+
+      <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 8px;">3. Responsabilidad del usuario</h3>
+      <p style="margin-bottom: 20px;">
+        Cualquier decisión financiera, de apuesta o de otra índole que el usuario tome con base en la información de xGol
+        es de su <strong>exclusiva responsabilidad</strong>. xGol no será responsable por pérdidas económicas, directas o
+        indirectas, derivadas del uso de la información, análisis o proyecciones ofrecidas en la Plataforma.
+      </p>
+
+      <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 8px;">4. Sin relación con operadores de apuestas</h3>
+      <p style="margin-bottom: 20px;">
+        xGol no tiene ninguna relación comercial, de intermediación ni de afiliación con casas de apuestas para efectos de
+        este aviso. Las cuotas u odds que el usuario introduce manualmente en la Plataforma son de su propia fuente y
+        responsabilidad; xGol solo las utiliza para cálculos matemáticos internos (ej. valor esperado).
+      </p>
+
+      <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 8px;">5. Mayoría de edad</h3>
+      <p style="margin-bottom: 20px;">
+        El uso de xGol está dirigido exclusivamente a personas mayores de 18 años. Si tienes problemas relacionados con el
+        juego, consulta nuestra <a href="{% url 'JuegoResponsable' %}" style="color: var(--accent);">Política de Juego
+        Responsable</a>.
+      </p>
+
+      <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 8px;">6. Exactitud de la información</h3>
+      <p style="margin-bottom: 20px;">
+        xGol hace esfuerzos razonables para que los datos y cálculos sean precisos, pero no garantiza la exactitud,
+        integridad o vigencia de la información mostrada. Los datos deportivos pueden contener errores, retrasos o
+        inconsistencias ajenos a xGol.
+      </p>
+
+      <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 8px;">7. Contacto</h3>
+      <p>
+        Para dudas sobre este Aviso Legal, escríbenos a [correo de contacto de xGol].
+      </p>
+
+    </div>
+
+    <p style="color: var(--text-3); font-size: .78rem; margin-top: 20px;">
+      Este documento es una base de referencia y no constituye asesoría legal. Se recomienda su revisión por un abogado
+      antes de su uso definitivo en producción.
+    </p>
+  </div>
+
+{% endblock %}

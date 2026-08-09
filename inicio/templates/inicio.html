@@ -1,0 +1,862 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>xGol — Predicción de fútbol con Inteligencia Artificial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/home.css' %}?v=28">
+<script>
+  // Aplicamos el tema guardado ANTES de pintar para que no parpadee
+  (function() {
+    var t = localStorage.getItem('xgol-tema');
+    if (t) { document.documentElement.setAttribute('data-tema', t); }
+  })();
+</script>
+</head>
+<body class="home">
+
+<!-- FONDO ESTADIO + PARTÍCULAS -->
+<div class="stadium-bg"></div>
+<div class="particles" id="particles"></div>
+
+<!-- NAVBAR -->
+<nav class="nav" id="navbar">
+  <div class="nav-inner">
+    <a href="{% url 'Inicio' %}" class="nav-logo"><span class="x">x</span>Gol</a>
+
+    <div class="nav-links">
+      <a href="#inicio">Inicio</a>
+      <a href="#partidos">Partidos</a>
+      <a href="#ligas">Ligas</a>
+      <a href="#" onclick="abrirComoFunciona(event)">Cómo funciona</a>
+    </div>
+
+    <div class="nav-actions">
+      {% if user.is_authenticated %}
+
+        <a href="{% url 'Analizador' %}" class="btn btn-acc">Analizador</a>
+
+        <div class="hd-account" onclick="document.getElementById('accountMenu').classList.toggle('open')">
+          {% if perfil.avatar %}
+            <img class="hd-avatar" src="{{ perfil.avatar.url }}" alt="avatar">
+          {% else %}
+            <div class="hd-avatar-ph">{{ user.username|first|upper }}</div>
+          {% endif %}
+          <span class="hd-name">{{ user.username }}</span>
+          <span class="hd-caret">▾</span>
+
+          <div class="hd-menu" id="accountMenu">
+            <a href="{% url 'EditarPerfil' %}" class="hd-menu-item">⚙️ Administrar cuenta</a>
+            {% if not user.is_superuser and rol_actual != "administrador" %}
+              <a href="{% url 'Suscripcion' %}" class="hd-menu-item">⭐ {% if suscripcion_activa %}Mejorar plan{% else %}Mis planes{% endif %}</a>
+            {% endif %}
+            {% if user.is_superuser or rol_actual == "administrador" %}
+              <a href="{% url 'PanelAdmin' %}" class="hd-menu-item">🛡️ Panel de administración</a>
+            {% endif %}
+            <a href="{% url 'Salir' %}" class="hd-menu-item hd-menu-exit">↩ Cerrar sesión</a>
+          </div>
+        </div>
+
+      {% else %}
+        <a href="{% url 'Ingresar' %}" class="btn btn-ghost">Iniciar sesión</a>
+      {% endif %}
+    </div>
+
+    <button class="nav-burger" id="navBurger" onclick="toggleMenu()" aria-label="Abrir menú" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+{% if messages %}
+  <div class="flash-wrap">
+    {% for i in messages %}
+      <p class="flash">{{ i }}</p>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<!-- HERO -->
+<section class="hero" id="inicio">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-badge"><span class="pulse"></span> Motor de predicción con IA</div>
+      <h1 class="hero-title">Predice cualquier partido con <span class="grad">Inteligencia Artificial</span></h1>
+      <p class="hero-sub">xGol analiza millones de datos —forma reciente, goles esperados, historial y contexto— para estimar resultados, marcadores y probabilidades reales en cada mercado.</p>
+      {% if not user.is_authenticated %}
+      <div class="hero-cta">
+        <a href="#planes" class="btn btn-acc btn-lg">Ver planes</a>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- TARJETA FLOTANTE DE PREDICCIÓN -->
+    <div class="pred-zone">
+      <div class="ball"></div>
+      <div class="pred-card" id="predCard" data-url="{% url 'PrediccionesDestacadas' %}">
+        <div class="pc-head">
+          <span class="pc-tag">Predicción destacada</span>
+          <span class="pc-live">IA en vivo</span>
+        </div>
+        <div class="pc-teams">
+          <div class="pc-team">
+            <div class="pc-shield rm"><img id="pcLocalLogo" src="{% static 'img/escudos/realmadrid.png' %}" alt="Real Madrid"></div>
+            <div class="pc-tname" id="pcLocalNom">Real Madrid</div>
+          </div>
+          <div class="pc-vs">VS</div>
+          <div class="pc-team">
+            <div class="pc-shield mc"><img id="pcVisitLogo" src="{% static 'img/escudos/mancity.png' %}" alt="Manchester City"></div>
+            <div class="pc-tname" id="pcVisitNom">Manchester City</div>
+          </div>
+        </div>
+        <div class="pc-probs">
+          <div class="pc-prob-row"><span id="pcLocalRow">Real Madrid</span><strong id="pcLocalPct">71%</strong></div>
+          <div class="pc-prob-row"><span id="pcVisitRow">Manchester City</span><strong id="pcVisitPct">29%</strong></div>
+        </div>
+        <div class="pc-bar"><div class="p1" id="pcBar1"></div><div class="p2" id="pcBar2"></div></div>
+        <div class="pc-stats">
+          <div class="pc-stat"><div class="v" id="pcMarcador">3 - 1</div><div class="l">Marcador esperado</div></div>
+          <div class="pc-stat"><div class="v acc" id="pcConfianza">80%</div><div class="l">Confianza IA</div></div>
+        </div>
+        <svg class="pc-chart" viewBox="0 0 340 58" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="rgba(74,222,128,.35)"/>
+              <stop offset="100%" stop-color="rgba(74,222,128,0)"/>
+            </linearGradient>
+          </defs>
+          <polygon class="area" points="0,50 40,38 80,42 120,26 160,32 200,18 240,24 280,10 340,16 340,58 0,58"/>
+          <polyline points="0,50 40,38 80,42 120,26 160,32 200,18 240,24 280,10 340,16"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CENTRO DE PARTIDOS -->
+<section class="sec reveal" id="partidos">
+  <div class="sec-eyebrow">La agenda del fútbol</div>
+  <h2 class="sec-title">Partidos y predicciones del día</h2>
+  <p class="sec-sub">La IA calcula las probabilidades de cada resultado antes del pitazo inicial. Elige un partido y mira lo que dicen los datos.</p>
+
+  <div class="mcen">
+    <div class="mtabs">
+      <button class="mtab activo" onclick="cambiarTabPartidos('hoy', this)">Hoy</button>
+      <button class="mtab" onclick="cambiarTabPartidos('proximos', this)">Próximos</button>
+      <button class="mtab" onclick="cambiarTabPartidos('vivo', this)"><span class="mtab-dot"></span>En vivo</button>
+      <div class="mtab-dd" id="tablaDD">
+        <button class="mtab mtab-trigger" id="ddTrigger" onclick="toggleTablaDD(event)" aria-haspopup="true" aria-expanded="false">
+          Tabla de ligas
+          <svg class="mtab-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="dd-menu" id="ddMenu" role="menu">
+          <button class="dd-item" data-liga="premier" role="menuitem" onclick="elegirLigaTabla('premier')"><img src="{% static 'img/ligas/premierleague.png' %}" alt=""><span>Premier League</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
+          <button class="dd-item" data-liga="laliga" role="menuitem" onclick="elegirLigaTabla('laliga')"><img src="{% static 'img/ligas/laliga.png' %}" alt=""><span>LaLiga</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
+          <button class="dd-item" data-liga="seriea" role="menuitem" onclick="elegirLigaTabla('seriea')"><img src="{% static 'img/ligas/seriea.png' %}" alt=""><span>Serie A</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
+          <button class="dd-item" data-liga="bundesliga" role="menuitem" onclick="elegirLigaTabla('bundesliga')"><img src="{% static 'img/ligas/bundesliga.png' %}" alt=""><span>Bundesliga</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
+          <button class="dd-item" data-liga="ligue1" role="menuitem" onclick="elegirLigaTabla('ligue1')"><img src="{% static 'img/ligas/ligue1.png' %}" alt=""><span>Ligue 1</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
+          <button class="dd-item" data-liga="champions" role="menuitem" onclick="elegirLigaTabla('champions')"><img src="{% static 'img/ligas/champions.png' %}" alt=""><span>Champions League</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
+          <button class="dd-item" data-liga="libertadores" role="menuitem" onclick="elegirLigaTabla('libertadores')"><img src="{% static 'img/ligas/libertadores.png' %}" alt=""><span>Copa Libertadores</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
+          <button class="dd-item" data-liga="betplay" role="menuitem" onclick="elegirLigaTabla('betplay')"><img src="{% static 'img/ligas/betplay.png' %}" alt=""><span>Liga BetPlay</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA: HOY (se rellena sola desde la API) -->
+    <div class="mpanel activo" id="mpanel-hoy">
+      <div id="lista-hoy"></div>
+    </div>
+
+    <!-- PESTAÑA: PRÓXIMOS (se rellena sola desde la API) -->
+    <div class="mpanel" id="mpanel-proximos">
+      <div id="lista-proximos"></div>
+    </div>
+
+    <!-- PESTAÑA: EN VIVO (se rellena sola desde la API en tiempo real) -->
+    <div class="mpanel" id="mpanel-vivo">
+      <div id="lista-vivo" class="live-grid"></div>
+    </div>
+
+    <!-- PESTAÑA: TABLA (se rellena sola desde la API) -->
+    <div class="mpanel" id="mpanel-tabla">
+      <div class="stbl-head">
+        <span class="stbl-liga"><img src="{% static 'img/ligas/premierleague.png' %}" alt="Premier League"> Premier League</span>
+        <span class="stbl-hint">Posiciones</span>
+      </div>
+      <table class="stbl">
+        <thead>
+          <tr><th class="pos">#</th><th class="eq">Equipo</th><th>PJ</th><th>DIF</th><th>PTS</th></tr>
+        </thead>
+        <tbody id="tabla-posiciones"></tbody>
+      </table>
+      <div class="stbl-foot">📊 Tabla de posiciones actualizada automáticamente.</div>
+    </div>
+
+    <div class="mcen-foot">
+      <a href="{% if user.is_authenticated %}{% url 'Analizador' %}{% else %}{% url 'Registro' %}{% endif %}" class="btn btn-acc">Analiza tu propio partido</a>
+    </div>
+  </div>
+</section>
+
+<!-- LIGAS -->
+<section class="sec reveal" id="ligas">
+  <div class="sec-eyebrow">Cobertura global</div>
+  <h2 class="sec-title">Analiza cualquier liga del mundo</h2>
+  <p class="sec-sub">Si tienes los datos del equipo, xGol lo analiza. Estas son las ligas más consultadas.</p>
+  <div class="leagues-grid">
+    <div class="league" onclick="abrirLiga('premier')"><div class="ic"><img src="{% static 'img/ligas/premierleague.png' %}" alt="Premier League"></div><div class="nm">Premier League</div><div class="ds">Inglaterra</div></div>
+    <div class="league" onclick="abrirLiga('laliga')"><div class="ic"><img src="{% static 'img/ligas/laliga.png' %}" alt="LaLiga"></div><div class="nm">LaLiga</div><div class="ds">España</div></div>
+    <div class="league" onclick="abrirLiga('seriea')"><div class="ic"><img src="{% static 'img/ligas/seriea.png' %}" alt="Serie A"></div><div class="nm">Serie A</div><div class="ds">Italia</div></div>
+    <div class="league" onclick="abrirLiga('bundesliga')"><div class="ic"><img src="{% static 'img/ligas/bundesliga.png' %}" alt="Bundesliga"></div><div class="nm">Bundesliga</div><div class="ds">Alemania</div></div>
+    <div class="league" onclick="abrirLiga('ligue1')"><div class="ic"><img src="{% static 'img/ligas/ligue1.png' %}" alt="Ligue 1"></div><div class="nm">Ligue 1</div><div class="ds">Francia</div></div>
+    <div class="league" onclick="abrirLiga('champions')"><div class="ic"><img src="{% static 'img/ligas/champions.png' %}" alt="Champions League"></div><div class="nm">Champions League</div><div class="ds">Europa</div></div>
+    <div class="league" onclick="abrirLiga('libertadores')"><div class="ic"><img src="{% static 'img/ligas/libertadores.png' %}" alt="Libertadores"></div><div class="nm">Libertadores</div><div class="ds">Sudamérica</div></div>
+    <div class="league" onclick="abrirLiga('betplay')"><div class="ic"><img src="{% static 'img/ligas/betplay.png' %}" alt="Liga BetPlay"></div><div class="nm">Liga BetPlay</div><div class="ds">Colombia</div></div>
+  </div>
+</section>
+
+<!-- EQUIPOS DESTACADOS (carrusel infinito) -->
+<section class="sec reveal">
+  <div class="sec-eyebrow">Los más analizados</div>
+  <h2 class="sec-title">Equipos destacados</h2>
+  <p class="sec-sub">Los clubes que más pasan por el motor de predicción.</p>
+  <div class="carousel">
+    <div class="car-track" id="carTrack">
+      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/uyhbfe1612467038.png/medium" alt="Arsenal"></div><div><div class="tc-name">Arsenal</div><div class="tc-form">Forma <b>W W W D W</b></div></div></div>
+      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/yvwvtu1448813215.png/medium" alt="Chelsea"></div><div><div class="tc-name">Chelsea</div><div class="tc-form">Forma <b>W D W W L</b></div></div></div>
+      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/jykrpv1717309891.png/medium" alt="Aston Villa"></div><div><div class="tc-name">Aston Villa</div><div class="tc-form">Forma <b>W W D W W</b></div></div></div>
+      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/eqayrf1523184794.png/medium" alt="Everton"></div><div><div class="tc-name">Everton</div><div class="tc-form">Forma <b>W W W W D</b></div></div></div>
+      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/ywypts1448810904.png/medium" alt="Brighton"></div><div><div class="tc-name">Brighton</div><div class="tc-form">Forma <b>W L W W W</b></div></div></div>
+      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/ia6i3m1656014992.png/medium" alt="Crystal Palace"></div><div><div class="tc-name">C. Palace</div><div class="tc-form">Forma <b>D W W W W</b></div></div></div>
+      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/xwwvyt1448811086.png/medium" alt="Fulham"></div><div><div class="tc-name">Fulham</div><div class="tc-form">Forma <b>W D W L W</b></div></div></div>
+      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/grv1aw1546453779.png/medium" alt="Brentford"></div><div><div class="tc-name">Brentford</div><div class="tc-form">Forma <b>D D W W L</b></div></div></div>
+      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/y08nak1534071116.png/medium" alt="Bournemouth"></div><div><div class="tc-name">Bournemouth</div><div class="tc-form">Forma <b>W L W D W</b></div></div></div>
+      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/ql7nl31686893820.png/medium" alt="Burnley"></div><div><div class="tc-name">Burnley</div><div class="tc-form">Forma <b>L W D W W</b></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PLANES -->
+{% if not suscripcion_activa and not user.is_superuser and rol_actual != "administrador" %}
+<section class="sec reveal" id="planes">
+
+    <div class="sec-eyebrow">Planes y precios</div>
+    <h2 class="sec-title">Elige tu plan y empieza a predecir</h2>
+    <p class="sec-sub">Acceso completo al analizador en los dos planes. Solo cambia la duración. Precios en COP con IVA incluido.</p>
+
+    <div class="planes-grid">
+
+      <!-- MENSUAL -->
+      <div class="plan">
+        <div class="plan-nombre">Mensual</div>
+        <div class="plan-desc">Ideal para empezar</div>
+        <div class="plan-precio"><span class="val">$20.000</span><span class="cur">COP</span></div>
+        <div class="plan-periodo">30 días de acceso</div>
+        <ul class="plan-features">
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Acceso completo al analizador</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Predicciones y probabilidades ilimitadas</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Todos los mercados y estadísticas</li>
+        </ul>
+        <a href="{% url 'Checkout' 'mensual' %}" class="plan-cta secundario">Elegir Mensual</a>
+      </div>
+
+      <!-- TRIMESTRAL -->
+      <div class="plan destacado">
+        <div class="plan-badge">Más popular</div>
+        <div class="plan-nombre">Trimestral</div>
+        <div class="plan-desc">El equilibrio perfecto</div>
+        <div class="plan-precio"><span class="val">$50.000</span><span class="cur">COP</span></div>
+        <div class="plan-periodo">90 días de acceso</div>
+        <span class="plan-ahorro">Ahorras $10.000</span>
+        <ul class="plan-features">
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Todo lo del plan Mensual</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 3 meses de acceso continuo</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Mejor precio por mes</li>
+        </ul>
+        <a href="{% url 'Checkout' 'trimestral' %}" class="plan-cta primario">Elegir Trimestral</a>
+      </div>
+    </div>
+
+</section>
+{% endif %}
+
+<!-- FOOTER -->
+<footer class="ft">
+  <div class="ft-inner">
+    <div class="ft-top">
+      <div>
+        <div class="ft-logo"><span class="x">x</span>Gol</div>
+        <p class="ft-tag">Terminal de análisis y predicción de fútbol impulsada por modelos estadísticos e inteligencia artificial.</p>
+        <p class="ft-legal">
+          xGol es una herramienta de análisis estadístico y probabilístico con fines informativos y educativos.
+          Las probabilidades mostradas son estimaciones generadas por modelos matemáticos y no garantizan resultados.
+          xGol no es una casa de apuestas ni acepta dinero; no organiza, promueve ni gestiona juegos de suerte y azar.
+        </p>
+      </div>
+      <div class="ft-right">
+        <div class="ft-social">
+          <a href="#" aria-label="Facebook"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+          <a href="#" aria-label="Instagram"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/></svg></a>
+        </div>
+        <div class="ft-links">
+          <a href="{% url 'TerminosCondiciones' %}">Términos y condiciones</a>
+          <a href="{% url 'PoliticaPrivacidad' %}">Política de privacidad</a>
+          <a href="{% url 'AvisoLegal' %}">Aviso legal</a>
+          <a href="{% url 'JuegoResponsable' %}">Juego responsable</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="ft-bottom">
+      <div class="ft-copy">© 2026 xGol · Terminal de Análisis de Fútbol</div>
+      <div class="ft-resp">
+        <div class="ft-18">+18</div>
+        <span>Juega de forma legal y responsable</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- MODAL: CÓMO FUNCIONA -->
+<div class="cf-overlay" id="cfOverlay" onclick="cfOverlayClick(event)">
+  <div class="cf-modal" role="dialog" aria-modal="true" aria-label="Cómo funciona xGol">
+    <button class="cf-close" onclick="cerrarComoFunciona()" aria-label="Cerrar">✕</button>
+
+    <div class="cf-viewport">
+      <div class="cf-track" id="cfTrack">
+
+        <!-- Pantalla 1 -->
+        <div class="cf-slide">
+          <div class="cf-icon" style="font-size:1.05rem;line-height:1;"><span style="display:block;white-space:nowrap;font-family:var(--ff-display);font-weight:800;letter-spacing:-.01em;color:var(--texto-0);"><i style="font-style:normal;color:var(--acc);">x</i>Gol</span></div>
+          <h3 class="cf-title">¿Qué es xGol?</h3>
+          <p class="cf-text">Una terminal de análisis que usa modelos estadísticos e inteligencia artificial para estimar las probabilidades de cualquier partido de fútbol.</p>
+        </div>
+
+        <!-- Pantalla 2 -->
+        <div class="cf-slide">
+          <div class="cf-icon"><svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:none;stroke:var(--acc);stroke-width:1.9;" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+          <h3 class="cf-title">¿Qué beneficio obtengo?</h3>
+          <p class="cf-text">Decides con datos, no con corazonadas: predicciones de goles, mercados con valor y estadísticas claras, todo en un mismo lugar.</p>
+        </div>
+
+        <!-- Pantalla 3 -->
+        <div class="cf-slide">
+          <div class="cf-icon"><svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:none;stroke:var(--acc);stroke-width:1.9;" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polygon points="10 8.5 16 12 10 15.5 10 8.5"/></svg></div>
+          <h3 class="cf-title">¿Cómo empiezo?</h3>
+          <div class="cf-steps">
+            <div class="cf-step"><span class="cf-step-n">1</span> Elige un plan</div>
+            <div class="cf-step"><span class="cf-step-n">2</span> Crea tu cuenta</div>
+            <div class="cf-step"><span class="cf-step-n">3</span> Inicia sesión</div>
+            <div class="cf-step"><span class="cf-step-n">4</span> Entra al analizador</div>
+            <div class="cf-step"><span class="cf-step-n">5</span> Empieza a predecir</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="cf-controls">
+      <button class="cf-arrow" id="cfPrev" onclick="cfAnterior()" aria-label="Anterior">‹</button>
+      <div class="cf-dots">
+        <span class="cf-dot" onclick="cfIr(0)"></span>
+        <span class="cf-dot" onclick="cfIr(1)"></span>
+        <span class="cf-dot" onclick="cfIr(2)"></span>
+      </div>
+      <button class="cf-arrow" id="cfNext" onclick="cfSiguiente()" aria-label="Siguiente">›</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EQUIPOS POR LIGA -->
+<div class="lg-overlay" id="lgOverlay" onclick="lgOverlayClick(event)">
+  <div class="lg-modal" role="dialog" aria-modal="true" aria-label="Equipos de la liga">
+    <button class="lg-close" onclick="cerrarLiga()" aria-label="Cerrar">✕</button>
+
+    <div class="lg-head">
+      <div class="lg-badge"><img id="lgLogo" src="" alt=""></div>
+      <div class="lg-head-txt">
+        <h3 class="lg-title" id="lgNombre">—</h3>
+        <div class="lg-sub"><span id="lgPais">—</span><span class="lg-dot">·</span><span class="lg-count" id="lgCount">—</span></div>
+      </div>
+    </div>
+
+    <div class="lg-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="lgBuscar" type="text" placeholder="Buscar equipo…" oninput="filtrarEquipos()" autocomplete="off">
+    </div>
+
+    <div class="lg-body" id="lgBody"></div>
+  </div>
+</div>
+
+<script>
+  // ===== Navbar: glassmorphism al hacer scroll =====
+  var navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', function() {
+    navbar.classList.toggle('glass', window.scrollY > 30);
+  });
+
+  // ===== Menú hamburguesa (móvil) =====
+  function toggleMenu() {
+    var abierto = navbar.classList.toggle('menu-open');
+    var b = document.getElementById('navBurger');
+    if (b) b.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+  }
+  function cerrarMenu() {
+    navbar.classList.remove('menu-open');
+    var b = document.getElementById('navBurger');
+    if (b) b.setAttribute('aria-expanded', 'false');
+  }
+  // cerrar el menú al pulsar cualquier enlace del nav
+  document.querySelectorAll('.nav-links a').forEach(function(a) {
+    a.addEventListener('click', cerrarMenu);
+  });
+
+  // ===== Modal de equipos por liga =====
+  var LIGAS_MODAL = {
+    premier:     { nombre:'Premier League',    pais:'Inglaterra', logo:"{% static 'img/ligas/premierleague.png' %}", fd:'PL'  },
+    laliga:      { nombre:'LaLiga',            pais:'España',     logo:"{% static 'img/ligas/laliga.png' %}",        fd:'PD'  },
+    seriea:      { nombre:'Serie A',           pais:'Italia',     logo:"{% static 'img/ligas/seriea.png' %}",        fd:'SA'  },
+    bundesliga:  { nombre:'Bundesliga',        pais:'Alemania',   logo:"{% static 'img/ligas/bundesliga.png' %}",    fd:'BL1' },
+    ligue1:      { nombre:'Ligue 1',           pais:'Francia',    logo:"{% static 'img/ligas/ligue1.png' %}",        fd:'FL1' },
+    champions:   { nombre:'Champions League',  pais:'Europa',     logo:"{% static 'img/ligas/champions.png' %}",     fd:'CL'  },
+    libertadores:{ nombre:'Copa Libertadores', pais:'Sudamérica', logo:"{% static 'img/ligas/libertadores.png' %}",  sdb:'4501' },
+    betplay:     { nombre:'Liga BetPlay',      pais:'Colombia',   logo:"{% static 'img/ligas/betplay.png' %}",       sdb:'4497' }
+  };
+  var LG_EQUIPOS_URL = "{% url 'EquiposLiga' %}";
+  var lgCache = {};
+  var lgActual = null;
+  var lgLista = [];
+
+  function abrirLiga(key) {
+    var cfg = LIGAS_MODAL[key];
+    if (!cfg) return;
+    lgActual = key;
+    var logo = document.getElementById('lgLogo');
+    logo.src = cfg.logo; logo.alt = cfg.nombre;
+    document.getElementById('lgNombre').textContent = cfg.nombre;
+    document.getElementById('lgPais').textContent = cfg.pais;
+    document.getElementById('lgCount').textContent = '—';
+    document.getElementById('lgBuscar').value = '';
+    document.getElementById('lgOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    if (lgCache[key]) { lgPintar(lgCache[key]); return; }
+    lgEstado('cargando');
+    lgTraer(cfg).then(function(lista) {
+      lista = (lista || []).filter(function(e) { return e.nombre; });
+      lgCache[key] = lista;
+      if (lgActual === key) lgPintar(lista);
+    }).catch(function() {
+      if (lgActual === key) lgEstado('error');
+    });
+  }
+
+  function lgTraer(cfg) {
+    if (cfg.fd) {
+      return fetch(LG_EQUIPOS_URL + '?liga=' + cfg.fd)
+        .then(function(r) { return r.json(); })
+        .then(function(j) { return (j.equipos || []).map(function(e) { return { nombre: e.nombre, escudo: e.escudo }; }); });
+    }
+    return fetch('https://www.thesportsdb.com/api/v1/json/3/lookup_all_teams.php?id=' + cfg.sdb)
+      .then(function(r) { return r.json(); })
+      .then(function(j) { return (j.teams || []).map(function(t) { return { nombre: t.strTeam, escudo: t.strBadge || t.strTeamBadge || '' }; }); });
+  }
+
+  function lgPintar(lista) {
+    lgLista = lista;
+    document.getElementById('lgCount').textContent = lista.length + (lista.length === 1 ? ' equipo' : ' equipos');
+    if (!lista.length) { lgEstado('error'); return; }
+    lgRender(lista);
+  }
+
+  function lgRender(lista) {
+    var html = '<div class="lg-grid">';
+    lista.forEach(function(e) {
+      var img = e.escudo ? '<img src="' + e.escudo + '" alt="' + e.nombre + '" loading="lazy" onerror="this.style.display=\'none\'">' : '';
+      html += '<div class="lg-team"><div class="lg-team-shield">' + img + '</div><span class="lg-team-name">' + e.nombre + '</span></div>';
+    });
+    html += '</div>';
+    document.getElementById('lgBody').innerHTML = html;
+  }
+
+  function filtrarEquipos() {
+    var q = document.getElementById('lgBuscar').value.trim().toLowerCase();
+    if (!lgLista.length) return;
+    var f = q ? lgLista.filter(function(e) { return e.nombre.toLowerCase().indexOf(q) > -1; }) : lgLista;
+    if (!f.length) { document.getElementById('lgBody').innerHTML = '<div class="lg-empty">Sin resultados para «' + q + '».</div>'; return; }
+    lgRender(f);
+  }
+
+  function lgEstado(tipo) {
+    var b = document.getElementById('lgBody');
+    if (tipo === 'cargando') {
+      b.innerHTML = '<div class="lg-loading"><span class="lg-spinner"></span><p>Cargando equipos…</p></div>';
+    } else {
+      b.innerHTML = '<div class="lg-empty">No se pudieron cargar los equipos.<br><button class="lg-retry" onclick="lgReintentar()">Reintentar</button></div>';
+    }
+  }
+
+  function lgReintentar() {
+    if (!lgActual) return;
+    delete lgCache[lgActual];
+    abrirLiga(lgActual);
+  }
+
+  function cerrarLiga() {
+    document.getElementById('lgOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  function lgOverlayClick(e) {
+    if (e.target.id === 'lgOverlay') cerrarLiga();
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && document.getElementById('lgOverlay').classList.contains('open')) cerrarLiga();
+  });
+
+  // ===== Scroll reveal (aparición suave de secciones) =====
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(function(el) { observer.observe(el); });
+
+  // ===== Partículas del fondo =====
+  var pWrap = document.getElementById('particles');
+  for (var i = 0; i < 26; i++) {
+    var p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.bottom = '-10px';
+    p.style.animationDuration = (9 + Math.random() * 14) + 's';
+    p.style.animationDelay = (Math.random() * 12) + 's';
+    p.style.opacity = .2 + Math.random() * .5;
+    pWrap.appendChild(p);
+  }
+
+  // ===== Carrusel infinito: duplicamos el contenido para el loop =====
+  var track = document.getElementById('carTrack');
+  track.innerHTML = track.innerHTML + track.innerHTML;
+
+  // ===== Temas de color =====
+  function cambiarTema(color) {
+    document.documentElement.setAttribute('data-tema', color);
+    localStorage.setItem('xgol-tema', color);
+    marcarTemaActivo(color);
+  }
+  function marcarTemaActivo(color) {
+    document.querySelectorAll('.tema-opt').forEach(function(o) {
+      o.classList.toggle('activo', o.getAttribute('data-color') === color);
+    });
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    marcarTemaActivo(localStorage.getItem('xgol-tema') || 'lima');
+  });
+
+  // ===== Pestañas del centro de partidos (Hoy / Próximos / En vivo / Tabla) =====
+  function cambiarTabPartidos(nombre, btn) {
+    document.querySelectorAll('.mtab').forEach(function(b) {
+      b.classList.remove('activo');
+    });
+    btn.classList.add('activo');
+
+    document.querySelectorAll('.mpanel').forEach(function(p) {
+      p.classList.remove('activo');
+    });
+    document.getElementById('mpanel-' + nombre).classList.add('activo');
+
+    if (typeof cargarTab === 'function') { cargarTab(nombre); controlarRefrescoVivo(nombre); }
+    if (typeof cerrarTablaDD === 'function') cerrarTablaDD();
+  }
+
+  // ===== Modal "Cómo funciona" =====
+  var cfIndex = 0;
+  function abrirComoFunciona(e) {
+    if (e) e.preventDefault();
+    cfIndex = 0; cfActualizar();
+    document.getElementById('cfOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function cerrarComoFunciona() {
+    document.getElementById('cfOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  function cfOverlayClick(e) {
+    if (e.target.id === 'cfOverlay') cerrarComoFunciona();
+  }
+  function cfActualizar() {
+    document.getElementById('cfTrack').style.transform = 'translateX(-' + (cfIndex * 100) + '%)';
+    document.querySelectorAll('.cf-dot').forEach(function(d, i) { d.classList.toggle('activo', i === cfIndex); });
+    document.getElementById('cfPrev').style.visibility = (cfIndex === 0) ? 'hidden' : 'visible';
+    document.getElementById('cfNext').style.visibility = (cfIndex === 2) ? 'hidden' : 'visible';
+  }
+  function cfSiguiente() { if (cfIndex < 2) { cfIndex++; cfActualizar(); } }
+  function cfAnterior() { if (cfIndex > 0) { cfIndex--; cfActualizar(); } }
+  function cfIr(i) { cfIndex = i; cfActualizar(); }
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') cerrarComoFunciona(); });
+
+  // ===== Cerrar menús al hacer clic fuera =====
+  document.addEventListener('click', function(e) {
+    var tm = document.getElementById('temaMenu');
+    var am = document.getElementById('accountMenu');
+    if (tm && !e.target.closest('.tema-wrap')) tm.classList.remove('open');
+    if (am && !e.target.closest('.hd-account')) am.classList.remove('open');
+  });
+</script>
+
+<script>
+  window.XGOL_PARTIDOS = {
+    hoy: "{% url 'PartidosHoy' %}",
+    proximos: "{% url 'PartidosProximos' %}",
+    vivo: "{% url 'PartidosVivo' %}",
+    tabla: "{% url 'TablaPosiciones' %}",
+    analisis: "{% if user.is_authenticated %}{% url 'Analizador' %}{% else %}{% url 'Registro' %}{% endif %}"
+  };
+</script>
+<script>
+  // ===== Partidos automáticos desde la API (Hoy / Próximos / En vivo / Tabla) =====
+  const PART = window.XGOL_PARTIDOS || {};
+  const cargados = {};
+
+  function filaPartido(p) {
+    return '<div class="mrow api">' +
+      '<div class="mliga"><span class="mliga-ic"><img src="' + (p.liga_logo||'') + '" alt=""></span><span>' + (p.liga||'') + '</span></div>' +
+      '<div class="mteams">' +
+        '<div class="mteam"><span>' + (p.local||'') + '</span><img src="' + (p.local_logo||'') + '" alt=""></div>' +
+        '<div class="mvs">VS</div>' +
+        '<div class="mteam der"><img src="' + (p.visitante_logo||'') + '" alt=""><span>' + (p.visitante||'') + '</span></div>' +
+      '</div>' +
+      '<div class="mhora">' + (p.hora||'--:--') + '<span>' + (p.fecha||'') + '</span></div>' +
+      '<a class="mver" href="' + PART.analisis + '">Ver análisis</a>' +
+    '</div>';
+  }
+
+  // ---- Marcador en vivo con cronómetro (estilo transmisión) ----
+  function tarjetaVivo(p) {
+    var desc = (p.periodo === 'HT');
+    var pct = 0;
+    if (p.minuto != null) pct = Math.max(2, Math.min(100, Math.round(p.minuto / 90 * 100)));
+
+    // El reloj sigue corriendo entre refrescos: se guarda cuándo empezó
+    var reloj = desc
+      ? '<span class="lc-min lc-ht">DESCANSO</span>'
+      : '<span class="lc-min" data-utc="' + (p.utc||'') + '" data-min="' +
+        (p.minuto != null ? p.minuto : '') + '">' + (p.minuto_texto||'EN VIVO') + '</span>';
+
+    var parcial = (p.goles_1t_local != null && p.goles_1t_visitante != null && p.periodo === '2T')
+      ? '<div class="lc-parcial">1ª parte ' + p.goles_1t_local + '–' + p.goles_1t_visitante + '</div>' : '';
+
+    return '<div class="live-card' + (desc ? ' en-descanso' : '') + '">' +
+      '<div class="lc-league"><span>' + (p.liga||'') + '</span>' +
+        '<span class="lc-conf"><i class="lc-dot"></i>' + (desc ? 'DESCANSO' : 'EN DIRECTO') + '</span></div>' +
+      '<div class="lc-tv">' +
+        '<div class="lc-lado">' +
+          '<div class="lc-shield"><img src="' + (p.local_logo||'') + '" alt="" style="max-width:100%;max-height:100%"></div>' +
+          '<div class="lc-tname">' + (p.local||'') + '</div>' +
+        '</div>' +
+        '<div class="lc-marcador">' +
+          '<div class="lc-goles">' + (p.goles_local ?? 0) + '<i>–</i>' + (p.goles_visitante ?? 0) + '</div>' +
+          reloj +
+        '</div>' +
+        '<div class="lc-lado">' +
+          '<div class="lc-shield"><img src="' + (p.visitante_logo||'') + '" alt="" style="max-width:100%;max-height:100%"></div>' +
+          '<div class="lc-tname">' + (p.visitante||'') + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="lc-barra"><span style="width:' + pct + '%"></span></div>' +
+      parcial +
+      '<div class="lc-meta"><span>' + (p.periodo === '1T' ? 'Primera parte' : p.periodo === '2T' ? 'Segunda parte' : 'En juego') + '</span>' +
+        '<a href="' + PART.analisis + '" style="color:var(--acc);text-decoration:none">Ver análisis</a></div>' +
+    '</div>';
+  }
+
+  // ---- El cronómetro avanza solo entre una consulta y otra ----
+  var tickVivo = null;
+  function arrancarReloj() {
+    if (tickVivo) return;
+    tickVivo = setInterval(function() {
+      var relojes = document.querySelectorAll('.lc-min[data-utc]');
+      for (var i = 0; i < relojes.length; i++) {
+        var utc = relojes[i].getAttribute('data-utc');
+        if (!utc) continue;
+        var ini = new Date(utc).getTime();
+        if (isNaN(ini)) continue;
+        var t = Math.floor((Date.now() - ini) / 60000);
+        if (t < 0) continue;
+        var txt;
+        if (t <= 45) txt = Math.max(1, t) + "'";
+        else if (t <= 60) txt = "45+";
+        else { var m = t - 15; txt = m >= 90 ? "90+" : m + "'"; }
+        relojes[i].textContent = txt;
+      }
+    }, 20000);
+  }
+  function pararReloj() { if (tickVivo) { clearInterval(tickVivo); tickVivo = null; } }
+
+  function filaTabla(f) {
+    var dif = (f.diferencia > 0) ? ('+' + f.diferencia) : (f.diferencia ?? '');
+    return '<tr' + (f.puesto === 1 ? ' class="lider"' : '') + '>' +
+      '<td class="pos">' + (f.puesto||'') + '</td>' +
+      '<td class="eq"><img src="' + (f.escudo||'') + '" alt=""><span>' + (f.equipo||'') + '</span></td>' +
+      '<td>' + (f.jugados ?? '') + '</td>' +
+      '<td>' + dif + '</td>' +
+      '<td class="pts">' + (f.puntos ?? '') + '</td>' +
+    '</tr>';
+  }
+
+  function vacio(msg) { return '<div class="mlive-empty"><h5>' + msg + '</h5></div>'; }
+
+  async function traer(url) {
+    const r = await fetch(url, { headers: { 'X-Requested-With': 'fetch' } });
+    return await r.json();
+  }
+
+  async function cargarHoy() {
+    var cont = document.getElementById('lista-hoy');
+    cont.innerHTML = vacio('Cargando…');
+    try {
+      var d = await traer(PART.hoy); var l = d.partidos || [];
+      cont.innerHTML = l.length ? l.map(filaPartido).join('') : vacio('No hay partidos hoy en las ligas seguidas');
+    } catch (e) { cont.innerHTML = vacio('No se pudieron cargar los partidos'); }
+  }
+
+  async function cargarProximos() {
+    var cont = document.getElementById('lista-proximos');
+    cont.innerHTML = vacio('Cargando…');
+    try {
+      var d = await traer(PART.proximos); var l = d.partidos || [];
+      cont.innerHTML = l.length ? l.map(filaPartido).join('') : vacio('No hay próximos partidos en las ligas seguidas');
+    } catch (e) { cont.innerHTML = vacio('No se pudieron cargar los partidos'); }
+  }
+
+  async function cargarVivo() {
+    var cont = document.getElementById('lista-vivo');
+    if (!cont.innerHTML.trim()) cont.innerHTML = vacio('Cargando…');
+    try {
+      var d = await traer(PART.vivo); var l = d.partidos || [];
+      cont.innerHTML = l.length ? l.map(tarjetaVivo).join('') : vacio('No hay partidos en vivo en este momento');
+    } catch (e) { cont.innerHTML = vacio('No se pudo cargar el directo'); }
+  }
+
+  async function cargarTabla() {
+    var cont = document.getElementById('tabla-posiciones');
+    cont.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--texto-3)">Cargando…</td></tr>';
+    try {
+      var d = await traer(PART.tabla); var l = d.tabla || [];
+      cont.innerHTML = l.length ? l.map(filaTabla).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--texto-3)">Tabla no disponible</td></tr>';
+    } catch (e) { cont.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--texto-3)">No se pudo cargar la tabla</td></tr>'; }
+  }
+
+  function cargarTab(nombre) {
+    if (nombre === 'hoy' && !cargados.hoy) { cargados.hoy = true; cargarHoy(); }
+    if (nombre === 'proximos' && !cargados.proximos) { cargados.proximos = true; cargarProximos(); }
+    if (nombre === 'tabla' && !cargados.tabla) { cargados.tabla = true; cargarTabla(); }
+    if (nombre === 'vivo') { cargarVivo(); }
+  }
+
+  var refrescoVivo = null;
+  function controlarRefrescoVivo(nombre) {
+    if (nombre === 'vivo') {
+      if (!refrescoVivo) refrescoVivo = setInterval(cargarVivo, 30000);
+      arrancarReloj();
+    } else { if (refrescoVivo) { clearInterval(refrescoVivo); refrescoVivo = null; } pararReloj(); }
+  }
+
+  // ===== Dropdown "Tabla de ligas" =====
+  var ligaTablaActual = 'premier';
+
+  function tablaFD(code) {
+    return traer(PART.tabla + '?liga=' + code).then(function(d) { return d.tabla || []; });
+  }
+  function sdbTabla(id, season) {
+    return fetch('https://www.thesportsdb.com/api/v1/json/3/lookuptable.php?l=' + id + '&s=' + season)
+      .then(function(r) { return r.json(); })
+      .then(function(j) {
+        return (j.table || []).map(function(t) {
+          return {
+            puesto: parseInt(t.intRank, 10),
+            equipo: t.strTeam,
+            escudo: t.strBadge || '',
+            jugados: t.intPlayed,
+            diferencia: parseInt(t.intGoalDifference, 10),
+            puntos: t.intPoints
+          };
+        });
+      }).catch(function() { return []; });
+  }
+  async function tablaSDB(id) {
+    var y = new Date().getFullYear();
+    var t = await sdbTabla(id, y);
+    if (!t.length) t = await sdbTabla(id, y - 1);
+    return t;
+  }
+
+  async function cargarTablaLiga(cfg) {
+    var cont = document.getElementById('tabla-posiciones');
+    cont.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--texto-3)">Cargando…</td></tr>';
+    try {
+      var l = cfg.fd ? await tablaFD(cfg.fd) : await tablaSDB(cfg.sdb);
+      cont.innerHTML = l.length ? l.map(filaTabla).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--texto-3)">Tabla no disponible para esta competición</td></tr>';
+    } catch (e) { cont.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--texto-3)">No se pudo cargar la tabla</td></tr>'; }
+  }
+
+  function activarTablaPanel() {
+    document.querySelectorAll('.mtab').forEach(function(b) { b.classList.remove('activo'); });
+    var tr = document.getElementById('ddTrigger'); if (tr) tr.classList.add('activo');
+    document.querySelectorAll('.mpanel').forEach(function(p) { p.classList.remove('activo'); });
+    document.getElementById('mpanel-tabla').classList.add('activo');
+    controlarRefrescoVivo('tabla');
+  }
+  function cabeceraTabla(cfg) {
+    var lg = document.querySelector('.stbl-liga');
+    if (lg) lg.innerHTML = '<img src="' + cfg.logo + '" alt="' + cfg.nombre + '"> ' + cfg.nombre;
+  }
+  function marcarItemTabla(key) {
+    document.querySelectorAll('.dd-item').forEach(function(it) { it.classList.toggle('sel', it.getAttribute('data-liga') === key); });
+  }
+  function cargarLigaTabla(key) {
+    var cfg = (window.LIGAS_MODAL || {})[key]; if (!cfg) return;
+    ligaTablaActual = key;
+    cabeceraTabla(cfg);
+    marcarItemTabla(key);
+    cargarTablaLiga(cfg);
+  }
+
+  function toggleTablaDD(e) {
+    if (e) e.stopPropagation();
+    var dd = document.getElementById('tablaDD');
+    var abriendo = !dd.classList.contains('open');
+    dd.classList.toggle('open', abriendo);
+    var tr = document.getElementById('ddTrigger'); if (tr) tr.setAttribute('aria-expanded', abriendo ? 'true' : 'false');
+    if (abriendo) {
+      activarTablaPanel();
+      if (!cargados.tabla) { cargados.tabla = true; cargarLigaTabla(ligaTablaActual); }
+    }
+  }
+  function cerrarTablaDD() {
+    var dd = document.getElementById('tablaDD'); if (dd) dd.classList.remove('open');
+    var tr = document.getElementById('ddTrigger'); if (tr) tr.setAttribute('aria-expanded', 'false');
+  }
+  function elegirLigaTabla(key) {
+    cargados.tabla = true;
+    activarTablaPanel();
+    cargarLigaTabla(key);
+    cerrarTablaDD();
+  }
+  document.addEventListener('click', function(e) {
+    var dd = document.getElementById('tablaDD');
+    if (dd && dd.classList.contains('open') && !dd.contains(e.target)) cerrarTablaDD();
+  });
+
+  document.addEventListener('DOMContentLoaded', function() { cargarTab('hoy'); });
+</script>
+
+<script src="{% static 'js/prediccion.js' %}?v=1"></script>
+
+</body>
+</html>

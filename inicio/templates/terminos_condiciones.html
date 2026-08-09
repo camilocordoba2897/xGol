@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block Titulo %}
+  Términos y Condiciones · xGol
+{% endblock %}
+
+{% block content %}
+
+  <div style="max-width: 760px; margin: 0 auto;">
+    <h1 style="font-family: var(--ff-display); color: var(--text-0); font-size: 1.7rem; margin-bottom: 6px;">Términos y Condiciones</h1>
+    <p style="color: var(--text-3); font-size: .82rem; margin-bottom: 28px;">Última actualización: 12 de julio de 2026</p>
+
+    <div class="card card--static" style="line-height: 1.75; color: var(--text-1); font-size: .92rem;">
+
+      <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 8px;">1. Objeto</h3>
+      <p style="margin-bottom: 20px;">
+        Estos Términos y Condiciones regulan el acceso y uso de xGol (en adelante, "la Plataforma"), una herramienta de análisis
+        estadístico y probabilístico de fútbol. Al registrarte o usar la Plataforma, aceptas estos términos en su totalidad.
+      </p>
+
+      <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 8px;">2. Descripción del servicio</h3>
+      <p style="margin-bottom: 20px;">
+        xGol ofrece análisis estadístico de partidos de fútbol mediante modelos matemáticos (incluyendo distribución de Poisson
+        y métricas derivadas), con fines informativos y educativos. La Plataforma <strong>no es una casa de apuestas</strong>,
+        no organiza, promueve ni gestiona juegos de suerte y azar, y no acepta ni gestiona dinero de apuestas de ningún tipo.
+      </p>
+
+      <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 8px;">3. Cuenta de usuario</h3>
+      <p style="margin-bottom: 20px;">
+        Para usar las funciones del Analizador debes crear una cuenta con información veraz. Eres responsable de mantener la
+        confidencialidad de tu contraseña y de toda actividad realizada desde tu cuenta.
+      </p>
+
+      <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 8px;">4. Suscripciones y pagos</h3>
+      <p style="margin-bottom: 20px;">
+        El acceso completo a la Plataforma requiere una suscripción paga. Los precios, la vigencia y las condiciones de
+        renovación se muestran al momento de la compra. Las suscripciones no se prorratean ni son reembolsables salvo que la
+        ley aplicable indique lo contrario. xGol se reserva el derecho de modificar los precios con aviso previo razonable.
+      </p>
+
+      <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 8px;">5. Uso aceptable</h3>
+      <p style="margin-bottom: 20px;">
+        No está permitido usar la Plataforma para actividades ilegales, intentar vulnerar su seguridad, ni revender o
+        redistribuir su contenido sin autorización. xGol puede suspender o bloquear cuentas que incumplan estos términos.
+      </p>
+
+      <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 8px;">6. Propiedad intelectual</h3>
+      <p style="margin-bottom: 20px;">
+        El software, los modelos estadísticos, el diseño y las marcas de xGol son propiedad de sus creadores. Ninguna parte
+        de este acuerdo transfiere derechos de propiedad intelectual al usuario.
+      </p>
+
+      <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 8px;">7. Limitación de responsabilidad</h3>
+      <p style="margin-bottom: 20px;">
+        Las probabilidades y análisis mostrados son estimaciones estadísticas y no garantizan resultados. xGol no se hace
+        responsable por decisiones financieras o de apuestas que el usuario tome basado en la información de la Plataforma.
+        El uso de la información es responsabilidad exclusiva del usuario. Consulta también nuestro
+        <a href="{% url 'AvisoLegal' %}" style="color: var(--accent);">Aviso Legal</a>.
+      </p>
+
+      <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 8px;">8. Modificaciones</h3>
+      <p style="margin-bottom: 20px;">
+        xGol puede actualizar estos Términos en cualquier momento. Los cambios se publicarán en esta misma página con su
+        fecha de actualización.
+      </p>
+
+      <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 8px;">9. Legislación aplicable</h3>
+      <p style="margin-bottom: 20px;">
+        Estos Términos se rigen por las leyes de la República de Colombia. Cualquier controversia se someterá a los jueces
+        competentes de Colombia.
+      </p>
+
+      <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 8px;">10. Contacto</h3>
+      <p>
+        Para dudas sobre estos Términos, escríbenos a [correo de contacto de xGol].
+      </p>
+
+    </div>
+  </div>
+
+{% endblock %}
