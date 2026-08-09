@@ -1,0 +1,453 @@
+/* ============================================================
+   SISTEMA DE DISEÑO BASE — xGol
+   Unificado con el Home: Manrope (display) + Inter (cuerpo),
+   fondo negro-abismo #04050A, acento verde-lima y temas.
+   Home mantiene su fondo del estadio; el resto usa este fondo
+   limpio (mejor lectura de formularios, tablas y analizador).
+   ============================================================ */
+:root {
+  /* Superficies llevadas al negro-abismo del Home para máxima nitidez */
+  --bg-0: #04050A;
+  --bg-1: #0A0B0E;
+  --bg-2: #101218;
+  --bg-3: #161922;
+  --line: #1B1E24;
+  --line-soft: #14161B;
+
+  --text-0: #FFFFFF;
+  --text-1: #e7ecf3;
+  --text-2: #c3cdda;
+  --text-3: #94a3b8;
+
+  /* Acento de marca (tema por defecto: lima xGol, igual que el Home) */
+  --accent: #4ade80;
+  --accent-dim: #6ee79a;
+  --accent-deep: #15803d;
+  --accent-glow: rgba(74,222,128,.16);
+  --accent-rgb: 74,222,128;
+  --cian: #22d3ee;
+
+  /* Semánticos (antes se usaban sin definir; ahora existen) */
+  --warn: #fbbf24;
+  --warn-bg: rgba(251,191,36,.12);
+  --bad: #f87171;
+  --bad-bg: rgba(248,113,113,.12);
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+
+  --footer-h: 52px;
+  --ff-display: 'Manrope', sans-serif;
+  --ff-body:    'Inter', sans-serif;
+  --ff-mono:    'JetBrains Mono', monospace;
+  --t: 0.22s cubic-bezier(.4,0,.2,1);
+}
+
+/* ====== TEMAS DE COLOR (mismos acentos que el Home) ====== */
+html[data-tema="azul"]    { --accent:#38bdf8; --accent-dim:#7dd3fc; --accent-glow:rgba(56,189,248,.16); --accent-rgb:56,189,248; }
+html[data-tema="morado"]  { --accent:#a78bfa; --accent-dim:#c4b5fd; --accent-glow:rgba(167,139,250,.16); --accent-rgb:167,139,250; }
+html[data-tema="naranja"] { --accent:#fb923c; --accent-dim:#fdba74; --accent-glow:rgba(251,146,60,.16); --accent-rgb:251,146,60; }
+html[data-tema="rosa"]    { --accent:#f472b6; --accent-dim:#f9a8d4; --accent-glow:rgba(244,114,182,.16); --accent-rgb:244,114,182; }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--ff-body);
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-0);
+  background-color: var(--bg-0);
+  /* Fondo limpio: negro-abismo + halo de acento arriba y azul tenue abajo.
+     Estático (sin partículas ni animación) para no competir con los datos. */
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -8%, var(--accent-glow) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 50% 108%, rgba(59,130,246,.06) 0%, transparent 60%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  min-height: 100vh;
+  padding-bottom: calc(var(--footer-h) + 28px);
+}
+
+/* ── HEADER ── */
+header {
+  background: linear-gradient(135deg, var(--bg-0) 0%, var(--bg-1) 55%, var(--accent-deep) 160%);
+  color: var(--text-0);
+  text-align: center;
+  padding: 38px 24px 32px;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+}
+header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 80% at 80% 20%, var(--accent-glow) 0%, transparent 60%);
+  pointer-events: none;
+}
+header h1 {
+  font-family: var(--ff-display);
+  font-size: 2.15rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  position: relative;
+  z-index: 1;
+}
+header h1 .dot {
+  display: inline-block;
+  width: 9px; height: 9px;
+  background: var(--accent);
+  border-radius: 50%;
+  margin-left: 4px;
+  vertical-align: middle;
+  margin-bottom: 6px;
+  box-shadow: 0 0 12px var(--accent);
+}
+
+/* La x del logo xGol siempre en verde lima (identidad de marca) */
+.logo-x {
+  color: #4ade80;
+}
+
+/* ── NAV ── */
+nav {
+  background: var(--bg-1);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 13px 24px;
+}
+nav a {
+  font-family: var(--ff-display);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--text-1);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  padding: 9px 18px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transition: all var(--t);
+  white-space: nowrap;
+}
+nav a:hover {
+  color: var(--bg-0);
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 4px 16px var(--accent-glow);
+  transform: translateY(-2px);
+}
+nav a svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+/* ── CONTENT ── */
+.content-wrapper {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 38px 24px;
+}
+
+/* ── UTILIDADES ── */
+.card {
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 30px;
+  transition: border-color var(--t), transform var(--t);
+}
+.card:hover { border-color: var(--accent-dim); transform: translateY(-2px); }
+
+.card--static:hover { transform: none; border-color: var(--line); }
+
+.social-btn { transition: transform var(--t), border-color var(--t); }
+.social-btn:hover { transform: translateY(-2px); border-color: var(--accent-dim); }
+
+.link-lift { display: inline-block; transition: transform var(--t); }
+.link-lift:hover { transform: translateY(-2px); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--ff-display);
+  font-size: 0.82rem; font-weight: 600;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  border: none; border-radius: 999px;
+  padding: 11px 26px; cursor: pointer;
+  text-decoration: none;
+  transition: all var(--t);
+}
+.btn-primary { background: var(--accent); color: #06231a; filter: saturate(.65) brightness(.8); }
+.btn-primary:hover { filter: brightness(.65); }
+.btn-primary:active { filter: brightness(.55); }
+.btn-secondary { background: var(--bg-2); color: var(--text-1); border: 1px solid var(--line); }
+.btn-secondary:hover { border-color: var(--accent-dim); color: var(--text-0); transform: translateY(-2px); }
+
+.section-title {
+  font-family: var(--ff-display);
+  font-size: clamp(1.3rem, 3vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text-0);
+  margin-bottom: 6px;
+}
+.section-subtitle { font-size: 0.95rem; color: var(--text-2); margin-bottom: 28px; }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--bg-0);
+  color: var(--text-2);
+  text-align: center;
+  height: var(--footer-h);
+  display: flex; align-items: center; justify-content: center;
+  position: fixed; bottom: 0; left: 0; width: 100%;
+  z-index: 200;
+  font-family: var(--ff-display);
+  font-size: 0.76rem; font-weight: 500;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  border-top: 1px solid var(--line);
+}
+footer p { display: flex; align-items: center; gap: 9px; }
+footer p::before { content: ''; display: inline-block; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--accent); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 640px) {
+  nav { padding: 10px 12px; gap: 7px; }
+  nav a { font-size: 0.72rem; padding: 7px 13px; }
+  .content-wrapper { padding: 22px 14px; }
+  .card { padding: 20px; }
+}
+
+/* ============================================================
+   FRANJA DE ADMINISTRACIÓN — distingue el panel del admin
+   ============================================================ */
+.admin-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(135deg, var(--bg-2), var(--bg-1));
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: 16px 22px;
+  margin-bottom: 28px;
+}
+.admin-banner .admin-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: var(--accent);
+  display: grid; place-items: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+.admin-banner .admin-text { flex: 1; }
+.admin-banner .admin-tag {
+  font-family: var(--ff-display);
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--accent);
+}
+.admin-banner .admin-title {
+  font-family: var(--ff-display);
+  font-size: 1.3rem; font-weight: 700;
+  color: var(--text-0); letter-spacing: -0.02em;
+}
+.admin-banner .admin-badge {
+  font-family: var(--ff-mono);
+  font-size: 0.78rem; font-weight: 700;
+  color: #ffffff;
+  background: var(--bg-0);
+  border: 1px solid var(--accent);
+  padding: 6px 14px; border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* Tarjetas de resumen del admin (mismo look que el número de precio de los planes) */
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.admin-stat {
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  text-align: center;
+  transition: transform var(--t), border-color var(--t);
+}
+.admin-stat:hover { transform: translateY(-4px); border-color: rgba(var(--accent-rgb),.5); }
+.admin-stat .stat-num {
+  font-family: var(--ff-display);
+  font-size: 2.3rem; font-weight: 800;
+  color: var(--text-0); line-height: 1;
+  letter-spacing: -.02em;
+}
+.admin-stat .stat-lbl {
+  font-size: 0.82rem; color: var(--text-3);
+  margin-top: 8px; text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Título de sección con línea */
+.admin-section-title {
+  font-family: var(--ff-display);
+  font-size: 1.1rem; font-weight: 700;
+  color: var(--text-0); margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--line);
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* ============================================================
+   BOTONES DE ACCIÓN (tablas admin) — estilo fantasma
+   Borde y texto del color de la acción, fondo casi transparente.
+   Orden de la fila:
+     [ Cancelar sub. (izquierda, ranura fija) ] [ Editar ] [ Bloquear/Activar ] ...... [ Eliminar (derecha) ]
+   ============================================================ */
+/* Grupo compacto, separación mínima (8px). Orden: Cancelar sub. -> Editar -> Bloquear -> Eliminar */
+.acc-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+/* Ranura fija para "Cancelar sub." a la izquierda. Aunque la fila no tenga
+   suscripcion, reserva el mismo espacio para que "Editar" quede siempre en la
+   misma columna y el encabezado "Acciones" caiga justo encima de Editar. */
+.acc-cancelar-slot {
+  flex: 0 0 124px;
+  display: flex;
+}
+.acc-cancelar-slot .act-btn {
+  width: 100%;
+}
+
+.act-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--ff-display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 6px 13px;
+  border-radius: 8px;
+  text-decoration: none;
+  white-space: nowrap;
+  background: transparent;
+  border: 1px solid currentColor;
+  transition: all var(--t);
+}
+.act-btn:hover { transform: translateY(-1px); }
+
+.act-editar   { color: var(--cian); }
+.act-bloquear { color: var(--text-3); }
+.act-activar  { color: var(--accent); }
+.act-cancelar { color: var(--warn); }
+.act-eliminar { color: var(--bad); }
+
+.act-editar:hover   { background: rgba(34,211,238,.12); }
+.act-bloquear:hover { background: rgba(255,255,255,.06); color: var(--text-1); }
+.act-activar:hover  { background: var(--accent-glow); }
+.act-cancelar:hover { background: var(--warn-bg); }
+.act-eliminar:hover { background: var(--bad-bg); }
+
+/* ============================================================
+   PLANES (idéntico al Home) — alias de variables para reusar
+   exactamente el mismo diseño de tarjetas de planes-grid/.plan
+   ============================================================ */
+.planes-grid-wrap{
+  --acc: var(--accent);
+  --acc-bright: var(--accent-dim);
+  --acc-rgb: var(--accent-rgb);
+  --bg-card: var(--bg-1);
+  --borde: var(--line);
+  --texto-0: var(--text-0);
+  --texto-2: var(--text-2);
+  --texto-3: var(--text-3);
+  --r-lg: var(--radius-lg);
+}
+.planes-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:20px;
+  max-width:700px;
+  margin:0 auto;
+}
+.plan{
+  position:relative;
+  background:var(--bg-card);
+  border:1px solid var(--borde);
+  border-radius:var(--r-lg);
+  padding:30px 26px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  transition:transform var(--t), border-color var(--t);
+}
+.plan:hover{ border-color:rgba(var(--acc-rgb),.5); }
+.plan.destacado{ border-color:var(--acc); box-shadow:0 0 0 1px var(--acc), 0 20px 50px rgba(var(--acc-rgb),.12); }
+.plan.plan-actual{ opacity:.5; filter:grayscale(.5); border-color:var(--borde); }
+.plan.plan-actual:hover{ transform:none; border-color:var(--borde); }
+.plan.plan-bloqueado{ opacity:.45; }
+.plan.plan-bloqueado:hover{ transform:none; border-color:var(--borde); }
+
+.plan-badge{
+  position:absolute; top:-11px; left:50%; transform:translateX(-50%);
+  background:var(--acc); color:#06231a;
+  font-family:var(--ff-display); font-weight:700; font-size:.68rem;
+  letter-spacing:.08em; text-transform:uppercase;
+  padding:5px 14px; border-radius:999px; white-space:nowrap;
+}
+.plan-nombre{ font-family:var(--ff-display); font-weight:700; font-size:1.25rem; color:var(--texto-0); }
+.plan-desc{ color:var(--texto-3); font-size:.85rem; margin-top:4px; }
+.plan-precio{ margin:18px 0 4px; display:flex; align-items:flex-end; justify-content:center; gap:6px; }
+.plan-precio .val{ font-family:var(--ff-display); font-weight:800; font-size:2.3rem; color:var(--texto-0); line-height:1; letter-spacing:-.02em; }
+.plan-precio .cur{ color:var(--texto-3); font-size:.85rem; font-weight:600; margin-bottom:5px; }
+.plan-periodo{ color:var(--texto-2); font-size:.82rem; }
+.plan-ahorro{
+  display:inline-block; margin-top:10px;
+  background:rgba(var(--acc-rgb),.12); color:var(--acc-bright);
+  font-size:.75rem; font-weight:700; padding:4px 10px; border-radius:999px;
+}
+.plan-features{ list-style:none; margin:20px 0 24px; display:flex; flex-direction:column; align-items:center; gap:10px; width:100%; }
+.plan-features li{ display:flex; align-items:flex-start; justify-content:center; gap:9px; color:var(--texto-2); font-size:.88rem; text-align:left; max-width:230px; }
+.plan-features li svg{ flex-shrink:0; margin-top:2px; color:var(--acc); }
+.plan-cta{
+  margin-top:auto;
+  display:block; width:100%; text-align:center; text-decoration:none;
+  font-family:var(--ff-display); font-weight:700; font-size:.9rem;
+  padding:13px; border-radius:999px;
+  transition:all var(--t);
+  border: none; cursor: pointer;
+}
+.plan-cta.primario{ background:var(--acc); color:#06231a; }
+.plan-cta.primario:hover{ filter:brightness(.85); }
+.plan-cta.secundario{ background:transparent; color:var(--texto-0); border:1px solid var(--borde); }
+.plan-cta.secundario:hover{ border-color:var(--acc); color:var(--acc); }
+.plan-cta.deshabilitado{ background:var(--bg-3); color:var(--texto-3); border:1px solid var(--borde); cursor:not-allowed; }
+.plan-cta.deshabilitado:hover{ transform:none; }
+
+@media (max-width:820px){
+  .planes-grid{ grid-template-columns:1fr; max-width:380px; }
+}
+/* RESPONSIVE — tablas (panel admin) legibles y deslizables en móvil */
+@media (max-width: 640px) {
+  .content-wrapper table { min-width: 560px; }
+}
