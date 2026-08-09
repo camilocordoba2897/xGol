@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block Titulo %}
+  Editar usuario
+{% endblock %}
+
+{% block content %}
+
+  <div class="admin-banner">
+    <div class="admin-icon">✏️</div>
+    <div class="admin-text">
+      <div class="admin-tag">Gestión de usuarios</div>
+      <div class="admin-title">Editar a {{ usuario.username }}</div>
+    </div>
+    <div class="admin-badge">ADMINISTRACIÓN</div>
+  </div>
+
+  <div class="card" style="max-width: 520px;">
+    <form action="{% url 'AdminEditarUsuario' usuario.id %}" method="post">
+      {% csrf_token %}
+
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: .85rem; font-weight: 600; color: var(--text-1); margin-bottom: 6px;">Usuario</label>
+        <input type="text" value="{{ usuario.username }}" disabled
+               style="width: 100%; background: var(--bg-0); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--text-2); font-family: var(--ff-body); font-size: .95rem; opacity: .6;">
+        <span style="font-size: .78rem; color: var(--text-2);">El nombre de usuario no se puede cambiar</span>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: .85rem; font-weight: 600; color: var(--text-1); margin-bottom: 6px;">Nombre</label>
+        <input type="text" name="nombre" value="{{ usuario.first_name }}" placeholder="Nombre"
+               style="width: 100%; background: var(--bg-0); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--text-0); font-family: var(--ff-body); font-size: .95rem;">
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: .85rem; font-weight: 600; color: var(--text-1); margin-bottom: 6px;">Correo</label>
+        <input type="email" name="correo" value="{{ usuario.email }}" placeholder="correo@ejemplo.com"
+               style="width: 100%; background: var(--bg-0); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--text-0); font-family: var(--ff-body); font-size: .95rem;">
+      </div>
+
+      <div style="margin-bottom: 22px;">
+        <label style="display: block; font-size: .85rem; font-weight: 600; color: var(--text-1); margin-bottom: 6px;">Teléfono</label>
+        <input type="text" name="telefono" value="{{ perfil.telefono|default:'' }}" placeholder="Teléfono"
+               style="width: 100%; background: var(--bg-0); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--text-0); font-family: var(--ff-body); font-size: .95rem;">
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        <a href="{% url 'PanelAdmin' %}" class="btn btn-secondary">Cancelar</a>
+      </div>
+    </form>
+  </div>
+
+{% endblock %}

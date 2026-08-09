@@ -1,0 +1,212 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>xGol — Mi perfil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/perfil.css' %}?v=9">
+<script>
+  // Aplicamos el tema guardado ANTES de pintar para que no parpadee
+  (function() {
+    var t = localStorage.getItem('xgol-tema');
+    if (t) { document.documentElement.setAttribute('data-tema', t); }
+  })();
+</script>
+</head>
+<body class="perfil">
+
+<header class="ph-head">
+  <a href="{% url 'Inicio' %}" class="ph-logo"><span class="x">x</span>Gol</a>
+  <nav class="ph-nav">
+    <a href="{% url 'Inicio' %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Inicio
+    </a>
+  </nav>
+</header>
+
+<main class="ph-wrap">
+  <div class="ph-title-row">
+    <h1 class="ph-title">Mi perfil</h1>
+    <p class="ph-subtitle">Edita tus datos personales y tu contraseña</p>
+  </div>
+
+  {% if messages %}
+    <div class="ph-flash-wrap">
+      {% for i in messages %}
+        <p class="ph-flash {{ i.tags }}">{{ i }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="ph-grid">
+
+    <section class="ph-card">
+      <h2 class="ph-card-title">Datos personales</h2>
+
+      <form action="{% url 'EditarPerfil' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="datos">
+
+        <div class="ph-avatar-row">
+          {% if perfil.avatar %}
+            <img class="ph-avatar" src="{{ perfil.avatar.url }}" alt="avatar" id="preview">
+          {% else %}
+            <div class="ph-avatar-ph" id="preview-ph">{{ user.username|first|upper }}</div>
+          {% endif %}
+          <div class="ph-avatar-info">
+            <label class="ph-file-btn">
+              Cambiar foto
+              <input type="file" name="avatar" accept="image/*" hidden onchange="document.getElementById('fname').textContent = this.files[0] ? this.files[0].name : 'Ningún archivo'">
+            </label>
+            <span class="ph-file-name" id="fname">Ningún archivo</span>
+          </div>
+        </div>
+
+        {% if es_google %}
+        <div class="ph-field">
+          <label>Usuario</label>
+          <input type="text" value="{{ user.username }}" disabled class="ph-input ph-disabled">
+        </div>
+        {% else %}
+        <div class="ph-field">
+          <label>Usuario</label>
+          <input type="text" name="username" value="{{ user.username }}" placeholder="Tu usuario" class="ph-input">
+        </div>
+        {% endif %}
+
+        <div class="ph-field">
+          <label>Nombre</label>
+          <input type="text" name="nombre" value="{{ user.first_name }}" placeholder="Tu nombre" class="ph-input">
+        </div>
+
+        {% if es_google %}
+        <div class="ph-field">
+          <label>Correo</label>
+          <input type="email" value="{{ user.email }}" disabled class="ph-input ph-disabled">
+        </div>
+        {% else %}
+        <div class="ph-field">
+          <label>Correo</label>
+          <input type="email" name="correo" value="{{ user.email }}" placeholder="tucorreo@ejemplo.com" class="ph-input">
+        </div>
+        {% endif %}
+
+        <div class="ph-field">
+          <label>Teléfono</label>
+          <input type="text" name="telefono" value="{{ perfil.telefono|default:'' }}" placeholder="Tu teléfono" class="ph-input">
+        </div>
+
+        <button type="submit" class="ph-btn ph-btn-lima">Guardar datos</button>
+      </form>
+    </section>
+
+    {% if es_google %}
+    <section class="ph-card">
+      <h2 class="ph-card-title">Método de acceso</h2>
+      <p class="ph-card-desc">Así inicias sesión en xGol.</p>
+
+      <div class="ph-method">
+        <div class="ph-method-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.76h3.56c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.56-2.76c-.98.66-2.23 1.06-3.72 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.09a6.6 6.6 0 0 1 0-4.18V7.07H2.18a11 11 0 0 0 0 9.86l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        </div>
+        <div class="ph-method-txt">
+          <span class="ph-method-label">Método de acceso</span>
+          <span class="ph-method-value">Google</span>
+        </div>
+      </div>
+
+      <div class="ph-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <p>Tu contraseña se administra desde tu cuenta de Google. Para cambiarla, hazlo directamente desde Google.</p>
+      </div>
+    </section>
+    {% else %}
+    <section class="ph-card">
+      <h2 class="ph-card-title ph-card-title-solo">Cambiar contraseña</h2>
+
+      <form action="{% url 'EditarPerfil' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="clave">
+
+        <div class="ph-field">
+          <label>Contraseña actual</label>
+          <input type="password" name="clave_actual" placeholder="Tu contraseña actual" required class="ph-input">
+        </div>
+
+        <div class="ph-field">
+          <label>Contraseña nueva</label>
+          <input type="password" name="clave_nueva" id="ph-clave-nueva" placeholder="Mínimo 8 caracteres" required class="ph-input">
+
+          <ul class="ph-reqs" id="ph-reqs" hidden>
+            <li data-regla="longitud">Debe ser de 8 a 16 caracteres</li>
+            <li data-regla="minuscula">Al menos 1 letra minúscula</li>
+            <li data-regla="mayuscula">Al menos 1 letra mayúscula</li>
+            <li data-regla="numero">Al menos 1 número</li>
+            <li data-regla="especial">Al menos 1 carácter especial</li>
+          </ul>
+        </div>
+
+        <div class="ph-field">
+          <label>Repetir contraseña nueva</label>
+          <input type="password" name="clave_confirmar" placeholder="Repite la nueva contraseña" required class="ph-input">
+        </div>
+
+        <button type="submit" class="ph-btn ph-btn-lima">Cambiar contraseña</button>
+      </form>
+    </section>
+    {% endif %}
+
+  </div>
+</main>
+
+{% if not es_google %}
+<style>
+  .ph-reqs[hidden]{display:none;}
+  .ph-reqs{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;}
+  .ph-reqs li{font-size:13px;line-height:1.3;color:#e05a5a;display:flex;align-items:center;gap:8px;transition:color .18s;}
+  .ph-reqs li::before{content:"\2715";font-weight:800;font-size:12px;width:14px;text-align:center;}
+  .ph-reqs li.ok{color:#8fd18f;}
+  .ph-reqs li.ok::before{content:"\2713";}
+</style>
+<script>
+  (function(){
+    var input=document.getElementById("ph-clave-nueva");
+    if(!input) return;
+
+    var reglas={
+      longitud:function(v){ return v.length>=8 && v.length<=16; },
+      minuscula:function(v){ return /[a-z]/.test(v); },
+      mayuscula:function(v){ return /[A-Z]/.test(v); },
+      numero:function(v){ return /[0-9]/.test(v); },
+      especial:function(v){ return /[^A-Za-z0-9]/.test(v); }
+    };
+
+    var reqs=document.getElementById("ph-reqs");
+    var items=document.querySelectorAll("#ph-reqs li");
+
+    function validar(){
+      var v=input.value;
+      items.forEach(function(li){
+        var regla=li.getAttribute("data-regla");
+        if(reglas[regla](v)){
+          li.classList.add("ok");
+        }else{
+          li.classList.remove("ok");
+        }
+      });
+    }
+
+    input.addEventListener("focus",function(){ reqs.hidden=false; });
+    input.addEventListener("blur",function(){ reqs.hidden=true; });
+    input.addEventListener("input",validar);
+  })();
+</script>
+{% endif %}
+
+</body>
+</html>

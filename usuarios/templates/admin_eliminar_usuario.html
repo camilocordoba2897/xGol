@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block Titulo %}
+  Eliminar usuario
+{% endblock %}
+
+{% block content %}
+
+  <div class="admin-banner">
+    <div class="admin-icon">⚠️</div>
+    <div class="admin-text">
+      <div class="admin-tag">Acción irreversible</div>
+      <div class="admin-title">Eliminar usuario</div>
+    </div>
+    <div class="admin-badge">ADMINISTRACIÓN</div>
+  </div>
+
+  <div class="card" style="max-width: 520px; border-left: 4px solid var(--bad);">
+    <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 12px;">¿Eliminar a {{ usuario.username }}?</h3>
+    <p style="color: var(--text-1); margin-bottom: 8px;">
+      Estás a punto de eliminar permanentemente la cuenta de
+      <strong style="color: var(--bad);">{{ usuario.username }}</strong>.
+    </p>
+    <p style="color: var(--text-2); font-size: .88rem; margin-bottom: 24px;">
+      Esta acción no se puede deshacer. Se borrarán todos sus datos y su perfil.
+    </p>
+
+    <form action="{% url 'AdminEliminarUsuario' usuario.id %}" method="post">
+      {% csrf_token %}
+      <div style="display: flex; gap: 10px;">
+        <button type="submit" class="btn" style="background: var(--bad); color: #fff;">Sí, eliminar</button>
+        <a href="{% url 'PanelAdmin' %}" class="btn btn-secondary">Cancelar</a>
+      </div>
+    </form>
+  </div>
+
+{% endblock %}

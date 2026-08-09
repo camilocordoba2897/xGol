@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block Titulo %}
+  Panel de administrador
+{% endblock %}
+
+{% block content %}
+
+  <div class="admin-banner">
+    <div class="admin-icon">🛡️</div>
+    <div class="admin-text">
+      <div class="admin-tag">Zona restringida</div>
+      <div class="admin-title">Panel de administración</div>
+    </div>
+  </div>
+
+  {% if messages %}
+    {% for i in messages %}
+      <div class="card" style="border-left: 4px solid var(--accent); margin-bottom: 16px;">
+        <p style="color: var(--text-1);">{{ i }}</p>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="admin-stats">
+    <div class="admin-stat">
+      <div class="stat-num">{{ total_usuarios }}</div>
+      <div class="stat-lbl">Usuarios registrados</div>
+    </div>
+    <div class="admin-stat">
+      <div class="stat-num">{{ suscripciones_activas }}</div>
+      <div class="stat-lbl">Suscripciones activas</div>
+    </div>
+    <div class="admin-stat">
+      <div class="stat-num">{{ por_vencer|length }}</div>
+      <div class="stat-lbl">Por vencer (5 días)</div>
+    </div>
+  </div>
+
+  {% if por_vencer %}
+  <div class="card" style="border-left: 4px solid var(--warn); margin-bottom: 24px;">
+    <h3 style="font-family: var(--ff-display); color: var(--warn); margin-bottom: 10px;">⚠️ Suscripciones por vencer</h3>
+    <p style="color: var(--text-2); font-size: .88rem; margin-bottom: 12px;">Estos usuarios vencen en 5 días o menos:</p>
+    {% for i in por_vencer %}
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-top: 1px solid var(--line);">
+        <span style="color: var(--text-0);">{{ i.usuario.username }}</span>
+        <span style="color: var(--warn); font-family: var(--ff-mono); font-size: .85rem;">vence {{ i.vencimiento|date:"d/m/Y" }}</span>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  
+  <h3 class="admin-section-title">💰 Dinero</h3>
+  <div style="display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap;">
+    <a href="{% url 'PanelFinanzas' %}" class="btn btn-primary">📈 Control financiero</a>
+  </div>
+  <h3 class="admin-section-title">🧮 Analizador (solo administrador)</h3>
+  <div style="display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap;">
+    <a href="{% url 'Analizador' %}?tab=history" class="btn btn-primary">📋 Ver Historial</a>
+    <a href="{% url 'Analizador' %}?tab=validation" class="btn btn-primary">📊 Ver Rendimiento</a>
+  </div>
+
+<div style="display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; padding-top: 20px; border-top: 1px solid var(--line);">
+    <a href="{% url 'AdminCrearUsuario' %}" class="btn btn-primary">+ Crear usuario</a>
+  </div>
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; flex-wrap: wrap;">
+    <h3 class="admin-section-title" style="margin-bottom: 0; border-bottom: none; padding-bottom: 0;">👥 Usuarios y suscripciones</h3>
+    <input type="text" id="buscarUsuario" placeholder="Buscar usuario..." oninput="filtrarUsuarios()"
+           style="background: var(--bg-2); border: 1px solid var(--text-3); border-radius: 10px; padding: 9px 14px; color: var(--text-1); font-family: var(--ff-body); font-size: .88rem; min-width: 220px;">
+  </div>
+  <div style="overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius-md); margin-bottom: 32px;">
+    <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+      <thead>
+        <tr style="background: var(--bg-3);">
+          <th style="font-family: var(--ff-display); text-align: center; padding: 13px 16px; color: var(--text-1); text-transform: uppercase; font-size: .72rem; letter-spacing: .06em;">Usuario</th>
+          <th style="font-family: var(--ff-display); text-align: center; padding: 13px 16px; color: var(--text-1); text-transform: uppercase; font-size: .72rem; letter-spacing: .06em;">Suscripción</th>
+          <th style="font-family: var(--ff-display); text-align: center; padding: 13px 16px; color: var(--text-1); text-transform: uppercase; font-size: .72rem; letter-spacing: .06em;">Vence</th>
+          <th style="font-family: var(--ff-display); text-align: center; padding: 13px 16px; color: var(--text-1); text-transform: uppercase; font-size: .72rem; letter-spacing: .06em;">Estado cuenta</th>
+          <th style="font-family: var(--ff-display); text-align: center; padding: 13px 16px 13px 148px; color: var(--text-1); text-transform: uppercase; font-size: .72rem; letter-spacing: .06em;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tablaUsuarios">
+        {% for i in perfiles %}
+        <tr style="border-top: 1px solid var(--line);" data-usuario="{{ i.usuario.username|lower }}">
+          <td style="padding: 12px 16px; color: var(--text-0); text-align: center;">
+            {{ i.usuario.username }}
+          </td>
+          <td style="padding: 12px 16px; text-align: center;">
+            {% if i.usuario.suscripcion.esta_vigente %}
+              <span style="color: var(--accent); font-size: .82rem; font-weight: 600;">● Activa</span>
+            {% else %}
+              <span style="color: var(--text-3); font-size: .82rem;">○ Sin suscripción</span>
+            {% endif %}
+          </td>
+          <td style="padding: 12px 16px; color: var(--text-2); font-family: var(--ff-mono); font-size: .82rem; text-align: center;">
+            {% if i.usuario.suscripcion.vencimiento %}{{ i.usuario.suscripcion.vencimiento|date:"d/m/Y" }}{% else %}—{% endif %}
+          </td>
+          <td style="padding: 12px 16px; text-align: center;">
+            {% if i.usuario.is_active %}
+              <span style="color: var(--accent); font-size: .82rem;">Activa</span>
+            {% else %}
+              <span style="color: var(--bad); font-size: .82rem;">Bloqueada</span>
+            {% endif %}
+          </td>
+          <td style="padding: 12px 16px; text-align: center;">
+            <div class="acc-row">
+              <div class="acc-cancelar-slot">
+                {% if i.usuario.suscripcion.esta_vigente %}
+                  <form action="{% url 'AdminCancelarSuscripcion' i.usuario.id %}" method="post" style="display:inline"
+                        onsubmit="return confirm('¿Cancelar la suscripción de {{ i.usuario.username }}?')">
+                    {% csrf_token %}
+                    <button type="submit" class="act-btn act-cancelar" style="cursor:pointer">Cancelar sub.</button>
+                  </form>
+                {% else %}
+                  <form action="{% url 'AdminActivarSuscripcion' i.usuario.id %}" method="post" style="display:inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="plan" value="mensual">
+                    <input type="hidden" name="metodo" value="Manual">
+                    <button type="submit" class="act-btn act-activar" style="cursor:pointer">Activar mes</button>
+                  </form>
+                {% endif %}
+              </div>
+              <a href="{% url 'AdminEditarUsuario' i.usuario.id %}" class="act-btn act-editar">Editar</a>
+              {% if i.usuario.is_active %}
+                <a href="{% url 'AdminEstadoUsuario' i.usuario.id %}" class="act-btn act-bloquear">Bloquear</a>
+              {% else %}
+                <a href="{% url 'AdminEstadoUsuario' i.usuario.id %}" class="act-btn act-activar">Activar</a>
+              {% endif %}
+              <a href="{% url 'AdminEliminarUsuario' i.usuario.id %}" class="act-btn act-eliminar">Eliminar</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="admin-section-title">📋 Últimos accesos</h3>
+  <div style="overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius-md);">
+    <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+      <thead>
+        <tr style="background: var(--bg-3);">
+          <th style="font-family: var(--ff-display); text-align: center; padding: 13px 16px; color: var(--text-1); text-transform: uppercase; font-size: .72rem; letter-spacing: .06em;">Accion</th>
+          <th style="font-family: var(--ff-display); text-align: center; padding: 13px 16px; color: var(--text-1); text-transform: uppercase; font-size: .72rem; letter-spacing: .06em;">Usuario</th>
+          <th style="font-family: var(--ff-display); text-align: center; padding: 13px 16px; color: var(--text-1); text-transform: uppercase; font-size: .72rem; letter-spacing: .06em;">IP</th>
+          <th style="font-family: var(--ff-display); text-align: center; padding: 13px 16px; color: var(--text-1); text-transform: uppercase; font-size: .72rem; letter-spacing: .06em;">Fecha</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for i in accesos %}
+        <tr style="border-top: 1px solid var(--line);">
+          <td style="padding: 12px 16px; color: var(--text-0); text-align: center;">{{ i.accion }}</td>
+          <td style="padding: 12px 16px; color: var(--text-1); text-align: center;">{{ i.usuario.username }}</td>
+          <td style="padding: 12px 16px; color: var(--text-2); font-family: var(--ff-mono); font-size: .82rem; text-align: center;">{{ i.ip }}</td>
+          <td style="padding: 12px 16px; color: var(--text-2); font-family: var(--ff-mono); font-size: .82rem; text-align: center;">{{ i.creado|date:"d/m/Y H:i" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    function filtrarUsuarios() {
+      var texto = document.getElementById('buscarUsuario').value.toLowerCase();
+      document.querySelectorAll('#tablaUsuarios tr').forEach(function(fila) {
+        var nombre = fila.getAttribute('data-usuario') || '';
+        fila.style.display = nombre.includes(texto) ? '' : 'none';
+      });
+    }
+  </script>
+
+{% endblock %}

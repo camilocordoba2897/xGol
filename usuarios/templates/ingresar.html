@@ -1,0 +1,248 @@
+{% load static %}
+{% load socialaccount %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#05060A">
+<title>xGol — Ingresar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/ingresar.css' %}?v=7">
+<script>
+  (function() {
+    var t = localStorage.getItem('xgol-tema');
+    if (t) { document.documentElement.setAttribute('data-tema', t); }
+  })();
+</script>
+</head>
+
+<body>
+
+  <header class="barra">
+    <a class="barra-inicio" href="{% url 'Inicio' %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Inicio
+    </a>
+  </header>
+
+  <main class="escenario">
+    <div class="login-marco">
+      <div class="login-carta">
+
+        <!-- ================= MOTOR TÁCTICO ================= -->
+        <section class="pizarra">
+
+          <svg class="pizarra-svg" viewBox="0 0 440 600" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true">
+            <defs>
+              <radialGradient id="radarGrad" cx="0" cy="0" r="1">
+                <stop offset="0" style="stop-color:rgba(var(--accent-rgb),.22)"/>
+                <stop offset="1" style="stop-color:rgba(var(--accent-rgb),0)"/>
+              </radialGradient>
+              <path id="ruta" d="M330,470 L140,360 L350,220 L240,130 C232,96 228,72 222,52"/>
+            </defs>
+
+            <!-- campo -->
+            <rect class="tac-linea" x="40" y="40" width="360" height="520" rx="2"/>
+            <line class="tac-linea" x1="40" y1="300" x2="400" y2="300"/>
+            <circle class="tac-linea" cx="220" cy="300" r="48"/>
+            <rect class="tac-linea" x="130" y="40" width="180" height="72"/>
+            <rect class="tac-linea" x="172" y="40" width="96" height="30"/>
+            <rect class="tac-linea" x="130" y="488" width="180" height="72"/>
+            <rect class="tac-linea" x="172" y="530" width="96" height="30"/>
+            <line class="tac-suave" x1="40" y1="213" x2="400" y2="213"/>
+            <line class="tac-suave" x1="40" y1="387" x2="400" y2="387"/>
+            <line class="tac-suave" x1="160" y1="40" x2="160" y2="560"/>
+            <line class="tac-suave" x1="280" y1="40" x2="280" y2="560"/>
+
+            <!-- zona de probabilidad: radar giratorio, no blobs -->
+            <circle class="radar-anillo" cx="220" cy="300" r="150"/>
+            <circle class="radar-anillo" cx="220" cy="300" r="100"/>
+            <g class="radar-grp" transform="translate(220,300)">
+              <path class="radar-barrido" d="M0,0 L0,-150 A150,150 0 0,1 106,-106 Z"/>
+            </g>
+
+            <!-- partículas de datos -->
+            <circle class="dato dato-1" cx="75"  cy="520" r="1.4"/>
+            <circle class="dato dato-2" cx="205" cy="545" r="1.2"/>
+            <circle class="dato dato-3 dato-acento" cx="330" cy="530" r="1.5"/>
+            <circle class="dato dato-4" cx="130" cy="555" r="1.1"/>
+            <text class="dato dato-5 dato-num" x="58"  y="548">0.42</text>
+            <text class="dato dato-6 dato-num" x="288" y="556">xG</text>
+
+            <!-- arco y red -->
+            <g class="red-g">
+              <path class="tac-arco" d="M185,40 L185,26 L255,26 L255,40"/>
+              <g class="tac-red">
+                <line x1="195" y1="26" x2="195" y2="40"/><line x1="205" y1="26" x2="205" y2="40"/>
+                <line x1="215" y1="26" x2="215" y2="40"/><line x1="225" y1="26" x2="225" y2="40"/>
+                <line x1="235" y1="26" x2="235" y2="40"/><line x1="245" y1="26" x2="245" y2="40"/>
+                <line x1="185" y1="31" x2="255" y2="31"/><line x1="185" y1="36" x2="255" y2="36"/>
+              </g>
+            </g>
+
+            <!-- rivales -->
+            <circle class="tac-rival deriva-b" cx="220" cy="60"  r="5.5"/>
+            <circle class="tac-rival deriva-b" cx="180" cy="205" r="5.5"/>
+            <circle class="tac-rival deriva-a" cx="262" cy="215" r="5.5"/>
+            <circle class="tac-rival deriva-c" cx="150" cy="300" r="5.5"/>
+            <circle class="tac-rival deriva-a" cx="292" cy="295" r="5.5"/>
+            <circle class="tac-rival deriva-c" cx="240" cy="255" r="5.5"/>
+
+            <!-- nodos de jugadores -->
+            <circle class="tac-p deriva-a" cx="220" cy="540" r="6"/>
+            <circle class="tac-p deriva-a" cx="110" cy="470" r="6"/>
+            <circle class="tac-p deriva-b" cx="330" cy="470" r="6"/>
+            <circle class="tac-p deriva-c" cx="140" cy="360" r="6"/>
+            <circle class="tac-p deriva-a" cx="220" cy="405" r="6"/>
+            <circle class="tac-p deriva-b" cx="300" cy="375" r="6"/>
+            <circle class="tac-p deriva-a" cx="350" cy="220" r="6"/>
+            <circle class="tac-p deriva-c" cx="90"  cy="240" r="6"/>
+            <circle class="tac-p deriva-b" cx="240" cy="130" r="6"/>
+
+            <!-- líneas de pase animadas -->
+            <path class="pase pase-1" pathLength="100" d="M330,470 L140,360"/>
+            <path class="pase pase-2" pathLength="100" d="M140,360 L350,220"/>
+            <path class="pase pase-3" pathLength="100" d="M350,220 L240,130"/>
+            <path class="pase tiro"   pathLength="100" d="M240,130 C232,96 228,72 222,52"/>
+
+            <!-- anillos de recepción -->
+            <circle class="anillo anillo-1" cx="140" cy="360" r="11"/>
+            <circle class="anillo anillo-2" cx="350" cy="220" r="11"/>
+            <circle class="anillo anillo-3" cx="240" cy="130" r="11"/>
+
+            <!-- balón -->
+            <g>
+              <animateMotion dur="10s" repeatCount="indefinite" calcMode="linear"
+                keyPoints="0;0;0.314;0.314;0.676;0.676;0.88;0.88;1;1"
+                keyTimes="0;0.06;0.18;0.26;0.4;0.48;0.6;0.7;0.78;1" begin="-0.15s">
+                <mpath xlink:href="#ruta"/>
+              </animateMotion>
+              <animate attributeName="opacity" dur="10s" repeatCount="indefinite"
+                values="0;0.22;0.22;0.22;0;0" keyTimes="0;0.03;0.5;0.79;0.86;1"/>
+              <circle class="balon-estela" r="4"/>
+            </g>
+            <g>
+              <animateMotion dur="10s" repeatCount="indefinite" calcMode="linear"
+                keyPoints="0;0;0.314;0.314;0.676;0.676;0.88;0.88;1;1"
+                keyTimes="0;0.06;0.18;0.26;0.4;0.48;0.6;0.7;0.78;1">
+                <mpath xlink:href="#ruta"/>
+              </animateMotion>
+              <animate attributeName="opacity" dur="10s" repeatCount="indefinite"
+                values="0;1;1;1;0;0" keyTimes="0;0.03;0.5;0.79;0.86;1"/>
+              <circle class="balon-halo" r="8"/>
+              <circle class="balon-cuerpo" r="5.5"/>
+            </g>
+
+            <!-- lecturas del motor -->
+            <g class="tag tag-1">
+              <rect x="98" y="328" width="86" height="20" rx="4"/>
+              <rect class="tag-borde" x="98" y="328" width="2.5" height="20" rx="1.2"/>
+              <text x="107" y="342">Pase 92%</text>
+            </g>
+            <g class="tag tag-2">
+              <rect x="298" y="184" width="98" height="20" rx="4"/>
+              <rect class="tag-borde" x="298" y="184" width="2.5" height="20" rx="1.2"/>
+              <text x="307" y="198">Cambio 78%</text>
+            </g>
+            <g class="tag tag-3">
+              <rect x="270" y="112" width="94" height="20" rx="4"/>
+              <rect class="tag-borde" x="270" y="112" width="2.5" height="20" rx="1.2"/>
+              <text x="279" y="126">Filtrado 64%</text>
+            </g>
+            <g class="tag tag-xg">
+              <rect x="260" y="76" width="74" height="20" rx="4"/>
+              <rect class="tag-borde" x="260" y="76" width="2.5" height="20" rx="1.2"/>
+            </g>
+
+            <!-- gol -->
+            <circle class="destello" cx="222" cy="50" r="15"/>
+            <g class="tag tag-gol">
+              <rect x="176" y="54" width="92" height="25" rx="5"/>
+              <rect class="tag-borde" x="176" y="54" width="3" height="25" rx="1.5"/>
+              <text x="222" y="71" text-anchor="middle">¡GOL!</text>
+            </g>
+          </svg>
+
+          <div class="pizarra-ceja"><i></i> Motor táctico · en vivo</div>
+
+          <div class="pizarra-marca">
+            <div class="pizarra-logo"><span>x</span>Gol.</div>
+            <p class="pizarra-frase">Cada pase, cada tiro, cada probabilidad — leídos en tiempo real.</p>
+          </div>
+        </section>
+
+        <!-- ================= ACCESO ================= -->
+        <section class="acceso">
+
+          <h1 class="acceso-titulo">Inicia sesión</h1>
+          <p class="acceso-sub">Accede a tu cuenta para entrar al analizador</p>
+
+          {% if messages %}
+            <div class="avisos" role="alert">
+              {% for i in messages %}
+                <p class="aviso">{{ i }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <form class="acceso-form" action="{% url 'Ingresar' %}" method="POST" novalidate>
+            {% csrf_token %}
+
+            <div class="fila-campo">
+              <label for="usuario">Usuario</label>
+            </div>
+            <div class="campo">
+              <input type="text" name="username" id="usuario" class="sin-boton" placeholder="tu.usuario"
+                     autocomplete="username" autocapitalize="none" spellcheck="false" required>
+            </div>
+
+            <div class="fila-campo">
+              <label for="clave">Contraseña</label>
+            </div>
+            <div class="campo">
+              <input type="password" name="password" id="clave" placeholder="••••••••"
+                     autocomplete="current-password" required>
+              <button type="button" class="ver-clave" aria-label="Mostrar u ocultar contraseña">
+                <svg class="ojo-abierto" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="ojo-cerrado" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+
+            <button type="submit" class="btn-entrar">
+              Entrar al analizador
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </form>
+
+          <div class="divisor"><span>o</span></div>
+
+          <a href="{% provider_login_url 'google' %}" class="btn-google">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Entrar con Google
+          </a>
+
+          <p class="acceso-links">¿No tienes cuenta? <a href="{% url 'Registro' %}">Regístrate</a></p>
+
+          <p class="acceso-recuperar"><a href="{% url 'password_reset' %}">¿Olvidaste tu contraseña?</a></p>
+
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <script>
+    var ojo = document.querySelector('.ver-clave');
+    var clave = document.getElementById('clave');
+    ojo.addEventListener('click', function() {
+      var mostrar = clave.type === 'password';
+      clave.type = mostrar ? 'text' : 'password';
+      ojo.classList.toggle('visible', mostrar);
+    });
+  </script>
+
+</body>
+</html>

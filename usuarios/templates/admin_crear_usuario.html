@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block Titulo %}
+  Crear usuario
+{% endblock %}
+
+{% block content %}
+
+  <div class="admin-banner">
+    <div class="admin-icon">➕</div>
+    <div class="admin-text">
+      <div class="admin-tag">Gestión de usuarios</div>
+      <div class="admin-title">Crear usuario nuevo</div>
+    </div>
+    <div class="admin-badge">ADMINISTRACIÓN</div>
+  </div>
+
+  {% if messages %}
+    {% for i in messages %}
+      <div class="card" style="border-left: 4px solid var(--bad); margin-bottom: 20px;">
+        <p style="color: var(--text-1);">{{ i }}</p>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="card" style="max-width: 520px;">
+    <form action="{% url 'AdminCrearUsuario' %}" method="post">
+      {% csrf_token %}
+
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: .85rem; font-weight: 600; color: var(--text-1); margin-bottom: 6px;">Nombre de usuario</label>
+        <input type="text" name="username" placeholder="Ej: juanperez" required
+               style="width: 100%; background: var(--bg-0); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--text-0); font-family: var(--ff-body); font-size: .95rem;">
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: .85rem; font-weight: 600; color: var(--text-1); margin-bottom: 6px;">Correo</label>
+        <input type="email" name="email" placeholder="correo@ejemplo.com"
+               style="width: 100%; background: var(--bg-0); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--text-0); font-family: var(--ff-body); font-size: .95rem;">
+      </div>
+
+      <div style="margin-bottom: 22px;">
+        <label style="display: block; font-size: .85rem; font-weight: 600; color: var(--text-1); margin-bottom: 6px;">Contraseña</label>
+        <input type="password" name="password" placeholder="Contraseña del usuario" required
+               style="width: 100%; background: var(--bg-0); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--text-0); font-family: var(--ff-body); font-size: .95rem;">
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <button type="submit" class="btn btn-primary">Crear usuario</button>
+        <a href="{% url 'PanelAdmin' %}" class="btn btn-secondary">Cancelar</a>
+      </div>
+    </form>
+  </div>
+
+{% endblock %}
