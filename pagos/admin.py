@@ -1,5 +1,5 @@
 from django.contrib import admin
-from pagos.models import Pago,EventoPasarela,Reembolso,MovimientoSuscripcion,Consecutivo
+from pagos.models import Pago,EventoPasarela,MovimientoSuscripcion,Consecutivo
 
 #Todo lo financiero se registra pero NO se edita a mano desde el admin: un
 #pago que se pueda cambiar con dos clics deja de servir como evidencia.
@@ -33,14 +33,6 @@ class EventoPasarelaAdmin(admin.ModelAdmin):
 
   def has_change_permission(self,request,obj=None):
     return False
-
-
-@admin.register(Reembolso)
-class ReembolsoAdmin(admin.ModelAdmin):
-  list_display=("creado","pago","monto","estado","revoca_dias","creado_por")
-  list_filter=("estado","revoca_dias")
-  search_fields=("pago__referencia","pago__usuario__username","motivo")
-  readonly_fields=("creado",)
 
 
 @admin.register(MovimientoSuscripcion)

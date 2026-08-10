@@ -233,7 +233,6 @@
     <div class="fin-kpi {% if incidencias.pendientes %}alerta{% endif %}"><div class="v">{{ incidencias.pendientes }}</div><div class="l">Pagos pendientes</div></div>
     <div class="fin-kpi"><div class="v">{{ incidencias.rechazados_30 }}</div><div class="l">Rechazados (30 d)</div></div>
     <div class="fin-kpi {% if incidencias.errores_30 %}mala{% endif %}"><div class="v">{{ incidencias.errores_30 }}</div><div class="l">Errores de pago (30 d)</div></div>
-    <div class="fin-kpi"><div class="v">{{ incidencias.reembolsos }}</div><div class="l">Reembolsos</div><div class="s">${{ incidencias.reembolsado_total|pesos }}</div></div>
     <div class="fin-kpi {% if incidencias.eventos_invalidos %}mala{% endif %}"><div class="v">{{ incidencias.eventos_invalidos }}</div><div class="l">Eventos con firma inválida</div></div>
     <div class="fin-kpi {% if incidencias.eventos_sin_procesar %}alerta{% endif %}"><div class="v">{{ incidencias.eventos_sin_procesar }}</div><div class="l">Eventos sin procesar</div></div>
   </div>
@@ -392,8 +391,6 @@
             <div class="fin-acciones">
               {% if p.estado == "Aprobado" %}
                 <a href="{% url 'DescargarFactura' p.id %}" class="act-btn act-editar">PDF</a>
-                <button type="button" class="act-btn act-cancelar" style="cursor:pointer"
-                        onclick="abrirReembolso({{ p.id }}, '{{ p.referencia }}', {{ p.monto }})">Reembolsar</button>
               {% elif p.id_pasarela %}
                 <form action="{% url 'AdminSincronizarPago' p.id %}" method="post" style="display:inline">
                   {% csrf_token %}
@@ -422,27 +419,8 @@
   </div>
   {% endif %}
 
-  <!-- ============ REEMBOLSOS Y BITÁCORA ============ -->
+  <!-- ============ BITÁCORA DE SUSCRIPCIONES ============ -->
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
-    <div class="fin-panel">
-      <div class="fin-titulo">Reembolsos registrados</div>
-      <table class="fin-tabla">
-        <thead><tr><th>Fecha</th><th>Usuario</th><th style="text-align:right">Monto</th><th>Motivo</th></tr></thead>
-        <tbody>
-          {% for r in reembolsos %}
-            <tr>
-              <td class="fin-cifra" style="font-size: .8rem; font-weight: 500;">{{ r.creado|date:"d/m/Y" }}</td>
-              <td>{{ r.pago.usuario.username }}</td>
-              <td class="num" style="color: var(--bad);">−${{ r.monto|pesos }}</td>
-              <td style="font-size: .8rem; color: var(--text-2);">{{ r.motivo|default:"—" }}</td>
-            </tr>
-          {% empty %}
-            <tr><td colspan="4" class="fin-vacio">No se ha registrado ningún reembolso.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-
     <div class="fin-panel">
       <div class="fin-titulo">Bitácora de suscripciones</div>
       <table class="fin-tabla">
@@ -463,60 +441,5 @@
       </table>
     </div>
   </div>
-
-  <!-- ============ MODAL DE REEMBOLSO ============ -->
-  <div id="modalReembolso" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,.72); z-index: 900; place-items: center; padding: 20px;">
-    <div class="card" style="max-width: 420px; width: 100%; background: var(--bg-2);">
-      <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 6px;">Registrar reembolso</h3>
-      <p style="color: var(--text-2); font-size: .86rem; margin-bottom: 16px; line-height: 1.55;">
-        Esto registra el reembolso en xGol. <strong>La devolución del dinero se ejecuta aparte</strong>,
-        desde el panel de la pasarela.
-      </p>
-      <form method="post" id="formReembolso">
-        {% csrf_token %}
-        <div class="fin-campo" style="margin-bottom: 12px;">
-          <label for="r-ref">Transacción</label>
-          <input id="r-ref" type="text" readonly style="width: 100%; color: var(--text-3);">
-        </div>
-        <div class="fin-campo" style="margin-bottom: 12px;">
-          <label for="r-monto">Monto a devolver</label>
-          <input id="r-monto" type="number" name="monto" min="0" step="1" required style="width: 100%;">
-        </div>
-        <div class="fin-campo" style="margin-bottom: 12px;">
-          <label for="r-motivo">Motivo</label>
-          <input id="r-motivo" type="text" name="motivo" maxlength="200" placeholder="Cobro duplicado, solicitud del cliente…" style="width: 100%;">
-        </div>
-        <label style="display: flex; gap: 9px; align-items: flex-start; color: var(--text-2); font-size: .85rem; margin-bottom: 18px; cursor: pointer;">
-          <input type="checkbox" name="revoca_dias" value="si" checked style="margin-top: 3px; accent-color: var(--accent);">
-          <span>Quitarle a la suscripción los días que este pago le dio</span>
-        </label>
-        <div style="display: flex; gap: 10px; justify-content: flex-end;">
-          <button type="button" class="btn btn-secondary" style="padding: 9px 16px;" onclick="cerrarReembolso()">Cancelar</button>
-          <button type="submit" class="btn btn-primary" style="padding: 9px 16px;">Registrar reembolso</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <script>
-    var PLANTILLA_REEMBOLSO = "{% url 'AdminReembolso' 0 %}";
-
-    function abrirReembolso(id, referencia, monto) {
-      var modal = document.getElementById('modalReembolso');
-      document.getElementById('formReembolso').action = PLANTILLA_REEMBOLSO.replace(/0$/, id);
-      document.getElementById('r-ref').value = referencia;
-      document.getElementById('r-monto').value = monto;
-      document.getElementById('r-monto').max = monto;
-      modal.style.display = 'grid';
-    }
-
-    function cerrarReembolso() {
-      document.getElementById('modalReembolso').style.display = 'none';
-    }
-
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') cerrarReembolso();
-    });
-  </script>
 
 {% endblock %}
