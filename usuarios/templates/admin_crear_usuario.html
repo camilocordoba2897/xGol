@@ -1,55 +1,138 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block Titulo %}
-  Crear usuario
+{% block Titulo %}Crear usuario{% endblock %}
+
+{% block estilos %}
+  <link rel="stylesheet" href="{% static 'css/admin_crear_usuario.css' %}?v=1">
 {% endblock %}
 
 {% block content %}
 
-  <div class="admin-banner">
-    <div class="admin-icon">➕</div>
-    <div class="admin-text">
-      <div class="admin-tag">Gestión de usuarios</div>
-      <div class="admin-title">Crear usuario nuevo</div>
-    </div>
-    <div class="admin-badge">ADMINISTRACIÓN</div>
-  </div>
+<div class="ficha">
 
   {% if messages %}
     {% for i in messages %}
-      <div class="card" style="border-left: 4px solid var(--bad); margin-bottom: 20px;">
-        <p style="color: var(--text-1);">{{ i }}</p>
-      </div>
+      <div class="ficha-aviso" role="alert">{{ i }}</div>
     {% endfor %}
   {% endif %}
 
-  <div class="card" style="max-width: 520px;">
-    <form action="{% url 'AdminCrearUsuario' %}" method="post">
-      {% csrf_token %}
+  <div class="ficha-panel">
 
-      <div style="margin-bottom: 16px;">
-        <label style="display: block; font-size: .85rem; font-weight: 600; color: var(--text-1); margin-bottom: 6px;">Nombre de usuario</label>
-        <input type="text" name="username" placeholder="Ej: juanperez" required
-               style="width: 100%; background: var(--bg-0); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--text-0); font-family: var(--ff-body); font-size: .95rem;">
+    <!-- ===== Credencial: se llena sola mientras se escribe ===== -->
+    <aside class="ficha-carnet" id="ficha-carnet" aria-hidden="true">
+
+      <svg class="ficha-cancha" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="100" cy="100" r="72"/>
+        <line x1="-20" y1="100" x2="220" y2="100"/>
+        <circle cx="100" cy="100" r="5" fill="currentColor" stroke="none"/>
+      </svg>
+
+      <div class="ficha-ceja">Credencial</div>
+
+      <div class="ficha-avatar" id="ficha-inicial">?</div>
+
+      <div class="ficha-datos">
+        <div class="ficha-usuario" id="ficha-usuario">@usuario</div>
+        <div class="ficha-correo" id="ficha-correo">sin correo</div>
+
+        <div class="ficha-chips">
+          <span class="ficha-chip ficha-chip--rol">Rol · Usuario</span>
+          <span class="ficha-chip">Local</span>
+        </div>
       </div>
 
-      <div style="margin-bottom: 16px;">
-        <label style="display: block; font-size: .85rem; font-weight: 600; color: var(--text-1); margin-bottom: 6px;">Correo</label>
-        <input type="email" name="email" placeholder="correo@ejemplo.com"
-               style="width: 100%; background: var(--bg-0); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--text-0); font-family: var(--ff-body); font-size: .95rem;">
+      <div class="ficha-pie">xGol · alta de cuenta</div>
+    </aside>
+
+    <!-- ===== Formulario ===== -->
+    <div class="ficha-form">
+
+      <div class="ficha-cabecera">
+        <div>
+          <div class="ficha-titulo">Crear usuario nuevo</div>
+          <p class="ficha-sub">Se crea con rol de usuario y proveedor local.</p>
+        </div>
+        <span class="ficha-sello">ADMINISTRACIÓN</span>
       </div>
 
-      <div style="margin-bottom: 22px;">
-        <label style="display: block; font-size: .85rem; font-weight: 600; color: var(--text-1); margin-bottom: 6px;">Contraseña</label>
-        <input type="password" name="password" placeholder="Contraseña del usuario" required
-               style="width: 100%; background: var(--bg-0); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--text-0); font-family: var(--ff-body); font-size: .95rem;">
-      </div>
+      <form action="{% url 'AdminCrearUsuario' %}" method="post">
+        {% csrf_token %}
 
-      <div style="display: flex; gap: 10px;">
-        <button type="submit" class="btn btn-primary">Crear usuario</button>
-        <a href="{% url 'PanelAdmin' %}" class="btn btn-secondary">Cancelar</a>
-      </div>
-    </form>
+        <div class="ficha-campo">
+          <label for="adm-username">Nombre de usuario</label>
+          <input type="text" name="username" id="adm-username" placeholder="Ej: juanperez" required
+                 autocomplete="off" spellcheck="false">
+        </div>
+
+        <div class="ficha-campo">
+          <label for="adm-email">Correo <span class="ficha-opcional">(opcional)</span></label>
+          <input type="email" name="email" id="adm-email" placeholder="correo@ejemplo.com"
+                 autocomplete="off" spellcheck="false">
+        </div>
+
+        <div class="ficha-campo ficha-campo-clave">
+          <label for="adm-password">Contraseña</label>
+          <input type="password" name="password" id="adm-password" placeholder="Contraseña del usuario" required
+                 autocomplete="new-password">
+          <button type="button" class="ficha-ojo" aria-label="Mostrar u ocultar contraseña">
+            <svg class="ojo-abierto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="ojo-cerrado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
+
+        <div class="ficha-acciones">
+          <button type="submit" class="ficha-btn">
+            Crear usuario
+            <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+          <a href="{% url 'PanelAdmin' %}" class="ficha-btn-sec">Cancelar</a>
+        </div>
+
+      </form>
+    </div>
+
   </div>
+</div>
+
+<script>
+//Solo pinta la credencial de la izquierda mientras se escribe.
+//No cambia nada de lo que se envia al servidor.
+(function(){
+  var carnet=document.getElementById("ficha-carnet");
+  var campoUsuario=document.getElementById("adm-username");
+  var campoCorreo=document.getElementById("adm-email");
+  var verInicial=document.getElementById("ficha-inicial");
+  var verUsuario=document.getElementById("ficha-usuario");
+  var verCorreo=document.getElementById("ficha-correo");
+  if(!carnet||!campoUsuario) return;
+
+  function pintar(){
+    var usuario=campoUsuario.value.trim();
+    var correo=campoCorreo.value.trim();
+
+    verInicial.textContent = usuario ? usuario.charAt(0).toUpperCase() : "?";
+    verUsuario.textContent = usuario ? "@"+usuario : "@usuario";
+    verCorreo.textContent  = correo  ? correo      : "sin correo";
+    carnet.classList.toggle("lleno", usuario.length>0);
+  }
+
+  campoUsuario.addEventListener("input",pintar);
+  campoCorreo.addEventListener("input",pintar);
+  pintar();
+})();
+
+//Muestra u oculta la contrasena.
+(function(){
+  var ojo=document.querySelector(".ficha-ojo");
+  var clave=document.getElementById("adm-password");
+  if(!ojo||!clave) return;
+  ojo.addEventListener("click",function(){
+    var mostrar=clave.type==="password";
+    clave.type=mostrar?"text":"password";
+    ojo.classList.toggle("visible",mostrar);
+  });
+})();
+</script>
 
 {% endblock %}

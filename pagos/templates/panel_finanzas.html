@@ -359,7 +359,7 @@
 
   <div class="fin-acciones" style="margin-bottom: 14px;">
     <a class="btn btn-secondary" style="padding: 8px 14px; font-size: .84rem;"
-       href="{% url 'ExportarFinanzas' %}?formato=csv&amp;tipo=transacciones&amp;estado={{ filtros.estado }}&amp;plan={{ filtros.plan }}&amp;desde={{ filtros.desde|date:'Y-m-d' }}&amp;hasta={{ filtros.hasta|date:'Y-m-d' }}&amp;q={{ filtros.q|urlencode }}">⬇ CSV</a>
+       href="{% url 'ExportarFinanzas' %}?formato=pdf&amp;tipo=transacciones&amp;estado={{ filtros.estado }}&amp;plan={{ filtros.plan }}&amp;desde={{ filtros.desde|date:'Y-m-d' }}&amp;hasta={{ filtros.hasta|date:'Y-m-d' }}&amp;q={{ filtros.q|urlencode }}">⬇ PDF</a>
     <a class="btn btn-secondary" style="padding: 8px 14px; font-size: .84rem;"
        href="{% url 'ExportarFinanzas' %}?formato=xlsx&amp;tipo=transacciones&amp;estado={{ filtros.estado }}&amp;plan={{ filtros.plan }}&amp;desde={{ filtros.desde|date:'Y-m-d' }}&amp;hasta={{ filtros.hasta|date:'Y-m-d' }}&amp;q={{ filtros.q|urlencode }}">⬇ Excel</a>
     <a class="btn btn-secondary" style="padding: 8px 14px; font-size: .84rem;"

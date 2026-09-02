@@ -8,7 +8,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/analizador.css' %}?v=21">
+<link rel="stylesheet" href="{% static 'css/analizador.css' %}?v=26">
+<link rel="stylesheet" href="{% static 'css/calendario.css' %}?v=3">
+<link rel="stylesheet" href="{% static 'css/analisis.css' %}?v=15">
+<link rel="stylesheet" href="{% static 'css/boton_inicio.css' %}?v=1">
 <script>
   // Aplicamos el modo guardado ANTES de pintar para que no parpadee
   (function(){
@@ -29,7 +32,7 @@
 </head>
 <body>
 
-<a class="volver-inicio" href="{% url 'Inicio' %}">
+<a class="volver-inicio btn-inicio" href="{% url 'Inicio' %}">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
   Inicio
 </a>
@@ -57,203 +60,171 @@
   <div class="splash-bar-wrap"><div class="splash-bar"></div></div>
 </div>
 
-<!-- FONDO CODENEST: grid + glow -->
-<div id="bg-fx" aria-hidden="true">
-  <div class="bg-grid"><span></span><span></span><span></span></div>
-  <div class="bg-glow">
-    <svg viewBox="0 0 1200 520" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-      <defs>
-        <filter id="cn-blur" x="-40%" y="-40%" width="180%" height="180%">
-          <feGaussianBlur stdDeviation="25"/>
-        </filter>
-        <radialGradient id="cn-grad" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="#3fd6b0" stop-opacity=".38"/>
-          <stop offset="45%" stop-color="#1d6f52" stop-opacity=".22"/>
-          <stop offset="100%" stop-color="#0b1f17" stop-opacity="0"/>
-        </radialGradient>
-      </defs>
-      <ellipse cx="600" cy="180" rx="520" ry="150" fill="url(#cn-grad)" filter="url(#cn-blur)"/>
-    </svg>
-  </div>
-</div>
 <div class="app">
-  <div class="header">
-    <div><span>x</span>Gol</div>
-    <div>
-      <div class="header-eyebrow">Análisis estadístico de fútbol</div>
-      <h1>Analizador de Predicciones</h1>
-      <div class="header-sub">Modelo <em>Poisson</em> + ponderación temporal · Solo aproximaciones</div>
+  <header class="lab-bar">
+    <div class="lab-marca">
+      <span class="lab-marca-nombre"><span class="lab-marca-x">x</span>Gol</span>
+      <i>Pronostico</i>
     </div>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+    <div class="lab-acciones">
       <button class="guia-btn" onclick="abrirGuiaAnalizador()" title="Ver la guía paso a paso" aria-label="Ver la guía paso a paso">?</button>
       <button class="modo-btn" onclick="alternarModo()" title="Cambiar entre modo claro y oscuro" aria-label="Cambiar entre modo claro y oscuro">
         <svg class="ic-sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><line x1="12" y1="1.6" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22.4"/><line x1="4.2" y1="4.2" x2="5.9" y2="5.9"/><line x1="18.1" y1="18.1" x2="19.8" y2="19.8"/><line x1="1.6" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22.4" y2="12"/><line x1="4.2" y1="19.8" x2="5.9" y2="18.1"/><line x1="18.1" y1="5.9" x2="19.8" y2="4.2"/></svg>
         <svg class="ic-luna" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.4A8.6 8.6 0 0 1 9.6 3.5a8.6 8.6 0 1 0 10.9 10.9z"/></svg>
       </button>
     </div>
-  </div>
+  </header>
 
-  <div class="tabs">
-    <button class="tab active" onclick="showTab('data')">📁 Datos</button>
-    <button class="tab" onclick="showTab('analysis')">📊 Análisis</button>
-    <button class="tab" onclick="showTab('bets')">🎯 Predicciones</button>
-    <button class="tab" onclick="showTab('players')">👤 Jugadores</button>
-    {% if user.is_superuser or rol_actual == "administrador" %}
-    <button class="tab" onclick="showTab('history')">📋 Historial</button>
-    <button class="tab" onclick="showTab('validation')">📊 Rendimiento</button>
-    {% endif %}
-  </div>
+  <!-- ============================================================
+       PANTALLA 1 — LISTA DE PARTIDOS
+       ============================================================ -->
+  <div class="pantalla activa" id="pantalla-lista">
 
-  <!-- TAB DATOS -->
-  <div class="section active" id="tab-data">
-
-    <!-- SELECTOR AUTOMATICO DE PARTIDOS -->
-    <div class="auto-box" id="auto-box">
-      <div class="auto-head">
-        <div>
-          <div class="auto-title">⚡ Elige el partido</div>
-          <div class="auto-sub">Los datos se traen solos desde la API. Escoge una liga y toca un partido: se cargan los últimos 15 encuentros de cada equipo y se calcula la predicción.</div>
-        </div>
-        <select class="auto-liga" id="auto-liga">
-          <option value="BSA">Brasileirão</option>
-          <option value="PL">Premier League</option>
-          <option value="PD">LaLiga</option>
-          <option value="SA">Serie A</option>
-          <option value="BL1">Bundesliga</option>
-          <option value="FL1">Ligue 1</option>
-          <option value="DED">Eredivisie</option>
-          <option value="PPL">Primeira Liga</option>
-          <option value="CL">Champions League</option>
-        </select>
-      </div>
-      <div class="auto-lista" id="auto-lista"></div>
-      <div class="auto-estado" id="auto-estado"></div>
-      <div class="auto-aviso">
-        <strong>Qué cubre el modo automático:</strong> ganador, goles, ambos anotan, marcador y mercados de primer tiempo.
-        Córners, tarjetas, tiros y jugadores necesitan datos que la API actual no entrega — para esos, usa el modo manual de abajo.
-      </div>
+    <div class="lab-intro">
+      <h1>Elige un partido</h1>
+      <p>Toca cualquier partido que aún no se juegue y xGol calcula el pronóstico.</p>
     </div>
 
+    <div class="auto-box" id="auto-box">
+      <!-- Ligas como fichas. El <select> sigue existiendo oculto porque es de
+           donde lee auto.js: las fichas solo escriben su valor y lanzan el
+           evento change, asi que la logica no cambia en nada. -->
+      <nav class="lab-ligas" aria-label="Competencias">
+        <button class="lab-liga activa" data-liga="BSA">Brasileirão</button>
+        <button class="lab-liga" data-liga="PL">Premier League</button>
+        <button class="lab-liga" data-liga="PD">LaLiga</button>
+        <button class="lab-liga" data-liga="SA">Serie A</button>
+        <button class="lab-liga" data-liga="BL1">Bundesliga</button>
+        <button class="lab-liga" data-liga="FL1">Ligue 1</button>
+        <button class="lab-liga" data-liga="DED">Eredivisie</button>
+        <button class="lab-liga" data-liga="PPL">Primeira Liga</button>
+        <button class="lab-liga" data-liga="CL">Champions</button>
+      </nav>
+
+      <select class="auto-liga" id="auto-liga" aria-hidden="true" tabindex="-1">
+        <option value="BSA">Brasileirão</option>
+        <option value="PL">Premier League</option>
+        <option value="PD">LaLiga</option>
+        <option value="SA">Serie A</option>
+        <option value="BL1">Bundesliga</option>
+        <option value="FL1">Ligue 1</option>
+        <option value="DED">Eredivisie</option>
+        <option value="PPL">Primeira Liga</option>
+        <option value="CL">Champions League</option>
+      </select>
+
+      <div class="lab-fecha">
+        <button type="button" class="auto-fecha-btn" id="auto-fecha-btn" onclick="abrirCalendario()" aria-label="Elegir fecha" title="Elegir fecha">
+          <svg class="auto-fecha-ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></svg>
+          <span class="auto-fecha-etq" id="auto-fecha-etq">Fecha</span>
+          <svg class="auto-fecha-caret" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9.5 12 15.5 18 9.5"/></svg>
+        </button>
+      </div>
+
+      <div class="lista-partidos" id="lista-partidos"></div>
+    </div>
+
+    <div id="session-banner" style="display:none"></div>
+
+    {% if user.is_superuser or rol_actual == "administrador" %}
+    <!-- Modo manual: herramienta interna. Solo la ve un administrador;
+         para el usuario normal este bloque no llega ni al HTML. -->
     <details class="modo-manual" id="modo-manual">
       <summary>Modo manual · cargar CSV y biblioteca de equipos</summary>
-    <div class="info-box">
-      <p><strong>¿Cómo funciona?</strong> Carga el historial de partidos de cada equipo en formato CSV y el sistema calcula automáticamente las probabilidades del enfrentamiento. Cuantos más partidos incluyas, más precisa será la predicción. Puedes descargar un CSV de ejemplo para ver el formato correcto.</p>
-    </div>
-    <div style="margin-bottom:14px"><span class="download-sample" onclick="downloadSample()">⬇ Descargar CSV de ejemplo</span></div>
 
-    <!-- BIBLIOTECA DE EQUIPOS -->
-    <div class="library-box" id="library-box" style="display:none">
-      <div class="library-title">📚 Biblioteca de equipos guardados</div>
-      <div class="library-sub">Equipos guardados en este navegador. Elige el enfrentamiento sin volver a cargar archivos. Al cargar un CSV nuevo se ofrece guardarlo aquí.</div>
-      <div class="library-selectors">
-        <div class="lib-sel-field">
-          <label>🏠 Local</label>
-          <input id="lib-select-1" type="text" list="lib-list-1" placeholder="Escribe o elige…" autocomplete="off">
-          <datalist id="lib-list-1"></datalist>
-        </div>
-        <div class="lib-vs">VS</div>
-        <div class="lib-sel-field">
-          <label>✈️ Visitante</label>
-          <input id="lib-select-2" type="text" list="lib-list-2" placeholder="Escribe o elige…" autocomplete="off">
-          <datalist id="lib-list-2"></datalist>
-        </div>
+      <div class="info-box">
+        <p><strong>¿Cuándo usarlo?</strong> Para ligas o partidos que la API no cubre. Carga el historial de cada equipo en CSV y el pronóstico se calcula igual. Cuantos más partidos incluyas, más precisa será la predicción.</p>
       </div>
-      <button class="lib-load-btn" id="lib-load-btn" onclick="loadMatchupFromLibrary()">⚡ Cargar enfrentamiento</button>
-      <div id="lib-saved-list" class="lib-saved-list"></div>
-      <div class="lib-actions">
-        <span class="lib-action-link" onclick="exportLibrary()">⬇ Exportar biblioteca (respaldo)</span>
-        <label class="lib-action-link" style="position:relative;overflow:hidden">⬆ Importar biblioteca
-          <input type="file" accept=".json" onchange="importLibrary(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer">
-        </label>
-        <span class="lib-divider"></span>
-        <span class="lib-action-link danger" onclick="clearLibrary()">🗑 Vaciar biblioteca</span>
-      </div>
-      <div id="lib-status" class="lib-status"></div>
-    </div>
+      <div style="margin-bottom:14px"><span class="download-sample" onclick="downloadSample()">⬇ Descargar CSV de ejemplo</span></div>
 
-    <div class="teams-grid">
-      <div>
-        <label style="font-size:12px;color:var(--text-0);display:block;margin-bottom:8px">🏠 Equipo Local</label>
-        <div class="upload-area" id="drop1" ondragover="drag(event,1)" ondragleave="undrag(1)" ondrop="drop(event,1)">
-          <input type="file" accept=".csv" onchange="handleFile(event,1)">
-          <div style="font-size:32px;margin-bottom:10px">📂</div>
-          <strong id="file1-name">Seleccionar archivo CSV</strong>
-          <p>Arrastra o haz clic · últimos 15 partidos</p>
+      <!-- BIBLIOTECA DE EQUIPOS -->
+      <div class="library-box" id="library-box" style="display:none">
+        <div class="library-title">📚 Biblioteca de equipos guardados</div>
+        <div class="library-sub">Equipos guardados en este navegador. Elige el enfrentamiento sin volver a cargar archivos. Al cargar un CSV nuevo se ofrece guardarlo aquí.</div>
+        <div class="library-selectors">
+          <div class="lib-sel-field">
+            <label>🏠 Local</label>
+            <input id="lib-select-1" type="text" list="lib-list-1" placeholder="Escribe o elige…" autocomplete="off">
+            <datalist id="lib-list-1"></datalist>
+          </div>
+          <div class="lib-vs">VS</div>
+          <div class="lib-sel-field">
+            <label>✈️ Visitante</label>
+            <input id="lib-select-2" type="text" list="lib-list-2" placeholder="Escribe o elige…" autocomplete="off">
+            <datalist id="lib-list-2"></datalist>
+          </div>
         </div>
-      </div>
-      <div>
-        <label style="font-size:12px;color:var(--text-0);display:block;margin-bottom:8px">✈️ Equipo Visitante</label>
-        <div class="upload-area" id="drop2" ondragover="drag(event,2)" ondragleave="undrag(2)" ondrop="drop(event,2)">
-          <input type="file" accept=".csv" onchange="handleFile(event,2)">
-          <div style="font-size:32px;margin-bottom:10px">📂</div>
-          <strong id="file2-name">Seleccionar archivo CSV</strong>
-          <p>Arrastra o haz clic · últimos 15 partidos</p>
+        <button class="lib-load-btn" id="lib-load-btn" onclick="loadMatchupFromLibrary()">⚡ Cargar enfrentamiento</button>
+        <div id="lib-saved-list" class="lib-saved-list"></div>
+        <div class="lib-actions">
+          <span class="lib-action-link" onclick="exportLibrary()">⬇ Exportar biblioteca (respaldo)</span>
+          <label class="lib-action-link" style="position:relative;overflow:hidden">⬆ Importar biblioteca
+            <input type="file" accept=".json" onchange="importLibrary(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer">
+          </label>
+          <span class="lib-divider"></span>
+          <span class="lib-action-link danger" onclick="clearLibrary()">🗑 Vaciar biblioteca</span>
         </div>
+        <div id="lib-status" class="lib-status"></div>
       </div>
-    </div>
-    <div id="session-banner" style="display:none"></div>
-    <div style="text-align:center">
-      <button class="btn" onclick="loadDemo()">🎮 Cargar demo: México vs Sudáfrica</button>
-    </div>
 
-    <div class="section-divider"></div>
+      <div class="teams-grid">
+        <div>
+          <label style="font-size:12px;color:var(--text-0);display:block;margin-bottom:8px">🏠 Equipo Local</label>
+          <div class="upload-area" id="drop1" ondragover="drag(event,1)" ondragleave="undrag(1)" ondrop="drop(event,1)">
+            <input type="file" accept=".csv" onchange="handleFile(event,1)">
+            <div style="font-size:32px;margin-bottom:10px">📂</div>
+            <strong id="file1-name">Seleccionar archivo CSV</strong>
+            <p>Arrastra o haz clic · últimos 15 partidos</p>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:12px;color:var(--text-0);display:block;margin-bottom:8px">✈️ Equipo Visitante</label>
+          <div class="upload-area" id="drop2" ondragover="drag(event,2)" ondragleave="undrag(2)" ondrop="drop(event,2)">
+            <input type="file" accept=".csv" onchange="handleFile(event,2)">
+            <div style="font-size:32px;margin-bottom:10px">📂</div>
+            <strong id="file2-name">Seleccionar archivo CSV</strong>
+            <p>Arrastra o haz clic · últimos 15 partidos</p>
+          </div>
+        </div>
+      </div>
 
-    <div class="info-box" style="margin-bottom:12px">
-      <p><strong>👤 Datos de jugadores (opcional):</strong> Sube un CSV por equipo con estadísticas individuales para ver las apuestas de jugadores (anotador, tiros, tarjetas).</p>
-    </div>
-    <div style="margin-bottom:12px"><span class="download-sample" onclick="downloadPlayerSample()" style="font-size:12px;color:var(--home-dim);cursor:pointer;text-decoration:underline">⬇ Descargar CSV de jugadores de ejemplo</span></div>
-    <div class="teams-grid">
-      <div>
-        <label style="font-size:12px;color:var(--text-0);display:block;margin-bottom:6px">👤 Jugadores — Equipo Local</label>
-        <div class="upload-sm" id="dropP1" ondragover="drag(event,'p1')" ondragleave="undrag('p1')" ondrop="drop(event,'p1')">
-          <input type="file" accept=".csv" onchange="handleFileP(event,1)">
-          <strong id="fileP1-name">Seleccionar CSV jugadores</strong>
-          <p>Equipo local · opcional</p>
-        </div>
+      <div style="text-align:center;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn" onclick="loadDemo()">🎮 Cargar demo: México vs Sudáfrica</button>
+        <button class="btn" onclick="verPronostico()">📊 Ver pronóstico</button>
       </div>
-      <div>
-        <label style="font-size:12px;color:var(--text-0);display:block;margin-bottom:6px">👤 Jugadores — Equipo Visitante</label>
-        <div class="upload-sm" id="dropP2" ondragover="drag(event,'p2')" ondragleave="undrag('p2')" ondrop="drop(event,'p2')">
-          <input type="file" accept=".csv" onchange="handleFileP(event,2)">
-          <strong id="fileP2-name">Seleccionar CSV jugadores</strong>
-          <p>Equipo visitante · opcional</p>
-        </div>
-      </div>
-    </div>
     </details>
+    {% endif %}
+
+    <p class="lab-nota">Probabilidades estimadas con modelo de Poisson sobre el historial reciente. No garantizan resultados. Apuesta responsablemente.</p>
   </div>
 
-  <!-- TAB ANÁLISIS -->
-  <div class="section" id="tab-analysis">
-    <div id="analysis-content" class="no-data"><div style="font-size:36px">📊</div><p>Elige un partido en la pestaña <strong>Datos</strong></p></div>
+  <!-- ============================================================
+       PANTALLA 2 — PRONOSTICO DEL PARTIDO
+       ============================================================ -->
+  <div class="pantalla" id="pantalla-pronostico">
+    <button class="pr-volver" onclick="volverALista()">Volver a los partidos</button>
+    <div id="pronostico-contenido"></div>
   </div>
 
-  <!-- TAB APUESTAS -->
-  <div class="section" id="tab-bets">
-    <div id="bets-content" class="no-data"><div style="font-size:36px">🎯</div><p>Elige un partido para ver las predicciones</p></div>
-  </div>
+</div>
 
-  <!-- TAB JUGADORES -->
-  <div class="section" id="tab-players">
-    <div id="players-content" class="no-data"><div style="font-size:36px">👤</div><p>Carga los CSV de jugadores en la pestaña Datos</p></div>
-  </div>
-
-  {% if user.is_superuser or rol_actual == "administrador" %}
-  <!-- TAB HISTORIAL -->
-  <div class="section" id="tab-history">
-    <div id="history-content" class="no-data"><div style="font-size:36px">📋</div><p>Carga los datos de los equipos para ver su historial de partidos</p></div>
-  </div>
-
-  <!-- TAB VALIDACIÓN -->
-  <div class="section" id="tab-validation">
-    <div id="validation-content" class="no-data"><div style="font-size:36px">📊</div><p>Carga los datos de ambos equipos para registrar resultados</p></div>
-  </div>
-  {% endif %}
-
-  <div class="disclaimer">
-    ⚠️ Dashboard de análisis estadístico con fines informativos.<br>
-    Las probabilidades son <strong>aproximaciones</strong> basadas en historial reciente usando modelo de Poisson.<br>
-    No garantizan resultados reales. Apuesta responsablemente.
+<!-- MODAL: calendario para elegir fecha -->
+<div class="fecha-modal-bg" id="fecha-modal-bg">
+  <div class="fecha-modal">
+    <div class="fecha-modal-year" id="fecha-modal-year">2026</div>
+    <div class="fecha-modal-fecha" id="fecha-modal-fecha">Hoy</div>
+    <div class="fecha-nav">
+      <button onclick="fechaMesAnterior()" aria-label="Mes anterior">‹</button>
+      <span id="fecha-mes-nombre">Agosto de 2026</span>
+      <button onclick="fechaMesSiguiente()" aria-label="Mes siguiente">›</button>
+    </div>
+    <div class="fecha-dias-semana"><span>D</span><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span></div>
+    <div class="fecha-grid" id="fecha-grid"></div>
+    <div class="fecha-modal-btns">
+      <button class="fecha-btn-establecer" onclick="fechaEstablecer()">Establecer</button>
+      <button class="fecha-btn-cancelar" onclick="fechaCerrar()">Cancelar</button>
+      <button class="fecha-btn-borrar" onclick="fechaBorrar()">Borrar</button>
+    </div>
   </div>
 </div>
 
@@ -270,76 +241,43 @@
   </div>
 </div>
 
-<!-- #6 — Modal de edición / alta de partido en el historial -->
-<div class="lib-modal-bg" id="edit-modal-bg">
-  <div class="lib-modal edit-modal">
-    <h4><span id="edit-modal-icon">✎</span> <span id="edit-modal-title">Editar partido</span></h4>
-    <p class="em-sub">Edita cualquier estadística. <strong style="color:var(--accent)">xG a favor / xG en contra</strong> son los nuevos campos; déjalos vacíos si no los tienes. El resultado (W/D/L) se recalcula solo desde los goles.</p>
-    <div class="em-grid">
-      <div class="em-field full"><label>Rival</label><input id="edit-rival" type="text" placeholder="Nombre del rival"></div>
-      <div class="em-field"><label>Sede</label>
-        <select id="edit-sede">
-          <option value="local">🏠 Local</option>
-          <option value="away">✈️ Visitante</option>
-          <option value="neutral">⚪ Neutral</option>
-        </select>
-      </div>
-      <div class="em-field"><label>Fecha</label><input id="edit-fecha" type="date"></div>
-
-      <div class="em-section-label">Goles</div>
-      <div class="em-field"><label>Goles a favor</label><input id="edit-goles_f" type="number" min="0" step="1"></div>
-      <div class="em-field"><label>Goles en contra</label><input id="edit-goles_c" type="number" min="0" step="1"></div>
-
-      <div class="em-section-label">⚡ Expected Goals (xG)</div>
-      <div class="em-field xg"><label><span class="xg-tag">xG a favor</span></label><input id="edit-xg_f" type="number" min="0" step="0.01" placeholder="ej. 1.85"></div>
-      <div class="em-field xg"><label><span class="xg-tag">xG en contra</span></label><input id="edit-xg_c" type="number" min="0" step="0.01" placeholder="ej. 0.92"></div>
-
-      <div class="em-section-label">Goles por mitad</div>
-      <div class="em-field"><label>1ª parte a favor</label><input id="edit-goles_1t_f" type="number" min="0" step="1"></div>
-      <div class="em-field"><label>1ª parte en contra</label><input id="edit-goles_1t_c" type="number" min="0" step="1"></div>
-      <div class="em-field"><label>2ª parte a favor</label><input id="edit-goles_2t_f" type="number" min="0" step="1"></div>
-      <div class="em-field"><label>2ª parte en contra</label><input id="edit-goles_2t_c" type="number" min="0" step="1"></div>
-
-      <div class="em-section-label">Tiros y corners</div>
-      <div class="em-field"><label>Tiros</label><input id="edit-tiros" type="number" min="0" step="1"></div>
-      <div class="em-field"><label>Tiros rival</label><input id="edit-tiros_rival" type="number" min="0" step="1"></div>
-      <div class="em-field"><label>Tiros a puerta</label><input id="edit-tiros_puerta" type="number" min="0" step="1"></div>
-      <div class="em-field"><label>Tiros a puerta rival</label><input id="edit-tiros_puerta_rival" type="number" min="0" step="1"></div>
-      <div class="em-field"><label>Corners</label><input id="edit-corners" type="number" min="0" step="1"></div>
-      <div class="em-field"><label>Corners rival</label><input id="edit-corners_rival" type="number" min="0" step="1"></div>
-
-      <div class="em-section-label">⚡ Métricas avanzadas (opcional)</div>
-      <div class="em-field xg"><label><span class="xg-tag">xGOT a favor</span></label><input id="edit-xgot_f" type="number" min="0" step="0.01" placeholder="ej. 1.42"></div>
-      <div class="em-field xg"><label><span class="xg-tag">xGOT en contra</span></label><input id="edit-xgot_c" type="number" min="0" step="0.01" placeholder="ej. 0.71"></div>
-      <div class="em-field"><label>PPDA a favor</label><input id="edit-ppda_f" type="number" min="0" step="0.1" placeholder="ej. 9.5"></div>
-      <div class="em-field"><label>PPDA en contra</label><input id="edit-ppda_c" type="number" min="0" step="0.1" placeholder="ej. 12.3"></div>
-
-      <div class="em-section-label">Tarjetas y asistencias</div>
-      <div class="em-field"><label>Tarjetas amarillas</label><input id="edit-tarjetas_a" type="number" min="0" step="1"></div>
-      <div class="em-field"><label>Tarjetas rojas</label><input id="edit-tarjetas_r" type="number" min="0" step="1"></div>
-      <div class="em-field"><label>Asistencias</label><input id="edit-asistencias" type="number" min="0" step="1"></div>
-    </div>
-    <div class="em-both" id="edit-both-wrap" style="display:none">
-      <label><input type="checkbox" id="edit-both"> <span>También añadir el <strong>reflejo</strong> al otro equipo del enfrentamiento</span></label>
-      <p class="em-both-hint" id="edit-both-hint">Crea el mismo partido en el historial del rival con goles, tiros, córners, xG y PPDA invertidos. Tarjetas y asistencias quedan vacías (son propias de cada equipo).</p>
-    </div>
-    <div class="em-btns">
-      <button class="em-cancel" onclick="closeEditModal()">Cancelar</button>
-      <button class="em-save" onclick="saveEditHist()">Guardar</button>
-    </div>
-  </div>
-</div>
-
 <script src="{% static 'js/analizador.js' %}?v=10"></script>
+<script src="{% static 'js/vista.js' %}?v=4"></script>
 <script>
   window.XGOL_AUTO = {
     partidos: "{% url 'AutoPartidos' %}",
     enfrentamiento: "{% url 'AutoEnfrentamiento' %}",
-    resultados: "{% url 'AutoResultados' %}"
+    resultados: "{% url 'AutoResultados' %}",
+    cuotas: "{% url 'AutoCuotas' %}",
+    motor: "{% url 'MotorPronostico' %}"
   };
 </script>
-<script src="{% static 'js/auto.js' %}?v=5"></script>
+<script src="{% static 'js/auto.js' %}?v=15"></script>
 <script src="{% static 'js/seguimiento.js' %}?v=1"></script>
-<script src="{% static 'js/tour.js' %}?v=1"></script>
+<script src="{% static 'js/motor.js' %}?v=1"></script>
+<script>
+  // Puente fichas -> <select>: escribe el valor y lanza 'change'.
+  // auto.js sigue leyendo el select exactamente igual que antes.
+  (function() {
+    var fichas = document.querySelectorAll('.lab-liga');
+    var selector = document.getElementById('auto-liga');
+    if (!selector) { return; }
+    fichas.forEach(function(ficha) {
+      ficha.addEventListener('click', function() {
+        selector.value = ficha.getAttribute('data-liga');
+        selector.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+    });
+    function marcar() {
+      fichas.forEach(function(f) {
+        f.classList.toggle('activa', f.getAttribute('data-liga') === selector.value);
+      });
+    }
+    selector.addEventListener('change', marcar);
+    marcar();
+  })();
+</script>
+<script src="{% static 'js/tour.js' %}?v=4"></script>
+<script src="{% static 'js/subir.js' %}?v=1"></script>
 </body>
 </html>

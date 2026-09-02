@@ -9,6 +9,7 @@ import json
 from suscripciones.decoradores import suscripcion_requerida
 from analizador.models import BibliotecaEquipo,PartidoRegistrado,RegistroApuesta
 from analizador import api_datos
+from analizador import api_cuotas
 
 #Iconos por mercado para reconstruir la apuesta si viene sin icono (ej. CSV importado)
 ICONOS_MERCADO={
@@ -205,3 +206,18 @@ def auto_resultados(request):
     if error:
         return JsonResponse({"resultados":resultados,"error":error})
     return JsonResponse({"resultados":resultados})
+
+@login_required(login_url="Ingresar")
+@suscripcion_requerida
+def auto_cuotas(request):
+    #Cuotas reales de casas de apuestas para un partido concreto.
+    #Si no hay clave configurada devuelve error y el frontend no pinta nada.
+    liga=request.GET.get("liga","")
+    local=request.GET.get("nombre_local","")
+    visitante=request.GET.get("nombre_visitante","")
+    if not liga or not local or not visitante:
+        return JsonResponse({"cuotas":None,"error":"parametros"})
+    cuotas,error=api_cuotas.cuotas_partido(liga,local,visitante)
+    if error:
+        return JsonResponse({"cuotas":None,"error":error})
+    return JsonResponse({"cuotas":cuotas})

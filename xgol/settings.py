@@ -63,6 +63,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    #Impide que el navegador guarde las paginas HTML: sin esto, al cerrar
+    #sesion y dar "atras" se veia otra vez la pagina con el usuario logueado.
+    'usuarios.middleware.SinCacheEnPaginasPrivadas',
 ]
 ROOT_URLCONF = 'xgol.urls'
 
@@ -156,6 +159,7 @@ DEFAULT_FROM_EMAIL=os.getenv('EMAIL_HOST_USER')
 
 #Token de football-data.org para los partidos del inicio
 FOOTBALL_DATA_TOKEN = os.getenv('FOOTBALL_DATA_TOKEN')
+ODDS_API_KEY = os.getenv("ODDS_API_KEY", "")
 
 #Configurar allauth para el inicio de sesion con Google
 SITE_ID=1
@@ -259,4 +263,3 @@ if not DEBUG:
     SECURE_CONTENT_TYPE_NOSNIFF=True
     SESSION_COOKIE_HTTPONLY=True
     X_FRAME_OPTIONS='DENY'
-    

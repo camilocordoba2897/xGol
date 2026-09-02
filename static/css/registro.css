@@ -1,0 +1,281 @@
+/* ============================================================
+   xGol — Registro
+   Diseno de tarjeta flotante (halo, insignia, anillo de foco,
+   boton ancho con brillo). Usa las variables de base.css, asi
+   que respeta el tema de color guardado en 'xgol-tema'.
+   ============================================================ */
+
+.reg-escena {
+  --reg-ok: #4ade80;          /* verde de "requisito cumplido" */
+  --reg-radio: 18px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: 4px 0 20px;
+}
+
+/* Halo de color: capa fija que cubre TODA la pantalla.
+   El acento entra por la esquina de arriba a la izquierda y el
+   indigo por la de abajo a la derecha, como dos luces de fondo.
+   Va detras de todo (z-index -1), no tapa nada ni recibe clics. */
+.reg-escena::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    /* luz de acento: entra por arriba-izquierda y cubre toda la franja de arriba */
+    radial-gradient(155% 130% at -10% -4%,
+      rgba(var(--accent-rgb), .60) 0%,
+      rgba(var(--accent-rgb), .26) 26%,
+      rgba(var(--accent-rgb), .07) 48%,
+      transparent 70%),
+    /* luz indigo: entra por abajo-derecha y cubre toda la franja de abajo */
+    radial-gradient(155% 130% at 110% 104%,
+      rgba(124, 92, 250, .64) 0%,
+      rgba(112, 98, 247, .27) 26%,
+      rgba(99, 102, 241, .07) 48%,
+      transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ---------- Tarjeta ---------- */
+.reg-carta {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 500px;
+  padding: 28px 28px 22px;
+  border-radius: var(--reg-radio);
+  border: 1px solid rgba(var(--accent-rgb), .26);
+  background:
+    linear-gradient(180deg, rgba(var(--accent-rgb), .05) 0%, transparent 34%),
+    linear-gradient(165deg, var(--bg-2) 0%, var(--bg-1) 55%, var(--bg-0) 100%);
+  box-shadow:
+    0 26px 70px rgba(0, 0, 0, .58),
+    0 0 44px rgba(var(--accent-rgb), .10),
+    inset 0 1px 0 rgba(255, 255, 255, .05);
+}
+
+/* ---------- Insignia ---------- */
+.reg-insignia {
+  width: 46px;
+  height: 46px;
+  margin: 0 auto 13px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(140deg, var(--accent) 0%, var(--accent-dim) 100%);
+  box-shadow: 0 8px 20px rgba(var(--accent-rgb), .30);
+}
+.reg-insignia svg {
+  width: 22px;
+  height: 22px;
+  stroke: var(--bg-0);
+  stroke-width: 2.1;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- Textos de cabecera ---------- */
+.reg-titulo {
+  font-family: var(--ff-display);
+  font-size: clamp(1.12rem, 2.4vw, 1.38rem);
+  font-weight: 700;
+  letter-spacing: -.03em;
+  text-align: center;
+  color: var(--text-0);
+  margin-bottom: 6px;
+}
+.reg-sub {
+  text-align: center;
+  font-size: .84rem;
+  color: var(--text-3);
+  margin-bottom: 20px;
+}
+
+/* ---------- Aviso de errores del servidor ---------- */
+.reg-aviso {
+  border: 1px solid rgba(248, 113, 113, .32);
+  border-left: 3px solid var(--bad);
+  background: var(--bad-bg);
+  border-radius: 12px;
+  padding: 9px 12px;
+  margin-bottom: 15px;
+  font-size: .83rem;
+  color: var(--text-1);
+}
+
+/* ---------- Campos ---------- */
+.reg-fila {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.reg-campo { display: block; margin-bottom: 12px; }
+.reg-fila .reg-campo { margin-bottom: 0; }
+
+.reg-campo label {
+  display: block;
+  font-family: var(--ff-display);
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 6px;
+}
+
+.reg-campo input {
+  width: 100%;
+  background: rgba(0, 0, 0, .35);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--text-0);
+  font-family: var(--ff-body);
+  font-size: .88rem;
+  transition: border-color .18s, box-shadow .18s, background .18s;
+}
+.reg-campo input::placeholder { color: #5c6672; }
+
+.reg-pass-wrap { position: relative; }
+.reg-pass-wrap input { padding-right: 42px; }
+
+.reg-pass-ojo {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-3);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: color .18s, background .18s;
+}
+.reg-pass-ojo:hover { color: var(--text-0); background: rgba(255,255,255,.06); }
+.reg-pass-ojo svg { width: 18px; height: 18px; }
+
+.reg-pass-ojo .ojo-cerrado { display: none; }
+.reg-pass-ojo.mostrando .ojo-abierto { display: none; }
+.reg-pass-ojo.mostrando .ojo-cerrado { display: block; }
+
+/* Anillo de foco: el mismo detalle de la casilla activa del diseno */
+.reg-campo input:focus {
+  outline: none;
+  background: rgba(0, 0, 0, .5);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), .16);
+}
+
+/* Campo con error (lo marca el JS con la clase .reg-mal) */
+input.reg-mal {
+  border-color: var(--bad) !important;
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, .13);
+}
+
+/* Pista de error debajo del campo */
+.reg-pista {
+  display: none;
+  font-size: .74rem;
+  line-height: 1.35;
+  margin-top: 5px;
+  color: #f0a0a0;
+}
+.reg-pista.visible { display: block; }
+
+/* ---------- Requisitos de la contrasena ---------- */
+.ph-reqs[hidden] { display: none; }
+.ph-reqs {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, .28);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ph-reqs li {
+  font-size: .78rem;
+  line-height: 1.3;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  transition: color .18s;
+}
+.ph-reqs li::before {
+  content: "\2715";
+  font-weight: 800;
+  font-size: 11px;
+  width: 15px;
+  text-align: center;
+  color: var(--text-3);
+  transition: color .18s;
+}
+.ph-reqs li.ok { color: var(--reg-ok); }
+.ph-reqs li.ok::before { content: "\2713"; color: var(--reg-ok); }
+
+/* ---------- Boton ---------- */
+.reg-boton {
+  width: 100%;
+  margin-top: 18px;
+  border: none;
+  border-radius: 11px;
+  padding: 12px 18px;
+  cursor: pointer;
+  font-family: var(--ff-display);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--bg-0);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
+  box-shadow: 0 10px 26px rgba(var(--accent-rgb), .22);
+  /* mismo apagado que el boton de Ingresar, para que no se vea neon */
+  filter: saturate(.68) brightness(.84);
+  transition: transform .18s, box-shadow .18s, filter .18s;
+}
+.reg-boton:hover {
+  transform: translateY(-2px);
+  filter: saturate(.68) brightness(.72);
+  box-shadow: 0 14px 32px rgba(var(--accent-rgb), .28);
+}
+.reg-boton:active { transform: translateY(0); filter: saturate(.68) brightness(.66); }
+.reg-boton:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* ---------- Pie de la tarjeta ---------- */
+.reg-pie {
+  margin-top: 14px;
+  text-align: center;
+  font-size: .81rem;
+  color: var(--text-3);
+}
+.reg-pie a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+.reg-pie a:hover { text-decoration: underline; }
+
+/* ---------- Movil ---------- */
+@media (max-width: 640px) {
+  .reg-carta { padding: 22px 18px 20px; }
+  .reg-fila { grid-template-columns: 1fr; gap: 12px; }
+}
+
+/* ---------- Accesibilidad: menos movimiento ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .reg-boton, .reg-campo input, .ph-reqs li { transition: none; }
+  .reg-boton:hover { transform: none; }
+}

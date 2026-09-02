@@ -1,0 +1,100 @@
+/* ============================================================
+   CALENDARIO — selector de fecha de la lista de partidos
+   Usa las variables del sistema definidas en analizador.css.
+   Se llama "fecha-" y no "cal-" porque el prefijo .cal- ya
+   significa "calibracion" en el resto del proyecto.
+   ============================================================ */
+
+.auto-fecha{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;gap:12px}
+.auto-fecha-txt{font-family:var(--font-eyebrow);font-size:13px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.08em;color:var(--text-0)}
+.auto-fecha-btn{background:var(--bg-3);border:1px solid var(--line);border-radius:9px;
+  width:36px;height:36px;flex-shrink:0;font-size:16px;cursor:pointer;color:var(--text-1);
+  transition:border-color .15s var(--ease-out)}
+.auto-fecha-btn:hover{border-color:var(--accent-dim)}
+
+.fecha-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;
+  align-items:center;justify-content:center;z-index:9999;padding:20px}
+.fecha-modal-bg.show{display:flex}
+
+.fecha-modal{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;
+  padding:20px;max-width:320px;width:100%}
+.fecha-modal-year{font-size:11px;color:var(--text-3)}
+.fecha-modal-fecha{font-family:var(--font-display);font-size:19px;font-weight:700;
+  color:var(--text-0);margin:2px 0 16px}
+
+.fecha-nav{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;font-size:13px;color:var(--text-1)}
+.fecha-nav button{background:none;border:none;color:var(--text-2);font-size:18px;
+  cursor:pointer;padding:4px 10px;line-height:1}
+.fecha-nav button:hover{color:var(--accent)}
+
+.fecha-dias-semana{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px}
+.fecha-dias-semana span{text-align:center;font-size:10px;color:var(--text-3)}
+
+.fecha-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.fecha-dia{aspect-ratio:1;border:none;background:none;border-radius:50%;
+  position:relative;color:var(--text-1);font-size:12.5px;cursor:pointer;
+  transition:background .15s var(--ease-out)}
+.fecha-dia:hover{background:var(--bg-3)}
+.fecha-dia.sel{background:var(--accent);color:var(--bg-0);font-weight:700}
+.fecha-dia.hoy{box-shadow:inset 0 0 0 1px var(--accent-dim)}
+.fecha-dia.vacio{visibility:hidden;cursor:default}
+/* Punto bajo los dias que si tienen partidos en la liga elegida */
+.fecha-dia.con-partido::after{content:'';position:absolute;bottom:4px;left:50%;
+  transform:translateX(-50%);width:4px;height:4px;border-radius:50%;
+  background:var(--accent)}
+.fecha-dia.sel.con-partido::after{background:var(--bg-0)}
+
+.fecha-modal-btns{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.fecha-modal-btns button{padding:10px;border-radius:9px;font-size:13px;font-weight:600;
+  cursor:pointer;border:1px solid;font-family:inherit}
+.fecha-btn-establecer{background:var(--accent);border-color:var(--accent);color:var(--bg-0)}
+.fecha-btn-cancelar{background:none;border-color:var(--line);color:var(--text-2)}
+.fecha-btn-borrar{background:none;border-color:transparent;color:var(--text-3)}
+.fecha-btn-borrar:hover{color:var(--bad)}
+
+/* ============================================================
+   REACCION DE LOS BOTONES DEL CALENDARIO
+   Antes solo Borrar respondia al raton: Establecer y Cancelar
+   no tenian ni :hover ni :active, asi que parecian apagados.
+   Bloque aditivo: no modifica ninguna regla anterior, solo
+   agrega los estados. Mismas variables del sistema, asi que
+   el modo claro sale solo.
+   ============================================================ */
+.fecha-modal-btns button{
+  transition:background .15s var(--ease-out),
+             border-color .15s var(--ease-out),
+             color .15s var(--ease-out),
+             filter .15s var(--ease-out),
+             transform .12s var(--ease-out);
+}
+.fecha-modal-btns button:focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px;
+}
+
+/* Accion principal: se aclara al pasar y se hunde al pulsar */
+.fecha-btn-establecer:hover{filter:brightness(1.08)}
+.fecha-btn-establecer:active{transform:translateY(1px);filter:brightness(.94)}
+
+/* Accion secundaria: se enciende el borde y el texto */
+.fecha-btn-cancelar:hover{
+  background:var(--bg-3);border-color:var(--line-fuerte);color:var(--text-0);
+}
+.fecha-btn-cancelar:active{transform:translateY(1px);background:var(--bg-2)}
+
+/* Borrar conserva su rojo de siempre; solo se le anade el pulsado */
+.fecha-btn-borrar:active{transform:translateY(1px)}
+
+/* Las flechas de mes tambien acusan el clic */
+.fecha-nav button{transition:color .15s var(--ease-out),transform .12s var(--ease-out)}
+.fecha-nav button:active{transform:scale(.88)}
+.fecha-nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+@media (prefers-reduced-motion:reduce){
+  .fecha-modal-btns button,
+  .fecha-nav button{transition:none}
+  .fecha-modal-btns button:active,
+  .fecha-nav button:active{transform:none}
+}

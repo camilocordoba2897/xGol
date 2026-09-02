@@ -1,6 +1,5 @@
 #Cliente para consumir football-data.org (v4) desde el servidor.
 #El token viaja solo aqui (backend), nunca al navegador.
-import math
 import requests
 from datetime import date, timedelta, datetime, timezone
 from zoneinfo import ZoneInfo
@@ -194,23 +193,37 @@ def equipos_liga(liga):
 
 
 # ============================================================
-#  PREDICCION DESTACADA — Poisson doble + Dixon-Coles
-#  Datos REALES: goles a favor/en contra de la tabla de la
-#  competencia del partido. Si un equipo no esta en la tabla el
-#  partido se descarta (no se inventan numeros).
+#  TARJETA DESTACADA DEL HOME
 #
-#  CAMBIO A LA API DE PAGO: solo hay que reescribir _fuerzas_liga()
-#  para que devuelva el mismo diccionario
-#  {id_equipo: {"nombre","escudo","pj","gf","gc"}}.
-#  El motor de probabilidad no se toca.
+#  REGLA DE ORO: de aqui NO SALE NI UN SOLO PORCENTAJE de un partido que
+#  todavia no se ha jugado. Ni el 1X2, ni el marcador esperado, ni los goles
+#  esperados. Y no basta con ocultarlos en pantalla: cualquiera abre las
+#  herramientas del navegador y lee la respuesta de este endpoint. Si el dato
+#  sale del servidor, esta regalado. Por eso se filtra AQUI.
+#
+#  Con los goles esperados pasa lo mismo que con el porcentaje: quien tenga
+#  una calculadora saca el 1X2 a partir de lambda 2.19 y 0.94. Tampoco salen.
+#
+#  Lo que si sale, y es lo que de verdad vende:
+#
+#    1. PRONOSTICOS YA RESUELTOS. El partido ya se jugo, asi que no se regala
+#       nada. Se muestra que dijo el motor y que paso, con su ✓ o su ✗ segun
+#       corresponda. Se muestran los aciertos Y los fallos: una tarjeta que
+#       solo enseñara aciertos seria mentira, y ademas se nota.
+#
+#    2. EL PROXIMO PARTIDO, BLOQUEADO. Equipos, hora y liga, con el pronostico
+#       detras del muro de suscripcion. Demuestra que el sistema esta vivo y
+#       trabajando sobre partidos reales de hoy.
+#
+#    3. EL BALANCE VERIFICADO. Cuantos partidos lleva medidos y con que
+#       acierto. Es historico, no es el producto, y es lo mas creible que se
+#       puede enseñar.
+#
+#  COSTE EN API: cero peticiones extra. Todo sale de la base de datos.
 # ============================================================
-PROVEEDOR = "football-data"
-VENTAJA_LOCAL = 1.20
-DC_RHO = -0.13
-MAX_GOLES = 7
-SHRINK_K = 6
-MAX_DESTACADAS = 6
-MAX_COMPETENCIAS = 3
+PROVEEDOR = "motor-xgol"
+MAX_TARJETAS = 6
+MAX_RESUELTOS = 3
 
 def _partidos_crudos(desde, hasta):
     llave = f"crudos_{desde}_{hasta}"
@@ -220,172 +233,226 @@ def _partidos_crudos(desde, hasta):
         cache.set(llave, datos, 180)
     return datos
 
-def _fuerzas_liga(liga):
-    llave = f"fuerzas_{liga}"
-    datos = cache.get(llave)
-    if datos is not None:
-        return datos
-    crudo = _pedir(f"competitions/{liga}/standings")
-    datos = {}
-    for grupo in crudo.get("standings", []):
-        if grupo.get("type") != "TOTAL":
+def _hace(fecha_txt):
+    #"hace 3 dias" a partir de una fecha YYYY-MM-DD
+    if not fecha_txt:
+        return ""
+    try:
+        a, m, d = (int(x) for x in str(fecha_txt)[:10].split("-"))
+        dias = (date.today() - date(a, m, d)).days
+    except (ValueError, TypeError):
+        return ""
+    if dias <= 0:
+        return "hoy"
+    if dias == 1:
+        return "ayer"
+    if dias < 7:
+        return f"hace {dias} días"
+    if dias < 30:
+        semanas = dias // 7
+        return "hace 1 semana" if semanas == 1 else f"hace {semanas} semanas"
+    return "hace más de un mes"
+
+def _balance():
+    #Cuantos partidos lleva el motor medidos y con que acierto.
+    #Historico y verificable: se calcula sobre pronosticos que se guardaron
+    #ANTES de cada partido, no sobre lo que uno recuerda despues.
+    try:
+        from analizador.models import PrediccionMotor
+    except Exception:
+        return {"verificados": 0, "acierto": None}
+    try:
+        filas = list(PrediccionMotor.objects.filter(evaluado=True)
+                     .exclude(resultado="")
+                     .values("prob_local", "prob_empate", "prob_visitante", "resultado"))
+    except Exception:
+        return {"verificados": 0, "acierto": None}
+    if not filas:
+        return {"verificados": 0, "acierto": None}
+    aciertos = 0
+    for f in filas:
+        opciones = {"local": f["prob_local"], "empate": f["prob_empate"],
+                    "visitante": f["prob_visitante"]}
+        if max(opciones, key=opciones.get) == f["resultado"]:
+            aciertos += 1
+    return {"verificados": len(filas),
+            "acierto": round(aciertos / len(filas) * 100)}
+
+def _escudos_de(codigos):
+    #Escudo de cada equipo, por nombre. Sale de equipos_liga(), que ya esta
+    #cacheado 24 horas: una peticion por liga y dia, nada mas.
+    mapa = {}
+    for codigo in codigos:
+        if not codigo:
             continue
-        for fila in grupo.get("table", []):
-            equipo = fila.get("team", {}) or {}
-            id_equipo = equipo.get("id")
-            pj = fila.get("playedGames") or 0
-            if not id_equipo or pj <= 0:
-                continue
-            datos[id_equipo] = {
-                "nombre": equipo.get("shortName") or equipo.get("name", ""),
-                "escudo": equipo.get("crest", ""),
-                "pj": pj,
-                "gf": fila.get("goalsFor") or 0,
-                "gc": fila.get("goalsAgainst") or 0,
-            }
-    cache.set(llave, datos, 1800)
-    return datos
+        try:
+            for e in equipos_liga(codigo):
+                if e.get("escudo"):
+                    mapa.setdefault((e.get("corto") or "").lower(), e["escudo"])
+                    mapa.setdefault((e.get("nombre") or "").lower(), e["escudo"])
+        except Exception:
+            continue
+    return mapa
 
-def _poisson(lam, k):
-    p = math.exp(-lam)
-    for i in range(k):
-        p = p * lam / (i + 1)
-    return p
 
-def _matriz_dc(lam1, lam2):
-    mat = [[_poisson(lam1, h) * _poisson(lam2, a) for a in range(MAX_GOLES + 1)]
-           for h in range(MAX_GOLES + 1)]
-    tau = {(0, 0): 1 - lam1 * lam2 * DC_RHO, (1, 0): 1 + lam2 * DC_RHO,
-           (0, 1): 1 + lam1 * DC_RHO, (1, 1): 1 - DC_RHO}
-    for (h, a), t in tau.items():
-        mat[h][a] = max(0.0, mat[h][a] * t)
-    total = sum(sum(fila) for fila in mat) or 1
-    return [[p / total for p in fila] for fila in mat]
+def _nombre_liga(codigo):
+    for nombre, c in LIGAS.items():
+        if c == codigo:
+            return nombre
+    return codigo or ""
 
-def _regresar(fuerza, pj):
-    peso = pj / (pj + SHRINK_K)
-    return fuerza * peso + (1 - peso)
 
-def _prediccion(local, visitante, media_liga):
-    atk1 = _regresar((local["gf"] / local["pj"]) / media_liga, local["pj"])
-    def1 = _regresar((local["gc"] / local["pj"]) / media_liga, local["pj"])
-    atk2 = _regresar((visitante["gf"] / visitante["pj"]) / media_liga, visitante["pj"])
-    def2 = _regresar((visitante["gc"] / visitante["pj"]) / media_liga, visitante["pj"])
+def _resueltos(limite=MAX_RESUELTOS):
+    #Pronosticos que ya tienen resultado. Se manda QUE dijo el motor (el signo,
+    #no el porcentaje) y que paso. Aciertos y fallos, sin filtrar.
+    try:
+        from analizador.models import PrediccionMotor
+    except Exception:
+        return []
+    try:
+        filas = list(PrediccionMotor.objects.filter(evaluado=True)
+                     .exclude(resultado="")
+                     .order_by("-creado")[:limite])
+    except Exception:
+        return []
 
-    lam1 = max(0.3, atk1 * def2 * media_liga * VENTAJA_LOCAL)
-    lam2 = max(0.3, atk2 * def1 * media_liga)
+    escudos = _escudos_de({f.liga for f in filas})
 
-    mat = _matriz_dc(lam1, lam2)
-    p_local = p_empate = p_visitante = 0.0
-    for h in range(MAX_GOLES + 1):
-        for a in range(MAX_GOLES + 1):
-            p = mat[h][a]
-            if h > a:
-                p_local += p
-            elif h == a:
-                p_empate += p
-            else:
-                p_visitante += p
+    salida = []
+    for f in filas:
+        opciones = {"local": f.prob_local, "empate": f.prob_empate,
+                    "visitante": f.prob_visitante}
+        signo = max(opciones, key=opciones.get)
+        etiqueta = {"local": f"Gana {f.equipo_local}",
+                    "empate": "Empate",
+                    "visitante": f"Gana {f.equipo_visitante}"}[signo]
+        salida.append({
+            "tipo": "resuelto",
+            "local": f.equipo_local,
+            "visitante": f.equipo_visitante,
+            "local_escudo": escudos.get((f.equipo_local or "").lower(), ""),
+            "visitante_escudo": escudos.get((f.equipo_visitante or "").lower(), ""),
+            "liga": _nombre_liga(f.liga),
+            "dijo": etiqueta,
+            "acerto": signo == f.resultado,
+            "marcador": (f"{f.goles_local} - {f.goles_visitante}"
+                         if f.goles_local is not None else ""),
+            "cuando": _hace(f.fecha),
+        })
+    return salida
 
-    #Marcador esperado: el mas probable DENTRO del resultado mas probable.
-    #Si se toma el marcador mas probable en general casi siempre sale 1-1 (es
-    #el marcador mas comun del futbol) y contradice los porcentajes de arriba.
-    if p_local >= p_empate and p_local >= p_visitante:
-        signo = "local"
-    elif p_visitante >= p_empate:
-        signo = "visitante"
-    else:
-        signo = "empate"
+def _ligas_anunciables():
+    #Ligas cuyos partidos se pueden anunciar en la tarjeta.
+    #Se prefieren las que ya tienen ajuste guardado; si aun no se corrio
+    #"ajustar_motor", se usan todas las que cubre xGol.
+    try:
+        from analizador.models import AjusteMotor
+        ajustadas = set(AjusteMotor.objects.values_list("liga", flat=True))
+        if ajustadas:
+            return ajustadas
+    except Exception:
+        pass
+    return set(LIGAS.values())
 
-    mejor = (1, 1)
-    mejor_p = -1.0
-    for h in range(MAX_GOLES + 1):
-        for a in range(MAX_GOLES + 1):
-            if signo == "local" and h <= a:
-                continue
-            if signo == "visitante" and h >= a:
-                continue
-            if signo == "empate" and h != a:
-                continue
-            if mat[h][a] > mejor_p:
-                mejor_p = mat[h][a]
-                mejor = (h, a)
 
-    duelo = (p_local + p_visitante) or 1
-    prob_local = round(p_local / duelo * 100)
-    muestra = min(1.0, min(local["pj"], visitante["pj"]) / 8)
-    confianza = min(0.95, (max(p_local, p_visitante) + p_empate) * (0.75 + 0.25 * muestra))
+def _codigo_de_liga(nombre):
+    return LIGAS.get(nombre or "")
 
-    return {
-        "prob_local": prob_local,
-        "prob_visitante": 100 - prob_local,
-        "p_local": round(p_local * 100, 1),
-        "p_empate": round(p_empate * 100, 1),
-        "p_visitante": round(p_visitante * 100, 1),
-        "marcador": f"{mejor[0]} - {mejor[1]}",
-        "confianza": round(confianza * 100),
-        "lam_local": round(lam1, 2),
-        "lam_visitante": round(lam2, 2),
-    }
+
+def _proximos_bloqueados(limite):
+    #Partidos que se van a jugar. SIN NINGUN NUMERO de pronostico.
+    #
+    #IMPORTANTE: se reutilizan partidos_vivo(), partidos_hoy() y
+    #partidos_proximos(), que son EXACTAMENTE los mismos que ya pinta la
+    #seccion "Partidos del dia" del home.
+    #
+    #Antes esta funcion pedia los partidos por su cuenta. Eso tenia dos
+    #problemas: gastaba peticiones de mas (football-data solo permite 10 por
+    #minuto, y una carga del home ya hace varias), y si esa peticion concreta
+    #fallaba la tarjeta se quedaba vacia aunque el resto de la pagina si
+    #tuviera partidos. Ahora comparten cache: si la seccion de abajo muestra
+    #partidos, la tarjeta tambien.
+    ligas = _ligas_anunciables()
+    try:
+        vivos = partidos_vivo()
+        hoy = partidos_hoy()
+        proximos = partidos_proximos()
+    except Exception:
+        return [], "sin_conexion"
+
+    POR_JUGAR = ("SCHEDULED", "TIMED")
+    EN_JUEGO = ("IN_PLAY", "PAUSED")
+
+    #Orden: primero lo que se esta jugando, luego lo de hoy, luego la semana.
+    candidatos = list(vivos)
+    candidatos += [p for p in hoy if p.get("estado") in POR_JUGAR]
+    candidatos += [p for p in proximos if p.get("estado") in POR_JUGAR]
+
+    if not candidatos:
+        return [], "sin_partidos"
+
+    salida = []
+    vistos = set()
+    descartados_por_liga = 0
+    for p in candidatos:
+        if len(salida) >= limite:
+            break
+        clave = (p.get("local"), p.get("visitante"), p.get("utc"))
+        if clave in vistos:
+            continue
+        vistos.add(clave)
+        if not p.get("local") or not p.get("visitante"):
+            continue
+        codigo = _codigo_de_liga(p.get("liga"))
+        if codigo not in ligas:
+            descartados_por_liga += 1
+            continue
+        salida.append({
+            "tipo": "bloqueado",
+            "local": p.get("local"),
+            "local_escudo": p.get("local_logo", ""),
+            "visitante": p.get("visitante"),
+            "visitante_escudo": p.get("visitante_logo", ""),
+            "liga": p.get("liga", ""),
+            "hora": p.get("hora", ""),
+            "fecha": p.get("fecha", ""),
+            "estado": p.get("estado", ""),
+        })
+
+    if not salida:
+        #Habia partidos, pero ninguno de una liga que xGol cubra.
+        return [], "sin_ligas_cubiertas"
+    return salida, None
+
 
 def predicciones_destacadas():
-    datos = cache.get("predicciones_destacadas")
+    datos = cache.get("tarjeta_home")
     if datos is not None:
         return datos
 
-    hoy = date.today()
-    del_dia = _partidos_crudos(hoy.isoformat(), hoy.isoformat())
-    vivos = [m for m in del_dia if m.get("status") in ("IN_PLAY", "PAUSED")]
-    ids_vivos = {m.get("id") for m in vivos}
+    resueltos = _resueltos()
+    #Se dejan huecos para los proximos: la tarjeta alterna entre pasado
+    #verificado y futuro bloqueado, que es lo que convence sin regalar nada.
+    proximos, motivo = _proximos_bloqueados(MAX_TARJETAS - len(resueltos))
 
-    candidatos = vivos + [m for m in del_dia if m.get("id") not in ids_vivos]
-    if len(candidatos) < MAX_DESTACADAS:
-        vistos = {m.get("id") for m in candidatos}
-        proximos = _partidos_crudos((hoy + timedelta(days=1)).isoformat(),
-                                    (hoy + timedelta(days=7)).isoformat())
-        candidatos = candidatos + [m for m in proximos if m.get("id") not in vistos]
+    #Se intercalan: resuelto, proximo, resuelto, proximo...
+    tarjetas = []
+    for i in range(max(len(resueltos), len(proximos))):
+        if i < len(resueltos):
+            tarjetas.append(resueltos[i])
+        if i < len(proximos):
+            tarjetas.append(proximos[i])
 
-    ligas = []
-    for m in candidatos:
-        codigo = (m.get("competition", {}) or {}).get("code")
-        if codigo and codigo not in ligas:
-            ligas.append(codigo)
-        if len(ligas) >= MAX_COMPETENCIAS:
-            break
-    tablas = {codigo: _fuerzas_liga(codigo) for codigo in ligas}
-    medias = {}
-
-    datos = []
-    for m in candidatos:
-        if len(datos) >= MAX_DESTACADAS:
-            break
-        comp = m.get("competition", {}) or {}
-        codigo = comp.get("code")
-        tabla = tablas.get(codigo)
-        if not tabla:
-            continue
-        local = tabla.get((m.get("homeTeam", {}) or {}).get("id"))
-        visitante = tabla.get((m.get("awayTeam", {}) or {}).get("id"))
-        if not local or not visitante:
-            continue
-        if codigo not in medias:
-            total_pj = sum(e["pj"] for e in tabla.values())
-            total_gf = sum(e["gf"] for e in tabla.values())
-            medias[codigo] = (total_gf / total_pj) if total_pj else 1.35
-        p = _prediccion(local, visitante, medias[codigo])
-        hora, fecha = _hora_local(m.get("utcDate", ""))
-        p.update({
-            "liga": comp.get("name", ""),
-            "local": local["nombre"],
-            "local_escudo": local["escudo"],
-            "visitante": visitante["nombre"],
-            "visitante_escudo": visitante["escudo"],
-            "hora": hora,
-            "fecha": fecha,
-            "estado": m.get("status", ""),
-            "fuente": PROVEEDOR,
-        })
-        datos.append(p)
-
-    cache.set("predicciones_destacadas", datos, 300)
+    datos = {
+        "tarjetas": tarjetas[:MAX_TARJETAS],
+        "balance": _balance(),
+        "fuente": PROVEEDOR,
+        #Si no hay nada que enseñar, el frontend necesita saber POR QUE para
+        #decirlo en pantalla. Una tarjeta atascada en "Cargando..." para
+        #siempre es peor que una que explica que no hay partidos ahora mismo.
+        "motivo": (None if tarjetas else (motivo or "sin_datos")),
+    }
+    #Sin datos se cachea solo 60 segundos: si el problema era pasajero, la
+    #tarjeta se arregla sola en un minuto en vez de quedarse mal cinco.
+    cache.set("tarjeta_home", datos, 300 if tarjetas else 60)
     return datos

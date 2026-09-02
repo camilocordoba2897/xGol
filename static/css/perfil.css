@@ -123,6 +123,9 @@ body.perfil {
   font-size: 2rem; color: var(--lima);
 }
 .ph-avatar-info { display: flex; flex-direction: column; gap: 8px; }
+/* El [hidden] del HTML no basta: las reglas de arriba fijan display para
+   .ph-avatar-ph, y eso le gana. Por eso se apaga aqui de forma explicita. */
+.ph-avatar[hidden], .ph-avatar-ph[hidden] { display: none; }
 .ph-file-btn {
   font-family: var(--ff-display);
   font-size: .84rem; font-weight: 600; letter-spacing: .01em;
@@ -134,7 +137,6 @@ body.perfil {
 }
 .ph-file-btn:hover { filter: brightness(.65); }
 .ph-file-btn:active { filter: brightness(.55); }
-.ph-file-name { font-size: 0.8rem; color: var(--text-2); }
 
 /* CAMPOS */
 .ph-field { margin-bottom: 16px; }
@@ -143,6 +145,7 @@ body.perfil {
   font-size: 0.85rem; font-weight: 600;
   color: var(--text-1); margin-bottom: 6px;
 }
+.ph-opcional { font-weight: 500; color: var(--text-2); }
 .ph-input {
   width: 100%;
   background: var(--bg-0);
@@ -157,6 +160,32 @@ body.perfil {
 }
 .ph-input::placeholder { color: var(--text-2); }
 .ph-input:focus { border-color: var(--lima); box-shadow: 0 0 0 3px rgba(74,222,128,.15); }
+
+/* OJO DE CONTRASEÑA */
+.ph-pass-wrap { position: relative; }
+.ph-pass-wrap .ph-input { padding-right: 44px; }
+.ph-pass-ojo {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--text-2);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: color var(--t), background var(--t);
+}
+.ph-pass-ojo:hover { color: var(--text-0); background: rgba(255,255,255,.06); }
+.ph-pass-ojo svg { width: 18px; height: 18px; }
+.ph-pass-ojo .ojo-cerrado { display: none; }
+.ph-pass-ojo.mostrando .ojo-abierto { display: none; }
+.ph-pass-ojo.mostrando .ojo-cerrado { display: block; }
 .ph-disabled { opacity: 0.55; cursor: not-allowed; }
 .ph-hint { font-size: 0.78rem; color: var(--text-2); margin-top: 5px; display: block; }
 

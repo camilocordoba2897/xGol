@@ -1,15 +1,99 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block Titulo %}
-  Crear cuenta
-<style>
-  .ph-reqs[hidden]{display:none;}
-  .ph-reqs{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;}
-  .ph-reqs li{font-size:13px;line-height:1.3;color:#e05a5a;display:flex;align-items:center;gap:8px;transition:color .18s;}
-  .ph-reqs li::before{content:"\2715";font-weight:800;font-size:12px;width:14px;text-align:center;}
-  .ph-reqs li.ok{color:#8fd18f;}
-  .ph-reqs li.ok::before{content:"\2713";}
-</style>
+{% block Titulo %}Crear cuenta{% endblock %}
+
+{% block estilos %}
+  <link rel="stylesheet" href="{% static 'css/registro.css' %}?v=3">
+{% endblock %}
+
+{% block content %}
+
+<div class="reg-escena">
+  <div class="reg-carta">
+
+    <!-- Insignia de la tarjeta -->
+    <div class="reg-insignia" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+    </div>
+
+    <h2 class="reg-titulo">Crear tu cuenta en <span class="logo-x">x</span>Gol</h2>
+    <p class="reg-sub">Solo unos datos y ya puedes empezar</p>
+
+    {% if messages %}
+      {% for i in messages %}
+        <div class="reg-aviso" role="alert">{{ i }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form action="{% url 'Registro' %}" method="post">
+      {% csrf_token %}
+
+      <div class="reg-fila">
+        <div class="reg-campo">
+          <label for="reg-nombre">Nombre</label>
+          <input type="text" name="nombre" id="reg-nombre" placeholder="Tu nombre" required
+                 value="{{ datos.nombre|default:'' }}"
+                 pattern="\s*[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+([ '\-]+[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*\s*" minlength="2" maxlength="40"
+                 title="Solo letras. Ej: Juan Camilo" autocomplete="off">
+          <small class="reg-pista" data-para="reg-nombre"></small>
+        </div>
+        <div class="reg-campo">
+          <label for="reg-apellidos">Apellidos</label>
+          <input type="text" name="apellidos" id="reg-apellidos" placeholder="Tus apellidos" required
+                 value="{{ datos.apellidos|default:'' }}"
+                 pattern="\s*[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+([ '\-]+[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*\s*" minlength="2" maxlength="40"
+                 title="Solo letras. Ej: Restrepo Gómez" autocomplete="off">
+          <small class="reg-pista" data-para="reg-apellidos"></small>
+        </div>
+      </div>
+
+      <div class="reg-fila">
+        <div class="reg-campo">
+          <label for="reg-username">Nombre de usuario</label>
+          <input type="text" name="username" id="reg-username" placeholder="Elige un usuario" required
+                 value="{{ datos.username|default:'' }}"
+                 pattern="[A-Za-z0-9]+" minlength="3" maxlength="20"
+                 title="Solo letras y números, sin espacios ni símbolos" autocomplete="off">
+          <small class="reg-pista" data-para="reg-username"></small>
+        </div>
+        <div class="reg-campo">
+          <label for="reg-email">Correo</label>
+          <input type="email" name="email" id="reg-email" placeholder="correo@ejemplo.com" required
+                 value="{{ datos.email|default:'' }}"
+                 maxlength="254" autocomplete="email"
+                 title="Escribe un correo válido. Ej: nombre@correo.com">
+          <small class="reg-pista" data-para="reg-email"></small>
+        </div>
+      </div>
+
+      <div class="reg-campo">
+        <label for="reg-password">Contraseña</label>
+        <div class="reg-pass-wrap">
+          <input type="password" name="password" id="reg-password" placeholder="Tu contraseña" required>
+          <button type="button" class="reg-pass-ojo" id="reg-pass-ojo" aria-label="Mostrar contraseña" aria-pressed="false">
+            <svg class="ojo-abierto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="ojo-cerrado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.6 20.6 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a20.6 20.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
+
+        <ul class="ph-reqs" id="ph-reqs" hidden>
+          <li data-regla="longitud">Debe ser de 8 a 16 caracteres</li>
+          <li data-regla="minuscula">Al menos 1 letra minúscula</li>
+          <li data-regla="mayuscula">Al menos 1 letra mayúscula</li>
+          <li data-regla="numero">Al menos 1 número</li>
+          <li data-regla="especial">Al menos 1 carácter especial</li>
+        </ul>
+      </div>
+
+      <button type="submit" class="reg-boton">Crear cuenta</button>
+    </form>
+
+    <p class="reg-pie">¿Ya tienes cuenta? <a href="{% url 'Ingresar' %}">Inicia sesión</a></p>
+
+  </div>
+</div>
+
 <script>
   (function(){
     var input=document.getElementById("reg-password");
@@ -44,109 +128,109 @@
   })();
 </script>
 
-{% endblock %}
-
-{% block content %}
-  <h2 class="section-title" style="text-align: center;">Crear tu cuenta en xGol</h2>
-  <p class="section-subtitle" style="text-align: center;">Solo unos datos y ya puedes empezar</p>
-
-  {% if messages %}
-    {% for i in messages %}
-      <div class="card" style="border-left: 4px solid var(--bad); margin-bottom: 20px; max-width: 620px; margin-left: auto; margin-right: auto;">
-        <p style="color: var(--text-1);">{{ i }}</p>
-      </div>
-    {% endfor %}
-  {% endif %}
-
-  <div class="card card--static" style="max-width: 620px; margin-left: auto; margin-right: auto;">
-    <form action="{% url 'Registro' %}" method="post">
-      {% csrf_token %}
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
-        <div>
-          <label style="display: block; font-size: .82rem; font-weight: 600; color: var(--text-1); margin-bottom: 5px;">Nombre</label>
-          <input type="text" name="nombre" placeholder="Tu nombre" required
-                 style="width: 100%; background: var(--bg-0); border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; color: var(--text-0); font-family: var(--ff-body); font-size: .92rem;">
-        </div>
-        <div>
-          <label style="display: block; font-size: .82rem; font-weight: 600; color: var(--text-1); margin-bottom: 5px;">Apellidos</label>
-          <input type="text" name="apellidos" placeholder="Tus apellidos" required
-                 style="width: 100%; background: var(--bg-0); border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; color: var(--text-0); font-family: var(--ff-body); font-size: .92rem;">
-        </div>
-      </div>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
-        <div>
-          <label style="display: block; font-size: .82rem; font-weight: 600; color: var(--text-1); margin-bottom: 5px;">Nombre de usuario</label>
-          <input type="text" name="username" placeholder="Elige un usuario" required
-                 style="width: 100%; background: var(--bg-0); border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; color: var(--text-0); font-family: var(--ff-body); font-size: .92rem;">
-        </div>
-        <div>
-          <label style="display: block; font-size: .82rem; font-weight: 600; color: var(--text-1); margin-bottom: 5px;">Correo</label>
-          <input type="email" name="email" placeholder="correo@ejemplo.com" required
-                 style="width: 100%; background: var(--bg-0); border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; color: var(--text-0); font-family: var(--ff-body); font-size: .92rem;">
-        </div>
-      </div>
-
-      <div style="margin-bottom: 22px;">
-        <label style="display: block; font-size: .82rem; font-weight: 600; color: var(--text-1); margin-bottom: 5px;">Contraseña</label>
-        <input type="password" name="password" id="reg-password" placeholder="Tu contraseña" required
-               style="width: 100%; background: var(--bg-0); border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; color: var(--text-0); font-family: var(--ff-body); font-size: .92rem;">
-
-        <ul class="ph-reqs" id="ph-reqs" hidden>
-          <li data-regla="longitud">Debe ser de 8 a 16 caracteres</li>
-          <li data-regla="minuscula">Al menos 1 letra minúscula</li>
-          <li data-regla="mayuscula">Al menos 1 letra mayúscula</li>
-          <li data-regla="numero">Al menos 1 número</li>
-          <li data-regla="especial">Al menos 1 carácter especial</li>
-        </ul>
-      </div>
-
-      <div style="display: flex; gap: 10px; align-items: center;">
-        <button type="submit" class="btn btn-primary">Crear cuenta</button>
-      </div>
-    </form>
-  </div>
-<style>
-  .ph-reqs[hidden]{display:none;}
-  .ph-reqs{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;}
-  .ph-reqs li{font-size:13px;line-height:1.3;color:#e05a5a;display:flex;align-items:center;gap:8px;transition:color .18s;}
-  .ph-reqs li::before{content:"\2715";font-weight:800;font-size:12px;width:14px;text-align:center;}
-  .ph-reqs li.ok{color:#8fd18f;}
-  .ph-reqs li.ok::before{content:"\2713";}
-</style>
 <script>
   (function(){
-    var input=document.getElementById("reg-password");
-    if(!input) return;
+    var boton=document.getElementById("reg-pass-ojo");
+    var campo=document.getElementById("reg-password");
+    if(!boton||!campo) return;
 
-    var reqs=document.getElementById("ph-reqs");
-    var reglas={
-      longitud:function(v){ return v.length>=8 && v.length<=16; },
-      minuscula:function(v){ return /[a-z]/.test(v); },
-      mayuscula:function(v){ return /[A-Z]/.test(v); },
-      numero:function(v){ return /[0-9]/.test(v); },
-      especial:function(v){ return /[^A-Za-z0-9]/.test(v); }
-    };
-
-    var items=document.querySelectorAll("#ph-reqs li");
-
-    function validar(){
-      var v=input.value;
-      items.forEach(function(li){
-        var regla=li.getAttribute("data-regla");
-        if(reglas[regla](v)){
-          li.classList.add("ok");
-        }else{
-          li.classList.remove("ok");
-        }
-      });
-    }
-
-    input.addEventListener("focus",function(){ reqs.hidden=false; });
-    input.addEventListener("blur",function(){ reqs.hidden=true; });
-    input.addEventListener("input",validar);
+    boton.addEventListener("click",function(){
+      var verla=campo.type==="password";
+      campo.type=verla?"text":"password";
+      boton.classList.toggle("mostrando",verla);
+      boton.setAttribute("aria-pressed",verla?"true":"false");
+      boton.setAttribute("aria-label",verla?"Ocultar contraseña":"Mostrar contraseña");
+    });
   })();
+</script>
+
+<script>
+//Validacion en vivo del registro.
+//Es SOLO comodidad para el usuario: la validacion que manda esta en
+//usuarios/validaciones.py. Aqui se avisa mientras escribe y se impide
+//teclear o pegar simbolos, pero nada de esto sustituye al servidor.
+(function(){
+  var LETRAS="A-Za-zAEIOUUNaeiouun\u00c1\u00c9\u00cd\u00d3\u00da\u00dc\u00d1\u00e1\u00e9\u00ed\u00f3\u00fa\u00fc\u00f1";
+  var reNombre=new RegExp("^["+LETRAS+"]+(?:[ '\\-]["+LETRAS+"]+)*$");
+  var reSoloNombre=new RegExp("[^"+LETRAS+" '\\-]","g");
+  var reUsuario=/^[A-Za-z0-9]+$/;
+  var reCorreo=/^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$/;
+  var reRepetida=/(.)\1\1/;
+
+  function pista(campo){
+    return document.querySelector('.reg-pista[data-para="'+campo.id+'"]');
+  }
+
+  function marcar(campo,mensaje){
+    var p=pista(campo);
+    if(!p) return;
+    if(!mensaje){
+      p.className="reg-pista";
+      p.textContent="";
+      campo.classList.remove("reg-mal");
+      return;
+    }
+    p.textContent=mensaje;
+    p.className="reg-pista visible";
+    campo.classList.add("reg-mal");
+  }
+
+  function revisarNombre(campo,etiqueta){
+    var v=campo.value.trim().replace(/\s+/g," ");
+    if(!v){ marcar(campo,""); return; }
+    if(v.length<2){ marcar(campo,etiqueta+" debe tener al menos 2 letras."); return; }
+    if(!reNombre.test(v)){ marcar(campo,etiqueta+" solo puede tener letras."); return; }
+    if(reRepetida.test(v.toLowerCase())){ marcar(campo,etiqueta+" no parece un nombre valido."); return; }
+    marcar(campo,"");
+  }
+
+  function revisarUsuario(campo){
+    var v=campo.value.trim();
+    if(!v){ marcar(campo,""); return; }
+    if(v.length<3){ marcar(campo,"Debe tener al menos 3 caracteres."); return; }
+    if(!reUsuario.test(v)){ marcar(campo,"Solo letras y numeros, sin espacios ni simbolos."); return; }
+    if(!/[A-Za-z]/.test(v)){ marcar(campo,"Debe tener al menos una letra."); return; }
+    marcar(campo,"");
+  }
+
+  function revisarCorreo(campo){
+    var v=campo.value.trim();
+    if(!v){ marcar(campo,""); return; }
+    if(!reCorreo.test(v)){ marcar(campo,"Escribe un correo valido. Ej: nombre@correo.com"); return; }
+    marcar(campo,"");
+  }
+
+  //Filtra lo que se teclea Y lo que se PEGA: al pegar basura no se queda escrita
+  function filtrar(campo,permitido){
+    campo.addEventListener("input",function(){
+      var limpio=campo.value.replace(permitido,"");
+      if(limpio!==campo.value){
+        var pos=campo.selectionStart-(campo.value.length-limpio.length);
+        campo.value=limpio;
+        try{ campo.setSelectionRange(pos,pos); }catch(e){}
+      }
+    });
+  }
+
+  function enlazar(id,filtro,revisar,recortar){
+    var campo=document.getElementById(id);
+    if(!campo) return;
+    filtrar(campo,filtro);
+    campo.addEventListener("input",function(){ revisar(campo); });
+    campo.addEventListener("blur",function(){
+      //Al salir se limpian los espacios de sobra: asi el campo nunca
+      //queda "a medias" y el patron del navegador no se queja de mas.
+      if(recortar) campo.value=campo.value.trim().replace(/\s+/g," ");
+      revisar(campo);
+    });
+    if(campo.value) revisar(campo);
+  }
+
+  enlazar("reg-nombre",reSoloNombre,function(c){ revisarNombre(c,"El nombre"); },true);
+  enlazar("reg-apellidos",reSoloNombre,function(c){ revisarNombre(c,"Los apellidos"); },true);
+  enlazar("reg-username",/[^A-Za-z0-9]/g,revisarUsuario,true);
+  enlazar("reg-email",/\s/g,revisarCorreo,true);
+})();
 </script>
 
 {% endblock %}

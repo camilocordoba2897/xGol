@@ -9,7 +9,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="{% static 'css/base.css' %}?v=8">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}?v=10">
+  <link rel="stylesheet" href="{% static 'css/boton_inicio.css' %}?v=1">
+
+  <!-- Hueco para el CSS propio de cada pagina (lo usa registro.html) -->
+  {% block estilos %}{% endblock %}
 
   <script>
     // Aplicamos el tema guardado ANTES de pintar para que no parpadee
@@ -28,7 +32,7 @@
   </header>
 
   <nav>
-      <a href="{% url 'Inicio' %}">
+      <a class="btn-inicio" href="{% url 'Inicio' %}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         Inicio
       </a>
@@ -42,6 +46,10 @@
       {% endif %}
 
     {% if user.is_authenticated %}
+      <a href="{% url 'Analizador' %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg>
+        Analizador
+      </a>
       <a href="{% url 'Salir' %}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         Salir

@@ -451,3 +451,137 @@ footer p::before { content: ''; display: inline-block; width: 6px; height: 6px; 
 @media (max-width: 640px) {
   .content-wrapper table { min-width: 560px; }
 }
+/* ============================================================
+   ELIMINAR USUARIO
+   Antes reusaba el banner verde de administración, el mismo de
+   crear y editar: para una acción que borra una cuenta para
+   siempre, el verde manda el mensaje contrario. Aquí todo va en
+   rojo y la tarjeta queda centrada; antes se pegaba a la
+   izquierda y dejaba media pantalla vacía.
+   ============================================================ */
+.elim-caja { max-width: 520px; margin: 0 auto; }
+
+.elim-aviso {
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(135deg, rgba(248,113,113,.10), transparent 70%);
+  border: 1px solid rgba(248,113,113,.28);
+  border-left: 4px solid var(--bad);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  margin-bottom: 18px;
+}
+.elim-aviso-icono {
+  width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+  display: grid; place-items: center;
+  background: var(--bad-bg); color: var(--bad);
+}
+.elim-aviso-icono svg { width: 22px; height: 22px; }
+.elim-aviso-tag {
+  font-family: var(--ff-display);
+  font-size: .7rem; font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase;
+  color: var(--bad);
+}
+.elim-aviso-titulo {
+  font-family: var(--ff-display);
+  font-size: 1.25rem; font-weight: 700;
+  color: var(--text-0); letter-spacing: -.02em;
+}
+
+.elim-tarjeta {
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 26px;
+}
+
+/* Ficha del usuario: se ve a quién se va a borrar antes de decidir */
+.elim-usuario {
+  display: flex; align-items: center; gap: 13px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 13px 15px;
+  margin-bottom: 20px;
+}
+.elim-avatar {
+  width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+  display: grid; place-items: center;
+  background: var(--bad-bg);
+  border: 1px solid rgba(248,113,113,.35);
+  font-family: var(--ff-display); font-size: 1.05rem; font-weight: 800;
+  color: var(--bad);
+}
+.elim-usuario-datos { min-width: 0; }
+.elim-usuario-nombre {
+  font-family: var(--ff-display); font-size: 1rem; font-weight: 700;
+  color: var(--text-0);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.elim-usuario-correo {
+  font-size: .82rem; color: var(--text-3); margin-top: 2px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.elim-pregunta {
+  font-family: var(--ff-display); font-size: 1.15rem; font-weight: 700;
+  color: var(--text-0); letter-spacing: -.02em; margin-bottom: 14px;
+}
+
+.elim-lista { list-style: none; margin-bottom: 24px; }
+.elim-lista li {
+  position: relative;
+  padding-left: 22px; margin-bottom: 9px;
+  font-size: .88rem; line-height: 1.55; color: var(--text-2);
+}
+.elim-lista li::before {
+  content: ''; position: absolute;
+  left: 6px; top: .62em;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--bad);
+}
+.elim-lista li:last-child { color: var(--text-1); font-weight: 600; margin-bottom: 0; }
+
+.elim-form { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+
+.elim-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: var(--ff-display); font-size: .85rem; font-weight: 700;
+  padding: 11px 20px; border-radius: 10px;
+  border: 1px solid var(--line);
+  cursor: pointer; text-decoration: none;
+  transition: all var(--t);
+}
+.elim-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+.elim-btn-no { background: var(--bg-3); color: var(--text-1); }
+.elim-btn-no:hover {
+  background: var(--bg-2); color: var(--text-0);
+  border-color: var(--text-3);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,.4);
+}
+
+/* El botón peligroso sí lleva relieve: antes era plano y no se
+   notaba que estaba señalado. */
+.elim-btn-si {
+  background: var(--bad); color: #2a0505; border-color: var(--bad);
+  box-shadow: 0 2px 6px rgba(248,113,113,.22);
+}
+.elim-btn-si:hover {
+  background: #fa8f8f; border-color: #fa8f8f;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(248,113,113,.45);
+}
+.elim-btn:active { transform: translateY(0); box-shadow: none; }
+.elim-btn:focus-visible { outline: 2px solid var(--bad); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .elim-btn:hover { transform: none; }
+}
+
+@media (max-width: 480px) {
+  .elim-tarjeta { padding: 20px 17px; }
+  .elim-form { flex-direction: column-reverse; }
+  .elim-btn { width: 100%; }
+}

@@ -12,7 +12,7 @@ from django.conf import settings
 from usuarios.decoradores import rol_requerido
 from suscripciones.planes import PLANES
 from pagos.models import Pago,Reembolso
-from pagos import pasarela,servicios,reportes,exportar
+from pagos import pasarela,servicios,reportes,exportar,reporte_pdf
 
 
 def _filtros(request):
@@ -63,27 +63,55 @@ def panel_finanzas(request):
 
 @rol_requerido("administrador")
 def exportar_finanzas(request):
-    formato=(request.GET.get("formato") or "csv").lower()
+    #El PDF es ahora el formato por defecto: reemplazo al CSV en el panel.
+    #La exportacion a CSV sigue existiendo por si se pide con formato=csv,
+    #para no romper un enlace guardado, pero ya no tiene boton propio.
+    formato=(request.GET.get("formato") or "pdf").lower()
     tipo=(request.GET.get("tipo") or "transacciones").lower()
     marca=datetime.now().strftime("%Y%m%d_%H%M")
+    filtros=_filtros(request)
+
+    #El PDF de transacciones se arma con los objetos Pago, no con filas de
+    #texto: necesita el usuario y los montos para poder dar formato y color.
+    if formato=="pdf" and tipo!="resumen":
+        pagos=reportes.transacciones(filtros).select_related("usuario")
+        contenido=reporte_pdf.generar_reporte_pdf(pagos,filtros)
+        respuesta=HttpResponse(contenido,content_type="application/pdf")
+        respuesta["Content-Disposition"]=f'attachment; filename="xgol_transacciones_{marca}.pdf"'
+        return respuesta
 
     if tipo=="resumen":
         cabeceras=exportar.CABECERAS_RESUMEN
         filas=list(exportar.filas_resumen(reportes.resumen_ingresos()))
         nombre=f"xgol_resumen_{marca}"
+        titulo="Resumen financiero"
+        subtitulo="Acumulados por periodo · Generado el "+datetime.now().strftime("%d/%m/%Y %H:%M")
+        moneda=exportar.MONEDA_RESUMEN
+        totalizar=exportar.TOTALIZAR_RESUMEN
+        columna_estado=None
     else:
         cabeceras=exportar.CABECERAS_TRANSACCIONES
-        filas=list(exportar.filas_transacciones(reportes.transacciones(_filtros(request)).iterator()))
+        filas=list(exportar.filas_transacciones(
+            reportes.transacciones(filtros).select_related("usuario").iterator()))
         nombre=f"xgol_transacciones_{marca}"
+        titulo="Historial de transacciones"
+        subtitulo=(reporte_pdf._linea_filtros(filtros)+" · Generado el "
+                   +datetime.now().strftime("%d/%m/%Y %H:%M"))
+        moneda=exportar.MONEDA_TRANSACCIONES
+        totalizar=exportar.TOTALIZAR_TRANSACCIONES
+        columna_estado=exportar.COLUMNA_ESTADO_TRANSACCIONES
 
-    if formato=="xlsx":
-        contenido=exportar.a_xlsx(cabeceras,filas,hoja=tipo[:31].capitalize())
-        tipo_mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        extension="xlsx"
-    else:
+    if formato=="csv":
         contenido=exportar.a_csv(cabeceras,filas)
         tipo_mime="text/csv; charset=utf-8"
         extension="csv"
+    else:
+        contenido=exportar.a_xlsx(cabeceras,filas,hoja=tipo[:31].capitalize(),
+                                  titulo=titulo,subtitulo=subtitulo,
+                                  columnas_moneda=moneda,totalizar=totalizar,
+                                  columna_estado=columna_estado)
+        tipo_mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        extension="xlsx"
 
     respuesta=HttpResponse(contenido,content_type=tipo_mime)
     respuesta["Content-Disposition"]=f'attachment; filename="{nombre}.{extension}"'

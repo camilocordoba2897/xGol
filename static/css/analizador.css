@@ -4,41 +4,58 @@
    Neutrales tintados hacia el verde (OKLCH) · números monoespaciados
    ============================================================ */
 :root{
-  /* Base CodeNest: #070b0a profundo, superficies apenas levantadas */
-  --bg-0: #070b0a;                /* fondo más profundo (spec) */
-  --bg-1: #0a100e;                /* fondo base */
-  --bg-2: #0d1512;                /* superficie / tarjetas */
-  --bg-3: #122019;                /* superficie elevada */
-  --line: rgba(255,255,255,.10);  /* bordes white/10 (spec grid) */
-  --line-soft: rgba(255,255,255,.06);
+  /* ============================================================
+     xGol Match Lab — sistema de diseño
+     Oscuro por defecto, claro con html[data-modo="claro"].
+     Neutros de grafito real (sin tinte azul) y UN solo acento:
+     el verde de marca. El color solo entra cuando significa algo.
+     ============================================================ */
 
-  --text-0: #ffffff;              /* texto principal */
-  --text-1: rgba(255,255,255,.82);/* texto secundario (spec 70%) */
-  --text-2: rgba(236,255,246,.64);/* texto terciario */
-  --text-3: rgba(236,255,246,.46);/* texto débil / labels */
+  /* Superficies: grafito, no azul. Cada nivel se levanta poco. */
+  --bg-0: #08090A;                /* lienzo */
+  --bg-1: #0D0F10;                /* fondo de bloque */
+  --bg-2: #131618;                /* tarjeta */
+  --bg-3: #1A1E20;                /* tarjeta elevada / control */
+  --line: rgba(255,255,255,.09);
+  --line-soft: rgba(255,255,255,.05);
+  --line-fuerte: rgba(255,255,255,.16);
 
-  /* Acento de identidad: verde CodeNest */
-  --accent: #5ed29c;
-  --accent-dim: #46b183;
-  --accent-deep: #0f2a1e;
-  --accent-glow: rgba(94,210,156,.16);
+  --text-0: #FFFFFF;
+  --text-1: #E9EBEA;
+  --text-2: #A9AFAD;
+  --text-3: #7C8280;
 
-  /* Colores de los dos equipos (significado, no decoración) */
-  --home: oklch(92% 0.025 220);    /* equipo 1 — blanco azulado tenue (antes azul) */
-  --home-dim: oklch(84% 0.03 220);
-  --away: oklch(68% 0.22 25);     /* equipo 2 — rojo (antes ámbar) */
-  --away-dim: oklch(76% 0.19 22);
+  /* Acento único de identidad. La X del logo vive aquí. */
+  --accent: #16D97F;
+  --accent-dim: #0FA862;
+  --accent-deep: #08251A;
+  --accent-glow: rgba(22,217,127,.16);
+  --accent-rgb: 22,217,127;
+
+  /* Los dos equipos: teal y ámbar. Se distinguen sin gritar y no
+     compiten con el verde de marca (que queda para la respuesta). */
+  --home: #2DD4BF;
+  --home-dim: #14B8A6;
+  --home-rgb: 45,212,191;
+  --away: #F5A524;
+  --away-dim: #D98B12;
+  --away-rgb: 245,165,36;
+  --draw: #8A9391;
+  --draw-rgb: 138,147,145;
 
   /* Semánticos */
-  --ok: oklch(80% 0.17 150);
-  --ok-bg: oklch(28% 0.08 152);
-  --warn: oklch(82% 0.15 85);
-  --warn-bg: oklch(30% 0.07 88);
-  --bad: oklch(70% 0.17 25);
-  --bad-bg: oklch(30% 0.09 27);
-  --purple: oklch(75% 0.13 300);
+  --ok: #16D97F;
+  --ok-bg: rgba(22,217,127,.14);
+  --warn: #F5A524;
+  --warn-bg: rgba(245,165,36,.14);
+  --bad: #F2555A;
+  --bad-bg: rgba(242,85,90,.14);
+  --purple: #A78BFA;
 
-  --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px;
+  --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 22px;
+  --sombra-1: 0 1px 2px rgba(0,0,0,.4);
+  --sombra-2: 0 8px 24px rgba(0,0,0,.34);
+  --sombra-3: 0 20px 56px rgba(0,0,0,.46);
   --ease: cubic-bezier(.22,.61,.36,1);
   --ease-out: cubic-bezier(.16,1,.3,1);
   --ease-in-out: cubic-bezier(.65,0,.35,1);
@@ -49,14 +66,54 @@
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
+/* ============================================================
+   MODO CLARO — misma estructura, no una inversión
+   ============================================================ */
+html[data-modo="claro"]{
+  --bg-0: #F5F6F5;
+  --bg-1: #FFFFFF;
+  --bg-2: #FFFFFF;
+  --bg-3: #F1F3F2;
+  --line: #E3E6E4;
+  --line-soft: #EDEFEE;
+  --line-fuerte: #CBD1CE;
+
+  --text-0: #0B100E;
+  --text-1: #1C2321;
+  --text-2: #5C6360;
+  --text-3: #878E8B;
+
+  --accent: #07894F;
+  --accent-dim: #056B3D;
+  --accent-deep: #E4F7EC;
+  --accent-glow: rgba(7,137,79,.12);
+  --accent-rgb: 7,137,79;
+
+  --home: #0F766E;
+  --home-dim: #0B5C55;
+  --home-rgb: 15,118,110;
+  --away: #B45309;
+  --away-dim: #92400E;
+  --away-rgb: 180,83,9;
+  --draw: #6B7472;
+  --draw-rgb: 107,116,114;
+
+  --ok: #07894F;
+  --ok-bg: rgba(7,137,79,.10);
+  --warn: #B45309;
+  --warn-bg: rgba(180,83,9,.10);
+  --bad: #C2262B;
+  --bad-bg: rgba(194,38,43,.10);
+
+  --sombra-1: 0 1px 2px rgba(11,16,14,.06);
+  --sombra-2: 0 6px 20px rgba(11,16,14,.08);
+  --sombra-3: 0 18px 48px rgba(11,16,14,.12);
+}
+
 *{box-sizing:border-box;margin:0;padding:0}
 
 body{
-  background:
-    linear-gradient(90deg, #070b0a 0%, rgba(7,11,10,0) 45%),
-    linear-gradient(0deg, #070b0a 0%, rgba(7,11,10,0) 40%),
-    radial-gradient(1100px 480px at 50% -8%, rgba(56,178,152,.14), transparent 65%),
-    var(--bg-0);
+  background: var(--bg-0);
   background-attachment: fixed;
   color:var(--text-1);
   font-family:var(--font-body);
@@ -1407,20 +1464,28 @@ html[data-modo="claro"] .modo-btn .ic-luna{display:block}
 }
 .tour-raiz.abierto{opacity:1;visibility:visible}
 
-/* Velo: cubre todo menos el hueco del foco */
-.tour-velo{position:absolute;inset:0;background:rgba(4,6,5,.55);
-  backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
-html[data-modo="claro"] .tour-velo{background:rgba(8,21,15,.32)}
+/* Velo en cuatro paneles: arriba, abajo, izquierda y derecha del foco.
+   Antes era un solo panel con inset:0 y su blur difuminaba TAMBIEN lo que
+   se estaba senalando. Ahora el hueco del medio queda libre de verdad:
+   lo resaltado se ve nitido y solo el resto sale oscurecido y difuminado.
+   El tamano de cada panel lo pone tour.js. */
+.tour-velo{
+  position:absolute;display:none;
+  background:rgba(4,6,5,.66);
+  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+}
+html[data-modo="claro"] .tour-velo{background:rgba(8,21,15,.38)}
 
-/* Foco: el recorte se hace con una sombra enorme hacia afuera */
+/* Foco: solo el marco. El oscurecido lo hacen los paneles de arriba, asi
+   que aca ya NO va la sombra de 9999px (volvia a tapar el hueco). */
 .tour-foco{
   position:absolute;border-radius:12px;pointer-events:none;
-  box-shadow:0 0 0 9999px rgba(4,6,5,.55),0 0 0 2px var(--accent),0 0 22px var(--accent-glow);
+  box-shadow:0 0 0 2px var(--accent),0 0 22px var(--accent-glow);
   transition:top .28s var(--ease-out),left .28s var(--ease-out),
              width .28s var(--ease-out),height .28s var(--ease-out);
 }
 html[data-modo="claro"] .tour-foco{
-  box-shadow:0 0 0 9999px rgba(8,21,15,.32),0 0 0 2px var(--accent),0 0 18px rgba(15,122,85,.28);
+  box-shadow:0 0 0 2px var(--accent),0 0 18px rgba(15,122,85,.28);
 }
 
 /* Globo del mensaje */

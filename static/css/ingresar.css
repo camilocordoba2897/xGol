@@ -412,3 +412,126 @@ body {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+
+/* ============================================================
+   MODO CLARO — se activa con html[data-modo="claro"]
+   Misma convencion que analizador.css: solo sobrescribe
+   variables y los colores que estaban fijos en el CSS.
+   NO toca ninguna regla del modo oscuro: si se quita el
+   atributo, todo vuelve exactamente a como estaba.
+   Se recuerda en localStorage con la clave 'xgol-modo'.
+   ============================================================ */
+html[data-modo="claro"] {
+  --bg-0: #ECEFF0;
+  --bg-1: #F5F7F6;
+  --bg-2: #FFFFFF;
+  --bg-3: #E8EDEB;
+  --line: rgba(8,21,15,.16);
+  --line-alta: rgba(8,21,15,.30);
+
+  --text-0: #08150F;
+  --text-1: rgba(8,21,15,.90);
+  --text-2: rgba(8,21,15,.72);
+  --text-3: rgba(8,21,15,.56);
+
+  --accent: #0F7A55;
+  --accent-dim: #0B5F42;
+  --accent-ink: #FFFFFF;
+  --accent-glow: rgba(15,122,85,.14);
+  --accent-rgb: 15,122,85;
+}
+
+/* Los 4 temas de acento tambien viven en claro: se oscurecen para
+   mantener el contraste sobre fondo blanco. Doble atributo = mas
+   especificidad, asi ganan a los bloques html[data-tema] de arriba. */
+html[data-modo="claro"][data-tema="azul"]    { --accent:#0369A1; --accent-dim:#075985; --accent-ink:#FFFFFF; --accent-glow:rgba(3,105,161,.14);  --accent-rgb:3,105,161; }
+html[data-modo="claro"][data-tema="morado"]  { --accent:#6D28D9; --accent-dim:#5B21B6; --accent-ink:#FFFFFF; --accent-glow:rgba(109,40,217,.14); --accent-rgb:109,40,217; }
+html[data-modo="claro"][data-tema="naranja"] { --accent:#C2410C; --accent-dim:#9A3412; --accent-ink:#FFFFFF; --accent-glow:rgba(194,65,12,.14);  --accent-rgb:194,65,12; }
+html[data-modo="claro"][data-tema="rosa"]    { --accent:#BE185D; --accent-dim:#9D174F; --accent-ink:#FFFFFF; --accent-glow:rgba(190,24,93,.14);  --accent-rgb:190,24,93; }
+
+/* ---------- Fondo de pagina ---------- */
+html[data-modo="claro"] body {
+  color: var(--text-0);
+  background-color: var(--bg-0);
+  background-image: radial-gradient(70% 50% at 50% 0%, rgba(var(--accent-rgb),.07), transparent 60%);
+}
+html[data-modo="claro"] ::selection { background: rgba(var(--accent-rgb),.22); color: var(--text-0); }
+
+/* ---------- Marco y carta ---------- */
+html[data-modo="claro"] .login-marco {
+  background: linear-gradient(155deg, rgba(8,21,15,.15) 0%, rgba(8,21,15,.06) 35%, rgba(var(--accent-rgb),.34) 100%);
+}
+html[data-modo="claro"] .login-carta {
+  background: var(--bg-2);
+  box-shadow: 0 24px 60px rgba(8,21,15,.13), 0 2px 8px rgba(8,21,15,.06);
+}
+
+/* ---------- Panel izquierdo: pizarra tactica ---------- */
+html[data-modo="claro"] .pizarra {
+  background: linear-gradient(168deg, #F3F6F5 0%, #E6EBE9 100%);
+  border-right-color: var(--line);
+}
+
+/* Trazos del campo: en claro necesitan algo mas de cuerpo */
+html[data-modo="claro"] .tac-linea    { stroke: rgba(var(--accent-rgb),.42); }
+html[data-modo="claro"] .tac-suave    { stroke: rgba(var(--accent-rgb),.20); }
+html[data-modo="claro"] .radar-anillo { stroke: rgba(var(--accent-rgb),.32); }
+html[data-modo="claro"] .tac-red      { stroke: rgba(var(--accent-rgb),.45); }
+html[data-modo="claro"] .tac-arco     { stroke: rgba(var(--accent-rgb),.72); }
+
+/* Nodos: se invierten los tonos fijos (claros sobre oscuro -> oscuros sobre claro) */
+html[data-modo="claro"] .tac-p     { fill: #16221C; }
+html[data-modo="claro"] .tac-rival { fill: #AFB9C0; }
+
+/* Balon: en claro el halo difuso ensucia, se reduce */
+html[data-modo="claro"] .balon-cuerpo { filter: drop-shadow(0 0 3px rgba(var(--accent-rgb),.35)); }
+html[data-modo="claro"] .balon-halo   { opacity: .32; }
+
+/* Lecturas del motor: el velo blanco no se ve, se cambia por panel solido */
+html[data-modo="claro"] .tag rect { fill: #FFFFFF; stroke: rgba(8,21,15,.16); }
+html[data-modo="claro"] .tag-gol rect { fill: rgba(var(--accent-rgb),.12); stroke: rgba(var(--accent-rgb),.55); }
+
+html[data-modo="claro"] .pizarra-logo span { color: var(--accent); }
+
+/* ---------- Panel derecho: acceso ---------- */
+html[data-modo="claro"] .campo input:focus { background: #FFFFFF; }
+html[data-modo="claro"] .campo input:-webkit-autofill,
+html[data-modo="claro"] .campo input:-webkit-autofill:hover,
+html[data-modo="claro"] .campo input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 60px #FFFFFF inset;
+  -webkit-text-fill-color: var(--text-0);
+  caret-color: var(--text-0);
+}
+
+/* El boton verde de dark usa color fijo + filter; en claro va plano */
+html[data-modo="claro"] .btn-entrar {
+  background: var(--accent);
+  color: #FFFFFF;
+  filter: none;
+  box-shadow: 0 3px 12px rgba(var(--accent-rgb),.26);
+}
+html[data-modo="claro"] .btn-entrar:hover  { background: var(--accent-dim); filter: none; box-shadow: 0 5px 16px rgba(var(--accent-rgb),.30); }
+html[data-modo="claro"] .btn-entrar:active { background: var(--accent-dim); filter: none; transform: scale(.985); }
+
+html[data-modo="claro"] .btn-google { box-shadow: 0 1px 2px rgba(8,21,15,.07); }
+html[data-modo="claro"] .btn-google:hover { background: var(--bg-3); }
+
+html[data-modo="claro"] .aviso { box-shadow: 0 1px 2px rgba(8,21,15,.06); }
+
+/* ---------- Boton para alternar claro / oscuro (barra superior) ---------- */
+.modo-btn {
+  width: 36px; height: 36px; flex-shrink: 0;
+  display: grid; place-items: center;
+  background: transparent;
+  border: 1px solid var(--line); border-radius: 999px;
+  color: var(--text-2); cursor: pointer;
+  transition: color .15s var(--ease), border-color .15s var(--ease), background-color .15s var(--ease);
+}
+.modo-btn:hover { color: var(--accent); border-color: var(--line-alta); background: var(--bg-2); }
+.modo-btn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.modo-btn .ic-luna { display: none; }
+html[data-modo="claro"] .modo-btn { background: #FFFFFF; }
+html[data-modo="claro"] .modo-btn .ic-sol  { display: none; }
+html[data-modo="claro"] .modo-btn .ic-luna { display: block; }
+.modo-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }

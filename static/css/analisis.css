@@ -1,0 +1,783 @@
+/* ============================================================
+   xGol Match Lab — VISTA DEL ANALIZADOR
+   Lista de partidos + pantalla de pronóstico.
+
+   Jerarquía en tres niveles, que es el cambio de fondo:
+     NIVEL 1  la respuesta  → primera .pr-card, tipografía enorme
+     NIVEL 2  el soporte    → .pr-card, tarjetas normales
+     NIVEL 3  el detalle    → .pr-ajustes, contenido plegable
+
+   Solo usa las variables de analizador.css: ningún color suelto,
+   por lo que el modo claro sale solo. NO cambia ninguna clase que
+   genere vista.js, así que la lógica queda intacta.
+   ============================================================ */
+
+/* ---- Cambio entre las dos pantallas ---- */
+.pantalla{display:none}
+.pantalla.activa{display:block;animation:pantalla-entra .38s var(--ease-out) both}
+@keyframes pantalla-entra{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:none}
+}
+
+/* ============================================================
+   PANTALLA 1 — LISTA DE PARTIDOS
+   Fila: hora/estado · local · marcador o botón · visitante
+   ============================================================ */
+.lista-partidos{display:flex;flex-direction:column;gap:8px}
+
+/* ---- Tarjeta de partido ----
+   Tres piezas: el bloque de hora a la izquierda, los dos equipos
+   apilados con escudo grande y su gol, y la accion a la derecha.
+   Los partidos ya jugados no llevan boton, asi que pierden la
+   tercera columna (.es-jugado) y la tarjeta no queda con un hueco. */
+.tarjeta-partido{
+  position:relative;
+  display:grid;
+  grid-template-columns:66px minmax(0,1fr) 124px;
+  align-items:center;gap:18px;
+  background:var(--bg-2);
+  border:1px solid var(--line-soft);
+  border-radius:14px;
+  padding:13px 16px 13px 13px;
+  box-shadow:var(--sombra-1);
+  transition:border-color .18s var(--ease-out),background .18s var(--ease-out),
+             box-shadow .18s var(--ease-out),transform .18s var(--ease-out);
+}
+.tarjeta-partido.es-jugado{grid-template-columns:66px minmax(0,1fr)}
+.tarjeta-partido:hover{
+  border-color:var(--line);
+  background:var(--bg-3);
+  box-shadow:var(--sombra-2);
+  transform:translateY(-1px);
+}
+
+/* Bloque de hora: recuadro propio, no una columna de texto suelta */
+.tp-hora{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;min-height:54px;padding:8px 4px;
+  background:var(--bg-1);border:1px solid var(--line-soft);border-radius:10px;
+  transition:border-color .18s var(--ease-out),background .18s var(--ease-out);
+}
+.tarjeta-partido:hover .tp-hora{border-color:var(--line);background:var(--bg-2)}
+/* En claro bg-1 y bg-2 son blancos: el bloque necesita su propio tono */
+html[data-modo="claro"] .tp-hora,
+html[data-modo="claro"] .tarjeta-partido:hover .tp-hora{background:var(--bg-3)}
+.tp-hora-num{
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:14px;font-weight:700;letter-spacing:-.02em;
+  color:var(--text-0);line-height:1;
+}
+.tp-hora-dia{
+  font-family:var(--font-eyebrow);font-size:9px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.1em;color:var(--text-3);line-height:1;
+}
+.tp-hora.es-fin .tp-hora-num{
+  font-family:var(--font-eyebrow);font-size:9.5px;font-weight:800;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);
+}
+
+/* Equipos apilados: escudo · nombre · gol, alineados en rejilla para
+   que las dos filas compartan las mismas guias verticales. */
+.tp-equipos{display:flex;flex-direction:column;gap:10px;min-width:0}
+.tp-equipo{
+  display:grid;grid-template-columns:34px minmax(0,1fr) auto;
+  align-items:center;gap:13px;
+}
+.tp-escudo{width:34px;height:34px;object-fit:contain}
+.tp-sin-escudo{
+  width:34px;height:34px;border-radius:50%;display:block;
+  background:var(--bg-3);border:1px solid var(--line);
+}
+.tp-nombre{
+  font-size:14.5px;font-weight:600;color:var(--text-1);letter-spacing:-.015em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  transition:color .18s var(--ease-out);
+}
+.tarjeta-partido:hover .tp-nombre{color:var(--text-0)}
+.tp-gol{
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:17px;font-weight:700;line-height:1;
+  min-width:18px;text-align:right;color:var(--text-3);
+}
+.tp-gol.es-ganador{color:var(--text-0)}
+
+.tp-accion{display:flex;justify-content:flex-end}
+
+/* Boton de pronostico: la accion principal de esta pantalla */
+.fp-pronostico{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  width:100%;padding:10px 14px;border-radius:10px;cursor:pointer;
+  background:var(--bg-1);border:1px solid var(--line);
+  color:var(--text-2);font-family:var(--font-body);
+  font-size:12px;font-weight:700;white-space:nowrap;letter-spacing:.005em;
+  transition:background .18s var(--ease-out),color .18s var(--ease-out),
+             border-color .18s var(--ease-out);
+}
+.tarjeta-partido:hover .fp-pronostico{
+  background:var(--accent-deep);border-color:var(--accent-dim);color:var(--accent);
+}
+.fp-pronostico:hover{
+  background:var(--accent);border-color:var(--accent);color:var(--bg-0);
+}
+html[data-modo="claro"] .fp-pronostico:hover{color:#fff}
+.fp-pronostico:disabled{opacity:.5;cursor:wait}
+.fp-pronostico::after{content:'\203A';font-size:15px;line-height:1}
+.fp-pronostico:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.lista-vacia{padding:34px 14px;text-align:center;font-size:13px;color:var(--text-2)}
+.lista-vacia.lista-error{color:var(--bad)}
+
+@media (max-width:600px){
+  .tarjeta-partido,
+  .tarjeta-partido.es-jugado{
+    grid-template-columns:56px minmax(0,1fr);
+    gap:12px;padding:12px 13px;
+  }
+  .tp-accion{grid-column:1 / -1;margin-top:2px}
+  .tp-hora{min-height:48px}
+  .tp-equipo{grid-template-columns:29px minmax(0,1fr) auto;gap:11px}
+  .tp-escudo,.tp-sin-escudo{width:29px;height:29px}
+  .tp-nombre{font-size:13.5px}
+  .tp-gol{font-size:16px}
+}
+
+/* ============================================================
+   PANTALLA 2 — PRONÓSTICO
+   ============================================================ */
+/* Antes era solo texto con flecha (background:none, border:none, texto
+   tenue): en pantalla casi no se notaba. Ahora tiene la misma superficie
+   discreta que ya usan otros controles secundarios de esta pantalla
+   (auto-fecha-btn, guia-btn), asi que sigue siendo un botón "fantasma",
+   solo que ahora se ve. Al pasar el mouse se pone brillante de verdad:
+   texto y borde en verde, fondo con tinte y un resplandor sutil. */
+.pr-volver{
+  display:inline-flex;align-items:center;gap:9px;margin-bottom:18px;
+  background:var(--bg-2);border:1px solid var(--line);border-radius:10px;
+  cursor:pointer;padding:9px 17px 9px 14px;box-shadow:var(--sombra-1);
+  color:var(--text-1);font-family:var(--font-body);font-size:14px;font-weight:600;
+  transition:color .18s var(--ease-out),border-color .18s var(--ease-out),
+             background .18s var(--ease-out),box-shadow .18s var(--ease-out),
+             transform .12s var(--ease-out);
+}
+.pr-volver::before{
+  content:'\2190';font-size:16px;line-height:1;
+  transition:transform .18s var(--ease-out);
+}
+.pr-volver:hover{
+  color:var(--accent);border-color:var(--accent-dim);
+  background:var(--accent-deep);
+  box-shadow:0 0 0 1px var(--accent-dim),0 0 18px var(--accent-glow);
+}
+.pr-volver:hover::before{transform:translateX(-3px)}
+.pr-volver:active{transform:translateY(1px);box-shadow:var(--sombra-1)}
+.pr-volver:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+.pr-liga{
+  font-family:var(--font-eyebrow);font-size:11px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.13em;color:var(--text-3);
+  text-align:center;margin-bottom:10px;
+}
+
+/* ---- Cabecera del partido: quién juega ---- */
+.match-header.pr-header{
+  background:var(--bg-2);border:1px solid var(--line);
+  border-radius:var(--r-lg);padding:30px 22px 26px;margin-bottom:14px;
+  box-shadow:var(--sombra-1);
+}
+.pr-header .match-teams{
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:140px;
+}
+.pr-header .mteam{
+  text-align:center;font-family:var(--font-display);
+  font-size:17px;font-weight:700;color:var(--text-0);letter-spacing:-.02em;
+}
+.pr-header .mteam-escudo{
+  /* 104px pesaban demasiado y empujaban el pronostico fuera de pantalla.
+     76px sigue leyendose bien y deja ver la respuesta sin bajar. */
+  width:76px;height:76px;object-fit:contain;display:block;margin:0 auto 12px;
+}
+.pr-header .vs{text-align:center}
+.pr-hora{
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:24px;font-weight:700;color:var(--text-0);letter-spacing:.02em;
+}
+.pr-fecha{
+  font-family:var(--font-body);font-size:12px;color:var(--text-3);
+  margin-top:4px;letter-spacing:.01em;white-space:nowrap;
+}
+.pr-estado{
+  display:inline-block;margin-top:8px;padding:3px 10px;border-radius:999px;
+  font-family:var(--font-eyebrow);font-size:9.5px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.11em;
+  background:var(--bg-3);border:1px solid var(--line);color:var(--text-2);
+}
+
+/* ============================================================
+   NIVEL 2 — TARJETAS DE SOPORTE
+   ============================================================ */
+.pr-card{
+  background:var(--bg-2);border:1px solid var(--line-soft);
+  border-radius:var(--r-lg);padding:20px 22px;margin-bottom:12px;
+}
+.pr-titulo{
+  font-family:var(--font-eyebrow);font-size:10.5px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.13em;color:var(--text-3);
+  margin-bottom:10px;
+}
+.pr-grande{
+  font-family:var(--font-display);font-size:34px;font-weight:800;
+  color:var(--text-0);letter-spacing:-.035em;line-height:1.08;
+}
+.pr-sub{font-size:13px;color:var(--text-2);margin-top:4px}
+
+/* ---- NIVEL 1: la primera tarjeta es la respuesta ----
+   Se selecciona con :first-of-type para no tocar el marcado que
+   genera vista.js. Es la única pieza que puede pesar así. */
+#pronostico-contenido > .pr-card:first-of-type{
+  background:var(--bg-1);
+  border:1px solid var(--line);
+  padding:30px 26px 26px;
+  box-shadow:var(--sombra-2);
+  position:relative;overflow:hidden;
+}
+#pronostico-contenido > .pr-card:first-of-type::before{
+  content:'';position:absolute;inset:0 0 auto 0;height:2px;
+  background:linear-gradient(90deg,var(--accent),transparent 70%);
+}
+#pronostico-contenido > .pr-card:first-of-type .pr-grande{
+  /* 52px gritaba. 36px sigue siendo lo mas grande de la pantalla
+     (el resto de titulares van a 34px) sin comerse la tarjeta. */
+  font-size:36px;letter-spacing:-.04em;
+}
+#pronostico-contenido > .pr-card:first-of-type .pr-sub{
+  font-size:14px;color:var(--text-1);
+}
+@media (max-width:620px){
+  #pronostico-contenido > .pr-card:first-of-type .pr-grande{font-size:29px}
+}
+
+/* ---- Reparto a tres bandas: local / empate / visitante ---- */
+.pr-tres{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;
+  margin-top:20px;margin-bottom:10px;
+}
+.pr-tres-col{min-width:0}
+.pr-tres-col.pr-centro{text-align:center}
+.pr-tres-col.pr-der{text-align:right}
+ /* display:block obligatorio: vista.js los emite como <span> y un
+    elemento en linea ignora el margin, dejando etiqueta y cifra pegadas */
+.pr-tres-eq{
+  display:block;
+  font-size:11.5px;font-weight:600;color:var(--text-3);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;
+}
+.pr-tres-pct{
+  display:block;
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:20px;font-weight:700;color:var(--text-1);letter-spacing:-.02em;
+}
+/* Cada columna toma el color de su significado */
+.pr-tres-col:first-child .pr-tres-pct{color:var(--home)}
+.pr-tres-col.pr-centro .pr-tres-pct{color:var(--draw)}
+.pr-tres-col.pr-der .pr-tres-pct{color:var(--away)}
+/* El resultado más probable se agranda: la vista cae ahí sola */
+.pr-tres-pct.es-alto{font-size:27px;font-weight:800;color:var(--text-0)}
+
+.pr-barra3{
+  /* 7px en vez de 10px: la barra acompaña a los porcentajes, no compite
+     con ellos. Sigue siendo tactil y se ve igual de clara. */
+  display:flex;height:7px;border-radius:999px;overflow:hidden;
+  background:var(--bg-3);
+}
+.pr-barra3 > div{height:100%;transition:width .6s var(--ease-out)}
+.pr-b3-h{background:var(--home)}
+.pr-b3-d{background:var(--draw)}
+.pr-b3-a{background:var(--away)}
+
+/* ---- Reparto a dos bandas (sí / no) ---- */
+.pr-dos{
+  display:flex;align-items:baseline;justify-content:space-between;gap:14px;
+  margin-top:18px;margin-bottom:8px;
+  font-size:12.5px;color:var(--text-2);
+}
+.pr-dos strong{
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:15px;font-weight:700;color:var(--text-1);
+}
+.pr-barra{
+  display:flex;height:10px;border-radius:999px;overflow:hidden;background:var(--bg-3);
+}
+.pr-barra-si{height:100%;background:var(--accent);transition:width .6s var(--ease-out)}
+
+.pr-leyenda{
+  margin-top:12px;font-size:11.5px;color:var(--text-3);line-height:1.6;
+}
+
+/* ============================================================
+   CUOTAS DE LAS CASAS
+   ============================================================ */
+/* Bloque de apoyo, no protagonista: las cuotas se compactan para que no
+   compiten con la tarjeta del pronostico que va justo encima. */
+.cu-fila{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
+.cu-col{
+  background:var(--bg-3);border:1px solid var(--line-soft);
+  border-radius:10px;padding:9px 10px;text-align:center;
+  transition:border-color .15s var(--ease-out);
+}
+.cu-col:hover{border-color:var(--line)}
+.cu-col.cu-valor{border-color:rgba(var(--accent-rgb),.42);background:var(--accent-deep)}
+.cu-eq{
+  font-size:10px;font-weight:600;color:var(--text-3);margin-bottom:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.cu-cuota{
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:16px;font-weight:700;color:var(--text-0);letter-spacing:-.02em;
+  line-height:1.15;
+}
+.cu-cuota.cu-nd{color:var(--text-3);font-size:14px}
+.cu-casa{font-size:9.5px;color:var(--text-3);margin-top:2px}
+.cu-ev{
+  display:inline-block;margin-top:5px;padding:1px 7px;border-radius:999px;
+  font-family:var(--font-mono);font-size:9px;font-weight:700;
+  background:var(--ok-bg);color:var(--ok);
+}
+.cu-nota{
+  margin-top:12px;font-size:11.5px;color:var(--text-3);line-height:1.6;
+}
+
+/* ============================================================
+   ENFRENTAMIENTOS DIRECTOS (H2H)
+   ============================================================ */
+.h2h-cab{
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:baseline;
+  gap:12px;margin-bottom:14px;
+}
+.h2h-eqcab{font-size:12.5px;font-weight:700;color:var(--home)}
+.h2h-eqcab.h2h-der{text-align:right;color:var(--away)}
+.h2h-total{
+  text-align:center;font-family:var(--font-display);
+  font-size:16px;font-weight:700;color:var(--text-0);
+}
+.h2h-desde{
+  text-align:center;font-family:var(--font-mono);
+  font-size:10.5px;color:var(--text-3);margin-top:2px;
+}
+.h2h-res,.h2h-pcts{display:grid;grid-template-columns:1fr auto 1fr;gap:12px}
+.h2h-res{font-size:11.5px;color:var(--text-3);margin-bottom:2px}
+.h2h-pcts{
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-size:15px;font-weight:700;color:var(--text-1);margin-bottom:10px;
+}
+.h2h-res > span.pr-centro,.h2h-pcts > span.pr-centro{text-align:center}
+.h2h-res > span.pr-der,.h2h-pcts > span.pr-der{text-align:right}
+.h2h-pcts > span:first-child{color:var(--home)}
+.h2h-pcts > span.pr-centro{color:var(--draw)}
+.h2h-pcts > span.pr-der{color:var(--away)}
+
+.h2h-lista{margin-top:14px;border-top:1px solid var(--line-soft);padding-top:6px}
+.h2h-p{
+  display:grid;grid-template-columns:74px 1fr;align-items:center;gap:12px;
+  padding:9px 0;border-bottom:1px solid var(--line-soft);
+}
+.h2h-p:last-child{border-bottom:none}
+.h2h-fecha{font-family:var(--font-mono);font-size:10.5px;color:var(--text-3)}
+.h2h-lados{display:grid;gap:3px}
+.h2h-lado{
+  display:grid;grid-template-columns:1fr auto;gap:10px;
+  font-size:12.5px;color:var(--text-2);
+}
+.h2h-lado.gano{color:var(--text-0);font-weight:700}
+.h2h-eq{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h2h-g{
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-weight:700;color:inherit;
+}
+
+/* ============================================================
+   FORMA RECIENTE
+   ============================================================ */
+.fm-barras{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
+  align-items:end;margin-bottom:16px;
+}
+.fm-col{text-align:center}
+.fm-bar-hueco{
+  height:78px;display:flex;align-items:flex-end;justify-content:center;
+  margin-bottom:8px;
+}
+.fm-bar{
+  width:44px;border-radius:6px 6px 0 0;min-height:4px;
+  transition:height .6s var(--ease-out);
+}
+.fm-w{background:var(--ok)}
+.fm-d{background:var(--warn)}
+.fm-l{background:var(--bad)}
+.fm-lbl{font-size:11.5px;color:var(--text-2)}
+
+.fm-tabs{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:0;
+  border-bottom:1px solid var(--line);margin-bottom:6px;
+}
+.fm-tab{
+  background:none;border:none;cursor:pointer;padding:9px 4px;
+  font-family:var(--font-body);font-size:12px;font-weight:600;color:var(--text-3);
+  border-bottom:2px solid transparent;margin-bottom:-1px;
+  transition:color .15s var(--ease-out),border-color .15s var(--ease-out);
+}
+.fm-tab:hover{color:var(--text-1)}
+.fm-tab.activa{color:var(--accent);border-bottom-color:var(--accent)}
+.fm-tab:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:4px}
+
+.fm-p{
+  display:grid;grid-template-columns:70px 1fr auto;align-items:center;gap:12px;
+  padding:9px 0;border-bottom:1px solid var(--line-soft);
+}
+.fm-p:last-child{border-bottom:none}
+.fm-fecha{font-family:var(--font-mono);font-size:10.5px;color:var(--text-3)}
+.fm-lados{display:grid;gap:3px;min-width:0}
+.fm-lado{
+  display:grid;grid-template-columns:1fr auto;gap:10px;
+  font-size:12.5px;color:var(--text-2);
+}
+.fm-lado.gano{color:var(--text-0);font-weight:700}
+.fm-eq{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fm-g{
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;
+  font-weight:700;color:inherit;
+}
+.fm-badge{
+  width:22px;height:22px;border-radius:6px;flex-shrink:0;
+  display:grid;place-items:center;
+  font-family:var(--font-mono);font-size:11px;font-weight:800;
+}
+.fm-badge.W{background:var(--ok-bg);color:var(--ok)}
+.fm-badge.D{background:var(--warn-bg);color:var(--warn)}
+.fm-badge.L{background:var(--bad-bg);color:var(--bad)}
+.fm-vacio{padding:22px 10px;text-align:center;font-size:12.5px;color:var(--text-3)}
+
+/* ============================================================
+   NIVEL 3 — DETALLE PLEGABLE (ajustes del modelo)
+   ============================================================ */
+.pr-ajustes{
+  border:1px solid var(--line-soft);border-radius:var(--r-md);
+  background:var(--bg-1);padding:0 18px;margin-bottom:12px;
+}
+.pr-ajustes > summary{
+  cursor:pointer;list-style:none;padding:14px 0;
+  font-family:var(--font-eyebrow);font-size:11px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.11em;color:var(--text-3);
+  transition:color .15s var(--ease-out);
+}
+.pr-ajustes > summary::-webkit-details-marker{display:none}
+.pr-ajustes > summary::before{content:'\25B8\A0';color:var(--accent)}
+.pr-ajustes[open] > summary::before{content:'\25BE\A0'}
+.pr-ajustes > summary:hover{color:var(--text-1)}
+.pr-ajustes[open]{padding-bottom:18px}
+.pr-modelo{font-size:12px;color:var(--text-3);line-height:1.65}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (min-width:760px){
+  .pr-header .mteam{font-size:19px}
+}
+@media (max-width:520px){
+  .match-header.pr-header{padding:20px 16px 18px}
+  .pr-header .mteam-escudo{width:60px;height:60px}
+  .pr-header .mteam{font-size:14px}
+  .pr-hora{font-size:19px}
+  .pr-card{padding:16px 15px}
+  .pr-tres{gap:8px}
+  .pr-tres-pct{font-size:17px}
+  .pr-tres-pct.es-alto{font-size:22px}
+  /* Ya compactas, las tres cuotas siguen cabiendo en fila en movil:
+     apiladas ocupaban media pantalla para tres numeros. */
+  .cu-fila{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .cu-col{padding:8px 6px}
+  .cu-eq{font-size:9.5px;letter-spacing:-.01em}
+  .cu-casa{font-size:9px}
+  .cu-ev{padding:1px 5px;font-size:8.5px}
+  .fm-bar{width:34px}
+  .h2h-p,.fm-p{grid-template-columns:60px 1fr auto;gap:9px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .pantalla.activa{animation:none}
+  .pr-barra3 > div,.pr-barra-si,.fm-bar{transition:none}
+  .tarjeta-partido:hover{transform:none}
+}
+
+/* ============================================================
+   MATCH LAB — barra, consola de ligas y barra de fecha
+   Reemplaza la cabecera gigante y el fondo decorativo.
+   Objetivo unico: que encontrar un partido cueste dos toques.
+   ============================================================ */
+.lab-bar{
+  display:flex;align-items:center;gap:14px;
+  padding:18px 0 16px;margin-bottom:26px;
+  border-bottom:1px solid var(--line-soft);
+}
+/* El nombre va dentro de UN solo elemento y la "x" es un span interior:
+   asi nunca hereda el gap del flex y se lee como una sola palabra. */
+.lab-marca{
+  display:flex;align-items:center;gap:13px;
+  font-family:var(--font-display);color:var(--text-0);
+}
+.lab-marca-nombre{
+  display:inline-block;
+  font-size:38px;font-weight:800;letter-spacing:-.045em;line-height:1;
+}
+.lab-marca-x{color:var(--accent);letter-spacing:-.055em}
+.lab-marca i{
+  align-self:stretch;display:flex;align-items:center;
+  font-style:normal;font-family:var(--font-eyebrow);
+  font-size:9.5px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--text-3);padding-left:13px;border-left:1px solid var(--line);
+}
+.lab-acciones{margin-left:auto;display:flex;align-items:center;gap:8px}
+
+/* ---- Titular de la pantalla ---- */
+.lab-intro{margin-bottom:20px}
+.lab-intro h1{
+  font-family:var(--font-display);font-size:30px;font-weight:800;
+  letter-spacing:-.04em;line-height:1.1;color:var(--text-0);
+}
+.lab-intro p{margin-top:6px;font-size:14px;color:var(--text-2)}
+
+/* ---- Ligas en fichas: se ven todas de un vistazo ----
+   Se quedan pegadas arriba al bajar (igual que en el home) para poder
+   cambiar de liga sin tener que volver al principio de la lista. El fondo
+   es solido a proposito: si no, las tarjetas se verian por debajo. */
+.lab-ligas{
+  position:sticky;top:0;z-index:60;
+  display:flex;gap:7px;overflow-x:auto;
+  padding:10px 0 10px;margin-bottom:14px;
+  background:var(--bg-0);
+  border-bottom:1px solid var(--line-soft);
+  scrollbar-width:none;-ms-overflow-style:none;
+}
+.lab-ligas::-webkit-scrollbar{display:none}
+.lab-liga{
+  flex-shrink:0;cursor:pointer;white-space:nowrap;
+  padding:8px 15px;border-radius:999px;
+  background:transparent;border:1px solid var(--line);
+  font-family:var(--font-body);font-size:12.5px;font-weight:600;
+  color:var(--text-2);
+  transition:color .15s var(--ease-out),border-color .15s var(--ease-out),
+             background .15s var(--ease-out);
+}
+.lab-liga:hover{color:var(--text-0);border-color:var(--line-fuerte)}
+.lab-liga.activa{
+  background:var(--accent);border-color:var(--accent);
+  color:var(--bg-0);font-weight:700;
+}
+html[data-modo="claro"] .lab-liga.activa{color:#fff}
+.lab-liga:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* El <select> original sigue en el DOM para auto.js, pero no se ve */
+#auto-liga{
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;
+}
+
+/* ---- Barra de fecha ----
+   Solo lleva el boton del calendario, alineado a la derecha. El texto
+   "Todos los partidos" que iba a la izquierda se quito: no decia nada que
+   el usuario no viera ya, y el dia elegido ahora sale en el propio boton.
+   Tampoco lleva ya linea inferior: la barra de ligas de arriba trae la
+   suya y quedaban dos rayas pegadas. */
+.lab-fecha{
+  display:flex;align-items:center;justify-content:flex-end;
+  padding:0 2px;margin-bottom:2px;
+}
+/* Boton de fecha: superficie propia, icono que responde y estado
+   visible cuando hay un dia filtrado. Nada de borde suelto. */
+.lab-fecha .auto-fecha-btn{
+  margin-left:auto;
+  /* calendario.css deja el boton cuadrado en 36x36: se anula aqui a proposito,
+     si no el texto se sale de la caja y solo queda el icono dentro del borde. */
+  width:auto;height:auto;min-width:0;flex-shrink:0;
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  padding:9px 12px 9px 13px;border-radius:10px;cursor:pointer;
+  background:var(--bg-2);border:1px solid var(--line);
+  box-shadow:var(--sombra-1);color:var(--text-1);
+  font-family:var(--font-body);font-size:12.5px;font-weight:600;
+  letter-spacing:-.005em;line-height:1;white-space:nowrap;
+  transition:background .18s var(--ease-out),border-color .18s var(--ease-out),
+             color .18s var(--ease-out),box-shadow .18s var(--ease-out),
+             transform .12s var(--ease-out);
+}
+.lab-fecha .auto-fecha-btn .auto-fecha-ic,
+.lab-fecha .auto-fecha-btn .auto-fecha-caret{
+  flex-shrink:0;fill:none;stroke:currentColor;
+  stroke-linecap:round;stroke-linejoin:round;color:var(--text-3);
+  transition:color .18s var(--ease-out),transform .18s var(--ease-out);
+}
+.lab-fecha .auto-fecha-btn .auto-fecha-ic{width:15px;height:15px;stroke-width:1.7}
+.lab-fecha .auto-fecha-btn .auto-fecha-caret{width:13px;height:13px;stroke-width:2;margin-left:1px}
+.lab-fecha .auto-fecha-btn:hover{
+  background:var(--bg-3);border-color:var(--line-fuerte);
+  color:var(--text-0);box-shadow:var(--sombra-2);
+}
+.lab-fecha .auto-fecha-btn:hover .auto-fecha-ic{color:var(--accent)}
+.lab-fecha .auto-fecha-btn:hover .auto-fecha-caret{color:var(--text-2);transform:translateY(1px)}
+.lab-fecha .auto-fecha-btn:active{transform:translateY(1px);box-shadow:var(--sombra-1)}
+.lab-fecha .auto-fecha-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* Con un dia elegido el propio boton lo dice, sin leer la etiqueta */
+.lab-fecha .auto-fecha-btn.tiene-fecha{
+  background:var(--accent-deep);border-color:var(--accent-dim);color:var(--accent);
+}
+.lab-fecha .auto-fecha-btn.tiene-fecha .auto-fecha-ic,
+.lab-fecha .auto-fecha-btn.tiene-fecha .auto-fecha-caret{color:currentColor}
+
+/* ---- Titulos que parten la lista en dos: ya jugados / por pronosticar ---- */
+.lp-seccion{margin:26px 0 14px}
+.lp-seccion:first-child{margin-top:6px}
+.lp-seccion-titulo{
+  display:flex;align-items:center;gap:10px;
+  font-family:var(--font-display);font-size:18px;font-weight:800;
+  letter-spacing:-.03em;line-height:1.2;color:var(--text-0);
+}
+.lp-seccion-cuenta{
+  flex-shrink:0;
+  padding:3px 9px;border-radius:999px;
+  background:var(--bg-2);border:1px solid var(--line);
+  font-family:var(--font-body);font-size:11.5px;font-weight:700;
+  letter-spacing:0;color:var(--text-2);
+}
+.lp-seccion-sub{margin-top:5px;font-size:12.5px;line-height:1.55;color:var(--text-3)}
+/* El grupo que si se puede pronosticar es al que llega el usuario: se marca
+   con un filo verde para que se distinga del de los ya jugados. */
+#lp-por-jugar .lp-seccion-titulo{padding-left:11px;border-left:3px solid var(--accent)}
+#lp-por-jugar .lp-seccion-sub{padding-left:14px}
+#lp-por-jugar .lp-seccion-cuenta{
+  background:var(--accent-deep);border-color:var(--accent-dim);color:var(--accent);
+}
+
+/* La caja deja de ser una tarjeta dentro de otra: el contenido respira */
+.auto-box{background:none;border:none;padding:0;margin-bottom:26px}
+
+.lab-nota{
+  margin-top:22px;padding-top:16px;border-top:1px solid var(--line-soft);
+  font-size:11.5px;line-height:1.65;color:var(--text-3);
+}
+
+/* Por debajo de 1040px .app pega el contenido al borde y el boton fijo
+   "Inicio" (position:fixed, top 14px) caeria encima de la marca. */
+@media (max-width:1040px){
+  .lab-bar{padding-top:62px}
+}
+
+@media (max-width:620px){
+  .lab-intro h1{font-size:23px}
+  .lab-intro p{font-size:13px}
+  .lab-bar{margin-bottom:20px}
+  .lab-marca-nombre{font-size:29px}
+  .lab-marca i{display:none}
+}
+
+/* ============================================================
+   BOTON SUBIR — flecha flotante para volver arriba
+   Aparece al bajar y desaparece arriba del todo. Vive en el
+   body, asi que sirve igual en la lista y en el pronostico.
+   Lo crea static/js/subir.js; aqui solo esta su aspecto.
+   ============================================================ */
+.subir-btn{
+  position:fixed;right:20px;bottom:20px;z-index:90;
+  width:44px;height:44px;border-radius:50%;padding:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg-2);border:1px solid var(--line);color:var(--text-2);
+  cursor:pointer;box-shadow:var(--sombra-2);
+  opacity:0;visibility:hidden;transform:translateY(10px) scale(.94);
+  transition:opacity .22s var(--ease-out),transform .22s var(--ease-out),
+             visibility .22s,background .15s var(--ease-out),
+             border-color .15s var(--ease-out),color .15s var(--ease-out);
+}
+.subir-btn.se-ve{opacity:1;visibility:visible;transform:none}
+.subir-btn:hover{background:var(--bg-3);border-color:var(--accent-dim);color:var(--accent)}
+.subir-btn:active{transform:translateY(1px)}
+.subir-btn:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.subir-btn svg{
+  width:19px;height:19px;fill:none;stroke:currentColor;
+  stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;
+}
+html[data-modo="claro"] .subir-btn{background:#ffffff}
+
+/* Con la guia o un modal abiertos el boton estorba: se aparta */
+body:has(.tour-raiz.abierto) .subir-btn,
+body:has(.fecha-modal-bg.show) .subir-btn,
+body:has(.lib-modal-bg.show) .subir-btn{opacity:0;visibility:hidden}
+
+@media (max-width:620px){
+  .subir-btn{right:14px;bottom:14px;width:42px;height:42px}
+  .subir-btn svg{width:18px;height:18px}
+}
+@media (prefers-reduced-motion:reduce){
+  .subir-btn{transition:opacity .2s linear,visibility .2s}
+  .subir-btn.se-ve,.subir-btn:active{transform:none}
+}
+
+/* ============================================================
+   CABECERA DEL PRONOSTICO — escudos juntos al centro
+   Las columnas laterales siguen siendo 1fr (asi el bloque del
+   medio queda centrado de verdad), pero cada equipo se pega al
+   lado interior de su columna en vez de centrarse en ella. La
+   distancia la manda el gap, no el ancho de la pantalla.
+   ============================================================ */
+.pr-header .mteam{max-width:250px}
+.pr-header .mteam:first-child{justify-self:end}
+.pr-header .mteam:last-child{justify-self:start}
+
+@media (max-width:520px){
+  .pr-header .match-teams{gap:12px}
+  .pr-header .mteam{max-width:none}
+  .pr-fecha{font-size:11px;white-space:normal}
+}
+
+/* ============================================================
+   MOTOR xGol — estilos de la tarjeta del pronostico del backend
+   ============================================================ */
+
+.mx-card{border-left:3px solid rgba(120,180,255,.55)}
+
+.mx-conf{float:right;font-size:.72rem;font-weight:600;letter-spacing:.02em;
+  padding:.15rem .5rem;border-radius:999px;opacity:.95}
+.mx-conf-alta{background:rgba(70,190,120,.18);color:#7fe0a8}
+.mx-conf-media{background:rgba(230,180,60,.18);color:#f0cd7a}
+.mx-conf-baja{background:rgba(230,90,90,.18);color:#f0908f}
+
+.mx-mercados{display:flex;flex-wrap:wrap;gap:.45rem .9rem;margin:.6rem 0 .2rem;
+  font-size:.82rem;opacity:.9}
+.mx-mercados span{white-space:nowrap}
+.mx-mercados b{font-weight:600}
+
+.mx-tabla{width:100%;border-collapse:collapse;margin:.7rem 0 .3rem;font-size:.78rem}
+.mx-tabla th{text-align:right;font-weight:600;opacity:.65;padding:.25rem .4rem;
+  border-bottom:1px solid rgba(255,255,255,.10)}
+.mx-tabla th:first-child{text-align:left}
+.mx-tabla td{text-align:right;padding:.25rem .4rem;
+  border-bottom:1px solid rgba(255,255,255,.05)}
+.mx-tabla td:first-child{text-align:left;opacity:.85}
+.mx-tabla tr:last-child td{border-bottom:none}
+.mx-peso{opacity:.5;font-size:.72rem}
+
+.mx-valor{margin:.7rem 0 .2rem}
+.mx-sub{font-size:.78rem;font-weight:600;opacity:.75;margin-bottom:.25rem}
+.mx-valor ul{margin:0;padding-left:1.1rem}
+.mx-valor li{font-size:.8rem;line-height:1.5;margin-bottom:.15rem}
+
+.mx-nota{font-size:.73rem;opacity:.6;line-height:1.45;margin-top:.6rem}
+.mx-aviso{font-size:.75rem;opacity:.8;margin-top:.4rem;
+  padding:.3rem .55rem;border-radius:6px;background:rgba(230,180,60,.12)}
+
+@media (max-width:520px){
+  .mx-tabla{font-size:.72rem}
+  .mx-conf{float:none;display:inline-block;margin-left:.4rem}
+}
+
+/* Banner de modo limitado: cuando el motor no responde y los numeros
+   salen del calculo local. Tiene que verse: nunca se muestran numeros
+   peores sin avisar. */
+.mx-degradado{border-left-color:rgba(230,150,60,.7)}

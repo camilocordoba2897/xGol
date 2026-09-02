@@ -4,9 +4,8 @@
 #
 #Solo se suma lo que esta en estado "Aprobado". Un pago pendiente NO es una
 #venta, y un reembolsado dejo de serlo.
-from datetime import timedelta,date
+from datetime import timedelta,date,datetime,time
 from django.db.models import Sum,Count,Q
-from django.db.models.functions import TruncMonth,TruncDay
 from django.utils import timezone
 from django.contrib.auth.models import User
 
@@ -26,6 +25,46 @@ def _sumar(consulta):
   }
 
 
+# ============================================================
+#  FECHAS SIN CONVERT_TZ
+#  El proyecto guarda en UTC (USE_TZ=True) y muestra en America/Bogota.
+#  Con esa combinacion, el atajo "creado__date" hace que Django le pida a
+#  MySQL un CONVERT_TZ(...). MySQL solo sabe hacer esa conversion si tiene
+#  cargadas sus tablas de zonas horarias, que NO vienen cargadas por
+#  defecto; cuando faltan devuelve NULL y entonces NINGUNA fila coincide:
+#  el panel mostraba $0 en hoy, semana, mes, trimestre y ano mientras el
+#  historico (que no filtra por fecha) si traia las 22 ventas.
+#
+#  Por eso aca no se usa "creado__date". Se calcula en Python el instante
+#  exacto en que empieza y termina cada periodo y se compara contra el
+#  campo tal cual. Asi funciona con o sin esas tablas cargadas, y ademas
+#  puede aprovechar el indice de la columna.
+#  Es el mismo criterio que ya usaba usuarios/tablero.py en _inicio_dia.
+# ============================================================
+def _inicio_dia(fecha):
+  #Instante 00:00:00 de esa fecha, en la zona horaria del proyecto.
+  momento=datetime.combine(fecha,time.min)
+  if timezone.is_naive(momento):
+    try:
+      momento=timezone.make_aware(momento)
+    except Exception:
+      pass
+  return momento
+
+
+def _fin_dia(fecha):
+  #Primer instante del dia SIGUIENTE. Se usa con "menor que" para incluir
+  #el dia completo sin depender de milisegundos ni de 23:59:59.
+  return _inicio_dia(fecha+timedelta(days=1))
+
+
+def _fecha_local(momento):
+  #Pasa un datetime guardado a la fecha que ve el usuario en Colombia.
+  if momento is None:
+    return None
+  return timezone.localtime(momento).date() if timezone.is_aware(momento) else momento.date()
+
+
 def inicio_trimestre(hoy):
   mes=3*((hoy.month-1)//3)+1
   return date(hoy.year,mes,1)
@@ -33,16 +72,19 @@ def inicio_trimestre(hoy):
 
 def resumen_ingresos():
   #Los seis cortes de tiempo que pide el panel, calculados sobre la fecha
-  #local del servidor (America/Bogota si se configura TIME_ZONE).
+  #local del servidor (America/Bogota).
   hoy=timezone.localdate()
   aprobados=Pago.objects.filter(estado="Aprobado")
+
+  #Cada corte va desde el inicio de su periodo hasta el fin del dia de hoy.
+  fin=_fin_dia(hoy)
   cortes={
     "historico":aprobados,
-    "hoy":aprobados.filter(creado__date=hoy),
-    "semana":aprobados.filter(creado__date__gte=hoy-timedelta(days=hoy.weekday())),
-    "mes":aprobados.filter(creado__date__gte=hoy.replace(day=1)),
-    "trimestre":aprobados.filter(creado__date__gte=inicio_trimestre(hoy)),
-    "anio":aprobados.filter(creado__date__gte=date(hoy.year,1,1)),
+    "hoy":aprobados.filter(creado__gte=_inicio_dia(hoy),creado__lt=fin),
+    "semana":aprobados.filter(creado__gte=_inicio_dia(hoy-timedelta(days=hoy.weekday())),creado__lt=fin),
+    "mes":aprobados.filter(creado__gte=_inicio_dia(hoy.replace(day=1)),creado__lt=fin),
+    "trimestre":aprobados.filter(creado__gte=_inicio_dia(inicio_trimestre(hoy)),creado__lt=fin),
+    "anio":aprobados.filter(creado__gte=_inicio_dia(date(hoy.year,1,1)),creado__lt=fin),
   }
   return {llave:_sumar(consulta) for llave,consulta in cortes.items()}
 
@@ -80,18 +122,22 @@ def resumen_incidencias():
 def serie_mensual(meses=12):
   #Serie para la grafica. Devuelve siempre los N meses completos, incluidos
   #los que no tuvieron ventas, para que las barras no mientan por omision.
+  #Se agrupa en Python y no con TruncMonth porque esa funcion tambien le
+  #pide un CONVERT_TZ a MySQL (ver la nota de arriba) y dejaba la grafica
+  #plana. Es el mismo criterio de usuarios/tablero.py:serie_ingresos.
   hoy=timezone.localdate()
   primero=hoy.replace(day=1)
   for _ in range(meses-1):
     primero=(primero-timedelta(days=1)).replace(day=1)
 
-  crudo=(Pago.objects.filter(estado="Aprobado",creado__date__gte=primero)
-         .annotate(mes=TruncMonth("creado"))
-         .values("mes").annotate(total=Sum("monto"),cuenta=Count("id")).order_by("mes"))
+  crudo=(Pago.objects.filter(estado="Aprobado",creado__gte=_inicio_dia(primero))
+         .values_list("creado","monto"))
   mapa={}
-  for fila in crudo:
-    if fila["mes"]:
-      mapa[(fila["mes"].year,fila["mes"].month)]=(fila["total"] or 0,fila["cuenta"] or 0)
+  for creado,monto in crudo:
+    fecha=_fecha_local(creado)
+    llave=(fecha.year,fecha.month)
+    total,cuenta=mapa.get(llave,(0,0))
+    mapa[llave]=(total+(monto or 0),cuenta+1)
 
   serie=[]
   cursor=primero
@@ -107,12 +153,15 @@ def serie_mensual(meses=12):
 
 
 def serie_diaria(dias=30):
+  #Igual que arriba: se agrupa por dia en Python, no con TruncDay.
   hoy=timezone.localdate()
   desde=hoy-timedelta(days=dias-1)
-  crudo=(Pago.objects.filter(estado="Aprobado",creado__date__gte=desde)
-         .annotate(dia=TruncDay("creado"))
-         .values("dia").annotate(total=Sum("monto")).order_by("dia"))
-  mapa={fila["dia"].date():fila["total"] or 0 for fila in crudo if fila["dia"]}
+  crudo=(Pago.objects.filter(estado="Aprobado",creado__gte=_inicio_dia(desde))
+         .values_list("creado","monto"))
+  mapa={}
+  for creado,monto in crudo:
+    fecha=_fecha_local(creado)
+    mapa[fecha]=mapa.get(fecha,0)+(monto or 0)
   return [{"fecha":desde+timedelta(days=i),
            "total":mapa.get(desde+timedelta(days=i),0)} for i in range(dias)]
 
@@ -171,11 +220,13 @@ def transacciones(filtros=None):
 
   desde=filtros.get("desde")
   if desde:
-    consulta=consulta.filter(creado__date__gte=desde)
+    consulta=consulta.filter(creado__gte=_inicio_dia(desde))
 
   hasta=filtros.get("hasta")
   if hasta:
-    consulta=consulta.filter(creado__date__lte=hasta)
+    #_fin_dia es el arranque del dia siguiente, asi que con "menor que"
+    #queda incluido el dia de "hasta" completo.
+    consulta=consulta.filter(creado__lt=_fin_dia(hasta))
 
   busqueda=(filtros.get("q") or "").strip()
   if busqueda:

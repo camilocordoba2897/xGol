@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/home.css' %}?v=28">
+<link rel="stylesheet" href="{% static 'css/home.css' %}?v=31">
 <script>
   // Aplicamos el tema guardado ANTES de pintar para que no parpadee
   (function() {
@@ -97,41 +97,45 @@
     <!-- TARJETA FLOTANTE DE PREDICCIÓN -->
     <div class="pred-zone">
       <div class="ball"></div>
-      <div class="pred-card" id="predCard" data-url="{% url 'PrediccionesDestacadas' %}">
+      <!-- TARJETA DESTACADA -->
+      <!-- El contenido lo reemplaza prediccion.js. Lo que hay escrito aqui
+           es lo que se ve mientras cargan los datos, y lo que se queda si
+           no hay conexion: por eso NO lleva ningun porcentaje inventado. -->
+      <div class="pred-card" id="predCard"
+           data-url="{% url 'PrediccionesDestacadas' %}"
+           data-planes="{% if user.is_authenticated %}{% url 'Suscripcion' %}{% else %}#planes{% endif %}">
         <div class="pc-head">
-          <span class="pc-tag">Predicción destacada</span>
+          <span class="pc-tag">Próximo análisis</span>
           <span class="pc-live">IA en vivo</span>
         </div>
+        <!-- Marcador de carga: NO lleva equipos ni liga de verdad. Si el
+             JavaScript no llegara a cargar, lo que quedaria a la vista seria
+             esto y no un partido inventado haciendose pasar por real. -->
         <div class="pc-teams">
           <div class="pc-team">
-            <div class="pc-shield rm"><img id="pcLocalLogo" src="{% static 'img/escudos/realmadrid.png' %}" alt="Real Madrid"></div>
-            <div class="pc-tname" id="pcLocalNom">Real Madrid</div>
+            <div class="pc-shield"><span class="pc-inicial">?</span></div>
+            <div class="pc-tname">&mdash;</div>
           </div>
           <div class="pc-vs">VS</div>
           <div class="pc-team">
-            <div class="pc-shield mc"><img id="pcVisitLogo" src="{% static 'img/escudos/mancity.png' %}" alt="Manchester City"></div>
-            <div class="pc-tname" id="pcVisitNom">Manchester City</div>
+            <div class="pc-shield"><span class="pc-inicial">?</span></div>
+            <div class="pc-tname">&mdash;</div>
           </div>
         </div>
-        <div class="pc-probs">
-          <div class="pc-prob-row"><span id="pcLocalRow">Real Madrid</span><strong id="pcLocalPct">71%</strong></div>
-          <div class="pc-prob-row"><span id="pcVisitRow">Manchester City</span><strong id="pcVisitPct">29%</strong></div>
+        <div class="pc-resultado">
+          <div class="pc-contexto">Cargando próximo análisis&hellip;</div>
         </div>
-        <div class="pc-bar"><div class="p1" id="pcBar1"></div><div class="p2" id="pcBar2"></div></div>
-        <div class="pc-stats">
-          <div class="pc-stat"><div class="v" id="pcMarcador">3 - 1</div><div class="l">Marcador esperado</div></div>
-          <div class="pc-stat"><div class="v acc" id="pcConfianza">80%</div><div class="l">Confianza IA</div></div>
+        <a class="pc-candado" href="{% if user.is_authenticated %}{% url 'Suscripcion' %}{% else %}#planes{% endif %}">
+          <div class="pc-borroso"><span></span><span></span><span></span></div>
+          <div class="pc-candado-txt">
+            <div class="pc-candado-t">🔒 Pronóstico completo</div>
+            <div class="pc-candado-s">Ganador · goles · marcador · valor</div>
+          </div>
+        </a>
+        <div class="pc-metricas">
+          <div class="pc-metrica"><div class="v">3</div><div class="l">Fuentes cruzadas</div></div>
+          <div class="pc-metrica"><div class="v">12</div><div class="l">Mercados</div></div>
         </div>
-        <svg class="pc-chart" viewBox="0 0 340 58" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="rgba(74,222,128,.35)"/>
-              <stop offset="100%" stop-color="rgba(74,222,128,0)"/>
-            </linearGradient>
-          </defs>
-          <polygon class="area" points="0,50 40,38 80,42 120,26 160,32 200,18 240,24 280,10 340,16 340,58 0,58"/>
-          <polyline points="0,50 40,38 80,42 120,26 160,32 200,18 240,24 280,10 340,16"/>
-        </svg>
       </div>
     </div>
   </div>
@@ -739,7 +743,8 @@
     if (!cont.innerHTML.trim()) cont.innerHTML = vacio('Cargando…');
     try {
       var d = await traer(PART.vivo); var l = d.partidos || [];
-      cont.innerHTML = l.length ? l.map(tarjetaVivo).join('') : vacio('No hay partidos en vivo en este momento');
+            cont.innerHTML = l.length ? l.map(tarjetaVivo).join('') : vacio('No hay partidos en vivo en este momento');
+            document.querySelectorAll('.mtab-dot').forEach(function(d) { d.classList.toggle('mtab-dot-apagado', !l.length); });
     } catch (e) { cont.innerHTML = vacio('No se pudo cargar el directo'); }
   }
 
@@ -853,10 +858,48 @@
     if (dd && dd.classList.contains('open') && !dd.contains(e.target)) cerrarTablaDD();
   });
 
-  document.addEventListener('DOMContentLoaded', function() { cargarTab('hoy'); });
+  document.addEventListener('DOMContentLoaded', function() { cargarTab('hoy'); cargarVivo(); });
 </script>
 
-<script src="{% static 'js/prediccion.js' %}?v=1"></script>
+<script src="{% static 'js/prediccion.js' %}?v=2"></script>
+
+<!-- BOTON SUBIR -->
+<button type="button" class="subir" id="btnSubir" onclick="irArriba()" title="Volver al inicio" aria-label="Volver al inicio de la página">
+  <svg class="subir-aro" viewBox="0 0 50 50" aria-hidden="true"><circle id="subirAro" cx="25" cy="25" r="23.5"/></svg>
+  <svg class="subir-flecha" viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+</button>
+
+<script>
+  // ===== Boton subir: se muestra al bajar y pinta el progreso de scroll =====
+  (function() {
+    var btn = document.getElementById('btnSubir');
+    var aro = document.getElementById('subirAro');
+    if (!btn) return;
+    var LARGO = 148;
+    var pendiente = false;
+
+    function pintarSubir() {
+      pendiente = false;
+      var y = window.scrollY || document.documentElement.scrollTop;
+      var alto = document.documentElement.scrollHeight - window.innerHeight;
+      btn.classList.toggle('visible', y > 420);
+      if (aro) {
+        var p = alto > 0 ? Math.min(y / alto, 1) : 0;
+        aro.style.strokeDashoffset = (LARGO - LARGO * p).toFixed(1);
+      }
+    }
+
+    window.addEventListener('scroll', function() {
+      if (!pendiente) { pendiente = true; requestAnimationFrame(pintarSubir); }
+    }, { passive: true });
+    window.addEventListener('resize', pintarSubir, { passive: true });
+    pintarSubir();
+  })();
+
+  function irArriba() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
 
 </body>
 </html>

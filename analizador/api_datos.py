@@ -12,6 +12,7 @@
 #     _fd_*: deben devolver exactamente la misma estructura.
 #  3. Rellenar en _fila_* las columnas que football-data no trae.
 #Nada mas del proyecto se toca: ni el motor, ni las vistas, ni el frontend.
+import unicodedata
 import requests
 from datetime import date, timedelta
 from django.conf import settings
@@ -38,7 +39,13 @@ DIAS_ADELANTE = 45        #ventana de proximos partidos que se ofrece.
                           #45 dias porque las ligas europeas paran de mayo a
                           #agosto: con una ventana corta el selector sale vacio
                           #todo el verano aunque el calendario ya este publicado.
-MAX_PARTIDOS = 40         #tope de partidos en la lista (45 dias dan muchas jornadas)
+PARTIDOS_PROFUNDO = 60    #historial largo para enfrentamientos directos.
+                          #Es la MISMA peticion (solo cambia el limit), asi
+                          #que no gasta cuota extra. El motor sigue usando 15.
+DIAS_ATRAS = 14           #ventana hacia atras: para mostrar los que ya se jugaron
+                          #con su marcador, igual que en la referencia.
+MAX_PARTIDOS = 120        #tope de partidos en la lista (la ventana completa
+                          #-14/+45 dias da muchas jornadas por liga)
 
 #Esqueleto de una fila: todas las columnas que espera el motor.
 #Las vacias las ignora computeStats(); no las llenes con ceros.
@@ -85,27 +92,36 @@ def _equipo_resumen(t):
 
 
 def _fd_partidos_liga(liga):
-    #Proximos partidos de la competencia, con escudos
+    #Partidos recientes y proximos de la competencia, con escudos.
+    #Los ya jugados se devuelven con marcador para poder mostrarlos
+    #en la lista; los que faltan van sin marcador y abren el pronostico.
     hoy = date.today()
+    desde = hoy - timedelta(days=DIAS_ATRAS)
     hasta = hoy + timedelta(days=DIAS_ADELANTE)
     crudo, error = _pedir_fd(f"competitions/{liga}/matches", {
-        "dateFrom": hoy.isoformat(),
+        "dateFrom": desde.isoformat(),
         "dateTo": hasta.isoformat(),
     })
     if error:
         return [], error
     salida = []
     for m in crudo.get("matches", []):
-        if m.get("status") in ("FINISHED", "CANCELLED", "POSTPONED"):
+        if m.get("status") in ("CANCELLED", "POSTPONED"):
             continue
         local = _equipo_resumen(m.get("homeTeam"))
         visitante = _equipo_resumen(m.get("awayTeam"))
         if not local["id"] or not visitante["id"]:
             continue
+        estado = m.get("status", "")
+        jugado = estado == "FINISHED"
+        completo = (m.get("score", {}) or {}).get("fullTime", {}) or {}
         salida.append({
             "id": m.get("id"),
             "utc": m.get("utcDate", ""),
-            "estado": m.get("status", ""),
+            "estado": estado,
+            "jugado": jugado,
+            "goles_local": completo.get("home") if jugado else None,
+            "goles_visitante": completo.get("away") if jugado else None,
             "jornada": m.get("matchday"),
             "local": local,
             "visitante": visitante,
@@ -202,11 +218,23 @@ def partidos_liga(liga):
 
 
 def historial_equipo(id_equipo, nombre_equipo, limite=PARTIDOS_HISTORIAL):
-    llave = f"auto_hist_{id_equipo}_{limite}"
+    #Se pide SIEMPRE el historial profundo (una sola peticion) y se recorta.
+    #Asi el motor sigue recibiendo sus 15 partidos de siempre y el bloque de
+    #enfrentamientos puede mirar mas atras sin gastar otra llamada a la API.
+    filas, error = historial_profundo(id_equipo, nombre_equipo)
+    if error:
+        return [], error
+    return filas[:limite], None
+
+
+def historial_profundo(id_equipo, nombre_equipo):
+    #Historial largo, para enfrentamientos directos. Mismo endpoint y misma
+    #peticion que antes: solo cambia el "limit", asi que no cuesta cuota extra.
+    llave = f"auto_hist_{id_equipo}_{PARTIDOS_PROFUNDO}"
     datos = cache.get(llave)
     if datos is not None:
         return datos, None
-    datos, error = _fd_historial(id_equipo, nombre_equipo, limite)
+    datos, error = _fd_historial(id_equipo, nombre_equipo, PARTIDOS_PROFUNDO)
     if error:
         return [], error
     #6 horas: el historial de un equipo solo cambia cuando juega
@@ -214,17 +242,69 @@ def historial_equipo(id_equipo, nombre_equipo, limite=PARTIDOS_HISTORIAL):
     return datos, None
 
 
+def _nombre_plano(texto):
+    #Para comparar rivales: sin tildes, sin mayusculas y sin puntuacion.
+    #El rival viene del mismo proveedor, pero a veces alterna shortName
+    #y name ("Remo" / "Clube do Remo"), asi que no basta con ==.
+    base = unicodedata.normalize("NFKD", str(texto or ""))
+    base = "".join(c for c in base if not unicodedata.combining(c)).lower()
+    return " ".join("".join(c if c.isalnum() or c.isspace() else " " for c in base).split())
+
+
+def _mismo_rival(a, b):
+    na, nb = _nombre_plano(a), _nombre_plano(b)
+    if not na or not nb:
+        return False
+    return na == nb or na in nb or nb in na
+
+
+def _calcular_h2h(filas_local, nombre_local, nombre_visitante):
+    #Enfrentamientos directos vistos desde el equipo local, sacados de su
+    #propio historial: cero peticiones adicionales.
+    partidos = []
+    victorias = empates = derrotas = 0
+    for f in filas_local:
+        if not _mismo_rival(f.get("rival"), nombre_visitante):
+            continue
+        en_casa = f.get("sede") == "local"
+        partidos.append({
+            "fecha": f.get("fecha", ""),
+            "local": nombre_local if en_casa else nombre_visitante,
+            "visitante": nombre_visitante if en_casa else nombre_local,
+            "goles_local": f.get("goles_f") if en_casa else f.get("goles_c"),
+            "goles_visitante": f.get("goles_c") if en_casa else f.get("goles_f"),
+        })
+        res = f.get("resultado")
+        if res == "W":
+            victorias += 1
+        elif res == "D":
+            empates += 1
+        elif res == "L":
+            derrotas += 1
+
+    return {
+        "partidos": partidos,
+        "total": len(partidos),
+        "victorias_local": victorias,
+        "empates": empates,
+        "victorias_visitante": derrotas,
+        "desde": partidos[-1]["fecha"] if partidos else "",
+    }
+
+
 def enfrentamiento(id_local, nombre_local, id_visitante, nombre_visitante, limite=PARTIDOS_HISTORIAL):
     #Lo que consume el frontend para llenar el motor de una sola vez
-    filas_local, error = historial_equipo(id_local, nombre_local, limite)
+    profundo_local, error = historial_profundo(id_local, nombre_local)
     if error:
         return {"error": error}
     filas_visitante, error = historial_equipo(id_visitante, nombre_visitante, limite)
     if error:
         return {"error": error}
+    filas_local = profundo_local[:limite]
     return {
         "local": {"nombre": nombre_local, "filas": filas_local},
         "visitante": {"nombre": nombre_visitante, "filas": filas_visitante},
+        "h2h": _calcular_h2h(profundo_local, nombre_local, nombre_visitante),
         "columnas_sin_datos": sorted(COLUMNAS_VACIAS.keys()),
         "proveedor": PROVEEDOR,
     }

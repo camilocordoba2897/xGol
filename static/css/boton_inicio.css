@@ -1,0 +1,97 @@
+/* ============================================================
+   BOTON "IR AL INICIO" — uno solo para todo el sitio
+   ============================================================
+   Antes cada pantalla tenia el suyo con su propio color gris
+   (.volver-inicio, .barra-inicio, .ph-nav a, nav a...) y se veian
+   distintos entre si. Aca queda un unico estilo verde que se usa
+   en todas: analizador, ingresar, editar perfil, el nav compartido
+   y las pantallas de pago.
+
+   Los colores van escritos directos y no con variables a proposito:
+   cada hoja del proyecto define las suyas con valores diferentes, asi
+   que si usara variables el boton se veria de un verde distinto en
+   cada pagina. Con valores fijos se ve igual en todas.
+
+   El selector es "a.btn-inicio" (y no solo ".btn-inicio") para que
+   pese mas que reglas como ".ph-nav a" o "nav a" que ya existen; asi
+   no hay que ir a retocar cada hoja vieja.
+
+   Se carga SIEMPRE despues del CSS propio de cada pagina.
+   ============================================================ */
+
+a.btn-inicio,
+button.btn-inicio {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  /* Un poco mas grande que antes (era .82rem y 8px 16px) */
+  font-family: 'Manrope', sans-serif;
+  font-size: .88rem;
+  font-weight: 700;
+  letter-spacing: .01em;
+  line-height: 1;
+  padding: 11px 21px;
+  border-radius: 10px;
+
+  /* Reposo: verde legible sobre fondo oscuro, con un fondo apenas
+     tenido para que se note que es un boton y no un enlace suelto. */
+  color: #4ade80;
+  background: rgba(74, 222, 128, .10);
+  border: 1px solid rgba(74, 222, 128, .45);
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+
+  transition: color .18s cubic-bezier(.16, 1, .3, 1),
+              background-color .18s cubic-bezier(.16, 1, .3, 1),
+              border-color .18s cubic-bezier(.16, 1, .3, 1),
+              box-shadow .18s cubic-bezier(.16, 1, .3, 1),
+              transform .18s cubic-bezier(.16, 1, .3, 1);
+}
+
+a.btn-inicio svg,
+button.btn-inicio svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Al pasar el mouse: verde lleno (mas fuerte) y el relieve, que se
+   logra levantando el boton 2px y poniendole una sombra verde debajo. */
+a.btn-inicio:hover,
+button.btn-inicio:hover {
+  color: #05140b;
+  background: #4ade80;
+  border-color: #6ee79a;
+  box-shadow: 0 6px 18px rgba(74, 222, 128, .34),
+              0 0 0 1px rgba(110, 231, 154, .55);
+  transform: translateY(-2px);
+}
+
+/* Al hacer clic se hunde: el relieve desaparece un momento */
+a.btn-inicio:active,
+button.btn-inicio:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 7px rgba(74, 222, 128, .30);
+}
+
+a.btn-inicio:focus-visible,
+button.btn-inicio:focus-visible {
+  outline: 2px solid #4ade80;
+  outline-offset: 3px;
+}
+
+/* Quien prefiere menos animacion no ve el salto, pero si el color */
+@media (prefers-reduced-motion: reduce) {
+  a.btn-inicio,
+  button.btn-inicio { transition: color .18s, background-color .18s, border-color .18s; }
+  a.btn-inicio:hover,
+  button.btn-inicio:hover { transform: none; }
+}
+
+/* En pantallas chicas se achica un poco para que no apriete */
+@media (max-width: 520px) {
+  a.btn-inicio,
+  button.btn-inicio { font-size: .82rem; padding: 9px 16px; }
+}

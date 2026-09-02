@@ -525,6 +525,10 @@ body.home {
   background: var(--acc);
   animation: pulse 2s infinite;
 }
+.mtab-dot.mtab-dot-apagado {
+  background: #f87171;
+  animation: none;
+}
 @keyframes pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: .45; transform: scale(.8); }
@@ -1328,3 +1332,188 @@ body.home {
   .lc-marcador{ min-width:86px; }
   .lc-lado .lc-tname{ font-size:.72rem; }
 }
+
+
+/* ============================================================
+   BOTON "SUBIR" — vuelve al inicio de la pagina
+   Fijo abajo a la derecha. Aparece al bajar y se esconde arriba.
+   El anillo exterior marca el progreso de scroll de la pagina.
+   Usa las mismas variables del tema: cambia de color con el acento.
+   ============================================================ */
+.subir {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 480;
+  width: 50px; height: 50px;
+  display: grid; place-items: center;
+  padding: 0;
+  border: 1px solid var(--borde);
+  border-radius: 50%;
+  background: rgba(10,11,14,.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: var(--texto-2);
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0,0,0,.45);
+  opacity: 0; visibility: hidden;
+  transform: translateY(14px) scale(.9);
+  transition: opacity var(--t), transform var(--t), visibility var(--t),
+              color var(--t), border-color var(--t), box-shadow var(--t);
+}
+.subir.visible { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+.subir:hover {
+  color: var(--acc);
+  border-color: rgba(var(--acc-rgb),.55);
+  box-shadow: 0 14px 36px rgba(0,0,0,.5), 0 0 0 4px rgba(var(--acc-rgb),.10);
+}
+.subir:active { transform: translateY(0) scale(.94); }
+.subir:focus-visible { outline: 2px solid var(--acc); outline-offset: 4px; }
+
+/* flecha */
+.subir-flecha {
+  position: relative; z-index: 2;
+  width: 19px; height: 19px;
+  fill: none; stroke: currentColor;
+  stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+  transition: transform var(--t);
+}
+.subir:hover .subir-flecha { transform: translateY(-2px); }
+
+/* anillo de progreso */
+.subir-aro {
+  position: absolute; inset: -1px;
+  width: 50px; height: 50px;
+  transform: rotate(-90deg);
+  pointer-events: none;
+}
+.subir-aro circle {
+  fill: none;
+  stroke: var(--acc);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 148;
+  stroke-dashoffset: 148;
+  opacity: .85;
+  transition: stroke-dashoffset .12s linear;
+}
+
+@media (max-width: 760px) {
+  .subir { right: 16px; bottom: 16px; width: 46px; height: 46px; }
+  .subir-aro { width: 46px; height: 46px; }
+  .subir-flecha { width: 17px; height: 17px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .subir { transition: opacity .01ms, visibility .01ms; transform: none; }
+  .subir.visible { transform: none; }
+}
+
+/* ============================================================
+   TARJETA DESTACADA DEL HOME — estados verificado y bloqueado
+   Se apoya en .pred-card, .pc-head, .pc-teams, .pc-shield y .pc-tname
+   que ya existian. Esto solo añade las piezas nuevas.
+   ============================================================ */
+
+/* Escudo sin imagen: la inicial en vez de un hueco vacio */
+.pc-inicial{
+  font-family: var(--ff-display); font-size: 1.5rem; font-weight: 800;
+  color: var(--texto-3); opacity: .55;
+}
+
+/* Sello de acierto o fallo. El fallo se enseña igual que el acierto:
+   una tarjeta que solo mostrara aciertos seria mentira y se nota. */
+.pc-sello{
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:.68rem; font-weight:800; letter-spacing:.04em;
+  padding:4px 10px; border-radius:999px;
+}
+.pc-sello.ok{ background:rgba(var(--acc-rgb),.14); color:var(--acc); }
+.pc-sello.no{ background:rgba(248,113,113,.14); color:#f87171; }
+
+.pc-hora{
+  font-family: var(--ff-display); font-variant-numeric: tabular-nums;
+  font-size:.78rem; font-weight:700; color:var(--texto-1);
+}
+
+/* Bloque central: marcador real o contexto del partido */
+.pc-resultado{ text-align:center; margin-bottom:16px; }
+.pc-marcador{
+  font-family: var(--ff-display); font-variant-numeric: tabular-nums;
+  font-size:2rem; font-weight:800; color:var(--texto-0);
+  letter-spacing:-.03em; line-height:1.05;
+}
+.pc-contexto{
+  font-size:.72rem; color:var(--texto-3); margin-top:5px;
+  text-transform:uppercase; letter-spacing:.06em;
+}
+
+/* Lo que dijo el motor. Sin porcentaje: solo el signo. */
+.pc-dijo{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:11px 14px; border-radius:var(--r-sm);
+  background:rgba(0,0,0,.4); border:1px solid var(--borde-soft);
+  margin-bottom:16px;
+}
+.pc-dijo.ok{ border-color:rgba(var(--acc-rgb),.28); }
+.pc-dijo.no{ border-color:rgba(248,113,113,.22); }
+.pc-dijo-l{
+  font-size:.66rem; color:var(--texto-3);
+  text-transform:uppercase; letter-spacing:.09em;
+}
+.pc-dijo strong{ font-size:.9rem; font-weight:700; color:var(--texto-0); }
+
+/* El muro: barras borrosas que insinuan que HAY un dato debajo */
+.pc-candado{
+  display:block; position:relative; overflow:hidden;
+  border-radius:var(--r-sm); border:1px solid var(--borde-soft);
+  background:rgba(0,0,0,.45); padding:16px 14px; margin-bottom:16px;
+  text-decoration:none; transition:border-color .25s ease, background .25s ease;
+}
+.pc-candado:hover{
+  border-color:rgba(var(--acc-rgb),.45); background:rgba(var(--acc-rgb),.05);
+}
+.pc-borroso{
+  position:absolute; inset:14px 14px auto 14px;
+  display:flex; flex-direction:column; gap:7px;
+  filter:blur(6px); opacity:.35; pointer-events:none;
+}
+.pc-borroso span{ height:8px; border-radius:6px; background:var(--acc); }
+.pc-borroso span:nth-child(1){ width:64%; }
+.pc-borroso span:nth-child(2){ width:38%; background:var(--azul); }
+.pc-borroso span:nth-child(3){ width:22%; background:var(--texto-3); }
+.pc-candado-txt{ position:relative; text-align:center; }
+.pc-candado-t{
+  font-family:var(--ff-display); font-size:.92rem; font-weight:700;
+  color:var(--texto-0);
+}
+.pc-candado-s{
+  font-size:.68rem; color:var(--texto-3); margin-top:4px;
+  text-transform:uppercase; letter-spacing:.07em;
+}
+
+/* Balance verificado */
+.pc-metricas{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.pc-metrica{
+  background:rgba(0,0,0,.4); border:1px solid var(--borde-soft);
+  border-radius:var(--r-sm); padding:12px; text-align:center;
+}
+.pc-metrica .v{
+  font-family:var(--ff-display); font-variant-numeric:tabular-nums;
+  font-size:1.35rem; font-weight:700; color:var(--texto-0);
+}
+.pc-metrica .v.acc{ color:var(--acc); }
+.pc-metrica .l{
+  font-size:.62rem; color:var(--texto-3); text-transform:uppercase;
+  letter-spacing:.07em; margin-top:4px; line-height:1.3;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .pc-candado{ transition:none; }
+}
+
+/* Tarjeta sin partidos que enseñar. Mejor decirlo que quedarse cargando. */
+.pc-vacio{ text-align:center; padding:14px 6px 18px; }
+.pc-vacio-i{ font-size:1.9rem; opacity:.35; margin-bottom:8px; }
+.pc-vacio-t{ font-size:.9rem; font-weight:600; color:var(--texto-1); line-height:1.45; }
+.pc-vacio-s{ font-size:.72rem; color:var(--texto-3); margin-top:6px; }

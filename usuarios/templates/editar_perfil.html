@@ -8,7 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/perfil.css' %}?v=9">
+<link rel="stylesheet" href="{% static 'css/perfil.css' %}?v=11">
+<link rel="stylesheet" href="{% static 'css/boton_inicio.css' %}?v=1">
 <script>
   // Aplicamos el tema guardado ANTES de pintar para que no parpadee
   (function() {
@@ -22,7 +23,7 @@
 <header class="ph-head">
   <a href="{% url 'Inicio' %}" class="ph-logo"><span class="x">x</span>Gol</a>
   <nav class="ph-nav">
-    <a href="{% url 'Inicio' %}">
+    <a class="btn-inicio" href="{% url 'Inicio' %}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
       Inicio
     </a>
@@ -53,17 +54,22 @@
         <input type="hidden" name="accion" value="datos">
 
         <div class="ph-avatar-row">
+          {% comment %}
+            Se pintan los dos y se alterna con JS: asi la foto elegida puede
+            reemplazar la inicial al instante, sin recargar la pagina.
+          {% endcomment %}
           {% if perfil.avatar %}
-            <img class="ph-avatar" src="{{ perfil.avatar.url }}" alt="avatar" id="preview">
+            <img class="ph-avatar" id="ph-preview" src="{{ perfil.avatar.url }}" alt="Foto de perfil">
+            <div class="ph-avatar-ph" id="ph-inicial" hidden>{{ user.username|first|upper }}</div>
           {% else %}
-            <div class="ph-avatar-ph" id="preview-ph">{{ user.username|first|upper }}</div>
+            <img class="ph-avatar" id="ph-preview" alt="Foto de perfil" hidden>
+            <div class="ph-avatar-ph" id="ph-inicial">{{ user.username|first|upper }}</div>
           {% endif %}
           <div class="ph-avatar-info">
             <label class="ph-file-btn">
-              Cambiar foto
-              <input type="file" name="avatar" accept="image/*" hidden onchange="document.getElementById('fname').textContent = this.files[0] ? this.files[0].name : 'Ningún archivo'">
+              <span id="ph-file-txt">{% if perfil.avatar %}Cambiar foto{% else %}Agregar foto{% endif %}</span>
+              <input type="file" name="avatar" accept="image/*" id="ph-file" hidden>
             </label>
-            <span class="ph-file-name" id="fname">Ningún archivo</span>
           </div>
         </div>
 
@@ -97,7 +103,7 @@
         {% endif %}
 
         <div class="ph-field">
-          <label>Teléfono</label>
+          <label>Teléfono <span class="ph-opcional">(opcional)</span></label>
           <input type="text" name="telefono" value="{{ perfil.telefono|default:'' }}" placeholder="Tu teléfono" class="ph-input">
         </div>
 
@@ -135,12 +141,24 @@
 
         <div class="ph-field">
           <label>Contraseña actual</label>
-          <input type="password" name="clave_actual" placeholder="Tu contraseña actual" required class="ph-input">
+          <div class="ph-pass-wrap">
+            <input type="password" name="clave_actual" placeholder="Tu contraseña actual" required class="ph-input">
+            <button type="button" class="ph-pass-ojo" aria-label="Mostrar contraseña" aria-pressed="false">
+              <svg class="ojo-abierto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="ojo-cerrado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.6 20.6 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a20.6 20.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
         </div>
 
         <div class="ph-field">
           <label>Contraseña nueva</label>
-          <input type="password" name="clave_nueva" id="ph-clave-nueva" placeholder="Mínimo 8 caracteres" required class="ph-input">
+          <div class="ph-pass-wrap">
+            <input type="password" name="clave_nueva" id="ph-clave-nueva" placeholder="Mínimo 8 caracteres" required class="ph-input">
+            <button type="button" class="ph-pass-ojo" aria-label="Mostrar contraseña" aria-pressed="false">
+              <svg class="ojo-abierto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="ojo-cerrado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.6 20.6 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a20.6 20.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
 
           <ul class="ph-reqs" id="ph-reqs" hidden>
             <li data-regla="longitud">Debe ser de 8 a 16 caracteres</li>
@@ -153,7 +171,13 @@
 
         <div class="ph-field">
           <label>Repetir contraseña nueva</label>
-          <input type="password" name="clave_confirmar" placeholder="Repite la nueva contraseña" required class="ph-input">
+          <div class="ph-pass-wrap">
+            <input type="password" name="clave_confirmar" placeholder="Repite la nueva contraseña" required class="ph-input">
+            <button type="button" class="ph-pass-ojo" aria-label="Mostrar contraseña" aria-pressed="false">
+              <svg class="ojo-abierto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="ojo-cerrado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.6 20.6 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a20.6 20.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
         </div>
 
         <button type="submit" class="ph-btn ph-btn-lima">Cambiar contraseña</button>
@@ -163,6 +187,54 @@
 
   </div>
 </main>
+
+<script>
+  // Vista previa de la foto: se ve apenas se elige, sin esperar a Guardar.
+  (function(){
+    var campo   = document.getElementById("ph-file");
+    var foto    = document.getElementById("ph-preview");
+    var inicial = document.getElementById("ph-inicial");
+    var rotulo  = document.getElementById("ph-file-txt");
+    if(!campo || !foto || !inicial) return;
+
+    var urlPrevia = null;
+
+    campo.addEventListener("change", function(){
+      var archivo = this.files && this.files[0];
+
+      // Si cancela el selector, se deja lo que ya habia
+      if(!archivo) return;
+
+      // Se acepta solo imagen: el accept del input no lo garantiza
+      if(archivo.type.indexOf("image/") !== 0){
+        alert("Ese archivo no es una imagen. Elige un JPG, PNG o WEBP.");
+        this.value = "";
+        return;
+      }
+
+      // Se libera la anterior para no ir dejando memoria ocupada
+      if(urlPrevia) URL.revokeObjectURL(urlPrevia);
+      urlPrevia = URL.createObjectURL(archivo);
+
+      foto.src = urlPrevia;
+      foto.hidden = false;
+      inicial.hidden = true;
+      if(rotulo) rotulo.textContent = "Cambiar foto";
+    });
+
+    // Si la imagen no se puede leer, se vuelve a la inicial
+    foto.addEventListener("error", function(){
+      if(!urlPrevia) return;
+      URL.revokeObjectURL(urlPrevia);
+      urlPrevia = null;
+      foto.hidden = true;
+      inicial.hidden = false;
+      campo.value = "";
+      if(rotulo) rotulo.textContent = "Agregar foto";
+      alert("No se pudo abrir esa imagen. Prueba con otra.");
+    });
+  })();
+</script>
 
 {% if not es_google %}
 <style>
@@ -204,6 +276,31 @@
     input.addEventListener("focus",function(){ reqs.hidden=false; });
     input.addEventListener("blur",function(){ reqs.hidden=true; });
     input.addEventListener("input",validar);
+  })();
+</script>
+
+<script>
+  // Ojo para ver/ocultar la contraseña en los tres campos.
+  // Que svg se ve lo decide el CSS con la clase "mostrando": si se hiciera
+  // con el atributo hidden, las reglas del propio CSS lo pisarian y se
+  // verian los dos ojos a la vez.
+  (function(){
+    var ojos = document.querySelectorAll(".ph-pass-ojo");
+
+    for(var i=0; i<ojos.length; i++){
+      (function(boton){
+        var campo = boton.parentNode.querySelector("input");
+        if(!campo) return;
+
+        boton.addEventListener("click", function(){
+          var verla = campo.type === "password";
+          campo.type = verla ? "text" : "password";
+          boton.classList.toggle("mostrando", verla);
+          boton.setAttribute("aria-pressed", verla ? "true" : "false");
+          boton.setAttribute("aria-label", verla ? "Ocultar contraseña" : "Mostrar contraseña");
+        });
+      })(ojos[i]);
+    }
   })();
 </script>
 {% endif %}

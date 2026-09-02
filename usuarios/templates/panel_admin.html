@@ -1,172 +1,765 @@
-{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load formato %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#04050A">
+<title>xGol — Panel de administración</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/panel_admin.css' %}?v=9">
+<script>
+  // Tema y modo aplicados ANTES de pintar para que no parpadee
+  (function() {
+    try {
+      var t = localStorage.getItem('xgol-tema');
+      if (t) { document.documentElement.setAttribute('data-tema', t); }
+      if (localStorage.getItem('xgol-modo') === 'claro') {
+        document.documentElement.setAttribute('data-modo', 'claro');
+      }
+    } catch (e) {}
+  })();
+  function alternarModo() {
+    var raiz = document.documentElement;
+    var esClaro = raiz.getAttribute('data-modo') === 'claro';
+    if (esClaro) { raiz.removeAttribute('data-modo'); }
+    else { raiz.setAttribute('data-modo', 'claro'); }
+    try { localStorage.setItem('xgol-modo', esClaro ? 'oscuro' : 'claro'); } catch (e) {}
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) { meta.setAttribute('content', esClaro ? '#04050A' : '#ECEFF0'); }
+  }
+</script>
+</head>
+<body>
 
-{% block Titulo %}
-  Panel de administrador
-{% endblock %}
+<!-- ============================ RAIL ============================ -->
+<aside class="rail">
+  <div class="rail-marca"><span>x</span>Gol</div>
 
-{% block content %}
+  <a class="rail-link activo" href="#" data-vista="resumen" onclick="abrirVista('resumen', event)" data-nombre="Resumen">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+  </a>
+  <a class="rail-link" href="#" data-vista="modelo" onclick="abrirVista('modelo', event)" data-nombre="Modelo">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>
+  </a>
+  <a class="rail-link" href="#" data-vista="dinero" onclick="abrirVista('dinero', event)" data-nombre="Dinero">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 6.5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+  </a>
+  <a class="rail-link" href="#" data-vista="usuarios" onclick="abrirVista('usuarios', event)" data-nombre="Usuarios">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+  </a>
+  <a class="rail-link" href="#" data-vista="accesos" onclick="abrirVista('accesos', event)" data-nombre="Accesos">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
+  </a>
 
-  <div class="admin-banner">
-    <div class="admin-icon">🛡️</div>
-    <div class="admin-text">
-      <div class="admin-tag">Zona restringida</div>
-      <div class="admin-title">Panel de administración</div>
-    </div>
+  <div class="rail-fin">
+    <a class="rail-link rail-inicio" href="{% url 'Inicio' %}" data-nombre="Volver al sitio">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    </a>
+    <a class="rail-link rail-salir" href="{% url 'Salir' %}" data-nombre="Cerrar sesión">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </a>
   </div>
+</aside>
 
-  {% if messages %}
-    {% for i in messages %}
-      <div class="card" style="border-left: 4px solid var(--accent); margin-bottom: 16px;">
-        <p style="color: var(--text-1);">{{ i }}</p>
+<div class="marco">
+
+  <header class="topbar">
+    <div>
+      <div class="topbar-ruta">xGol · Administración</div>
+      <div class="topbar-titulo" id="tituloVista">Resumen</div>
+    </div>
+
+    <div class="topbar-acciones">
+      <a class="boton boton-acento" href="{% url 'AdminCrearUsuario' %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Crear usuario
+      </a>
+
+      <button type="button" class="icono-btn" onclick="abrirGuia()" title="Ver la guía paso a paso" aria-label="Ver la guía paso a paso">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.2 9.2a2.8 2.8 0 0 1 5.5.8c0 1.9-2.8 2.8-2.8 2.8"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </button>
+
+      <button type="button" class="icono-btn" onclick="alternarModo()" title="Cambiar entre modo claro y oscuro" aria-label="Cambiar entre modo claro y oscuro">
+        <svg class="ic-sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><line x1="12" y1="1.6" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22.4"/><line x1="4.2" y1="4.2" x2="5.9" y2="5.9"/><line x1="18.1" y1="18.1" x2="19.8" y2="19.8"/><line x1="1.6" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22.4" y2="12"/><line x1="4.2" y1="19.8" x2="5.9" y2="18.1"/><line x1="18.1" y1="5.9" x2="19.8" y2="4.2"/></svg>
+        <svg class="ic-luna" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.4A8.6 8.6 0 0 1 9.6 3.5a8.6 8.6 0 1 0 10.9 10.9z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="lienzo">
+
+    <!-- ======================= RESUMEN ======================= -->
+    <section class="vista activa" id="v-resumen">
+      <div class="vista-cabeza">
+        <h1>Resumen</h1>
+        <p>Las cuatro cifras que resumen el estado de xGol hoy.</p>
       </div>
-    {% endfor %}
-  {% endif %}
 
-  <div class="admin-stats">
-    <div class="admin-stat">
-      <div class="stat-num">{{ total_usuarios }}</div>
-      <div class="stat-lbl">Usuarios registrados</div>
-    </div>
-    <div class="admin-stat">
-      <div class="stat-num">{{ suscripciones_activas }}</div>
-      <div class="stat-lbl">Suscripciones activas</div>
-    </div>
-    <div class="admin-stat">
-      <div class="stat-num">{{ por_vencer|length }}</div>
-      <div class="stat-lbl">Por vencer (5 días)</div>
-    </div>
-  </div>
-
-  {% if por_vencer %}
-  <div class="card" style="border-left: 4px solid var(--warn); margin-bottom: 24px;">
-    <h3 style="font-family: var(--ff-display); color: var(--warn); margin-bottom: 10px;">⚠️ Suscripciones por vencer</h3>
-    <p style="color: var(--text-2); font-size: .88rem; margin-bottom: 12px;">Estos usuarios vencen en 5 días o menos:</p>
-    {% for i in por_vencer %}
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-top: 1px solid var(--line);">
-        <span style="color: var(--text-0);">{{ i.usuario.username }}</span>
-        <span style="color: var(--warn); font-family: var(--ff-mono); font-size: .85rem;">vence {{ i.vencimiento|date:"d/m/Y" }}</span>
-      </div>
-    {% endfor %}
-  </div>
-  {% endif %}
-  
-  <h3 class="admin-section-title">💰 Dinero</h3>
-  <div style="display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap;">
-    <a href="{% url 'PanelFinanzas' %}" class="btn btn-primary">📈 Control financiero</a>
-  </div>
-  <h3 class="admin-section-title">🧮 Analizador (solo administrador)</h3>
-  <div style="display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap;">
-    <a href="{% url 'Analizador' %}?tab=history" class="btn btn-primary">📋 Ver Historial</a>
-    <a href="{% url 'Analizador' %}?tab=validation" class="btn btn-primary">📊 Ver Rendimiento</a>
-  </div>
-
-<div style="display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; padding-top: 20px; border-top: 1px solid var(--line);">
-    <a href="{% url 'AdminCrearUsuario' %}" class="btn btn-primary">+ Crear usuario</a>
-  </div>
-  <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; flex-wrap: wrap;">
-    <h3 class="admin-section-title" style="margin-bottom: 0; border-bottom: none; padding-bottom: 0;">👥 Usuarios y suscripciones</h3>
-    <input type="text" id="buscarUsuario" placeholder="Buscar usuario..." oninput="filtrarUsuarios()"
-           style="background: var(--bg-2); border: 1px solid var(--text-3); border-radius: 10px; padding: 9px 14px; color: var(--text-1); font-family: var(--ff-body); font-size: .88rem; min-width: 220px;">
-  </div>
-  <div style="overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius-md); margin-bottom: 32px;">
-    <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-      <thead>
-        <tr style="background: var(--bg-3);">
-          <th style="font-family: var(--ff-display); text-align: center; padding: 13px 16px; color: var(--text-1); text-transform: uppercase; font-size: .72rem; letter-spacing: .06em;">Usuario</th>
-          <th style="font-family: var(--ff-display); text-align: center; padding: 13px 16px; color: var(--text-1); text-transform: uppercase; font-size: .72rem; letter-spacing: .06em;">Suscripción</th>
-          <th style="font-family: var(--ff-display); text-align: center; padding: 13px 16px; color: var(--text-1); text-transform: uppercase; font-size: .72rem; letter-spacing: .06em;">Vence</th>
-          <th style="font-family: var(--ff-display); text-align: center; padding: 13px 16px; color: var(--text-1); text-transform: uppercase; font-size: .72rem; letter-spacing: .06em;">Estado cuenta</th>
-          <th style="font-family: var(--ff-display); text-align: center; padding: 13px 16px 13px 148px; color: var(--text-1); text-transform: uppercase; font-size: .72rem; letter-spacing: .06em;">Acciones</th>
-        </tr>
-      </thead>
-      <tbody id="tablaUsuarios">
-        {% for i in perfiles %}
-        <tr style="border-top: 1px solid var(--line);" data-usuario="{{ i.usuario.username|lower }}">
-          <td style="padding: 12px 16px; color: var(--text-0); text-align: center;">
-            {{ i.usuario.username }}
-          </td>
-          <td style="padding: 12px 16px; text-align: center;">
-            {% if i.usuario.suscripcion.esta_vigente %}
-              <span style="color: var(--accent); font-size: .82rem; font-weight: 600;">● Activa</span>
-            {% else %}
-              <span style="color: var(--text-3); font-size: .82rem;">○ Sin suscripción</span>
-            {% endif %}
-          </td>
-          <td style="padding: 12px 16px; color: var(--text-2); font-family: var(--ff-mono); font-size: .82rem; text-align: center;">
-            {% if i.usuario.suscripcion.vencimiento %}{{ i.usuario.suscripcion.vencimiento|date:"d/m/Y" }}{% else %}—{% endif %}
-          </td>
-          <td style="padding: 12px 16px; text-align: center;">
-            {% if i.usuario.is_active %}
-              <span style="color: var(--accent); font-size: .82rem;">Activa</span>
-            {% else %}
-              <span style="color: var(--bad); font-size: .82rem;">Bloqueada</span>
-            {% endif %}
-          </td>
-          <td style="padding: 12px 16px; text-align: center;">
-            <div class="acc-row">
-              <div class="acc-cancelar-slot">
-                {% if i.usuario.suscripcion.esta_vigente %}
-                  <form action="{% url 'AdminCancelarSuscripcion' i.usuario.id %}" method="post" style="display:inline"
-                        onsubmit="return confirm('¿Cancelar la suscripción de {{ i.usuario.username }}?')">
-                    {% csrf_token %}
-                    <button type="submit" class="act-btn act-cancelar" style="cursor:pointer">Cancelar sub.</button>
-                  </form>
-                {% else %}
-                  <form action="{% url 'AdminActivarSuscripcion' i.usuario.id %}" method="post" style="display:inline">
-                    {% csrf_token %}
-                    <input type="hidden" name="plan" value="mensual">
-                    <input type="hidden" name="metodo" value="Manual">
-                    <button type="submit" class="act-btn act-activar" style="cursor:pointer">Activar mes</button>
-                  </form>
-                {% endif %}
-              </div>
-              <a href="{% url 'AdminEditarUsuario' i.usuario.id %}" class="act-btn act-editar">Editar</a>
-              {% if i.usuario.is_active %}
-                <a href="{% url 'AdminEstadoUsuario' i.usuario.id %}" class="act-btn act-bloquear">Bloquear</a>
-              {% else %}
-                <a href="{% url 'AdminEstadoUsuario' i.usuario.id %}" class="act-btn act-activar">Activar</a>
-              {% endif %}
-              <a href="{% url 'AdminEliminarUsuario' i.usuario.id %}" class="act-btn act-eliminar">Eliminar</a>
+      {% if messages %}
+        <div class="avisos">
+          {% for i in messages %}
+            <div class="aviso" role="status">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="8 12 11 15 16 9"/></svg>
+              <div class="aviso-cuerpo">{{ i }}</div>
             </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+          {% endfor %}
+        </div>
+      {% endif %}
 
-  <h3 class="admin-section-title">📋 Últimos accesos</h3>
-  <div style="overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius-md);">
-    <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-      <thead>
-        <tr style="background: var(--bg-3);">
-          <th style="font-family: var(--ff-display); text-align: center; padding: 13px 16px; color: var(--text-1); text-transform: uppercase; font-size: .72rem; letter-spacing: .06em;">Accion</th>
-          <th style="font-family: var(--ff-display); text-align: center; padding: 13px 16px; color: var(--text-1); text-transform: uppercase; font-size: .72rem; letter-spacing: .06em;">Usuario</th>
-          <th style="font-family: var(--ff-display); text-align: center; padding: 13px 16px; color: var(--text-1); text-transform: uppercase; font-size: .72rem; letter-spacing: .06em;">IP</th>
-          <th style="font-family: var(--ff-display); text-align: center; padding: 13px 16px; color: var(--text-1); text-transform: uppercase; font-size: .72rem; letter-spacing: .06em;">Fecha</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for i in accesos %}
-        <tr style="border-top: 1px solid var(--line);">
-          <td style="padding: 12px 16px; color: var(--text-0); text-align: center;">{{ i.accion }}</td>
-          <td style="padding: 12px 16px; color: var(--text-1); text-align: center;">{{ i.usuario.username }}</td>
-          <td style="padding: 12px 16px; color: var(--text-2); font-family: var(--ff-mono); font-size: .82rem; text-align: center;">{{ i.ip }}</td>
-          <td style="padding: 12px 16px; color: var(--text-2); font-family: var(--ff-mono); font-size: .82rem; text-align: center;">{{ i.creado|date:"d/m/Y H:i" }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+      <div class="kpis">
+        <div class="kpi" style="--kpi-color: var(--accent)">
+          <div class="kpi-cabeza">
+            <div class="kpi-icono"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+            <div class="kpi-nombre">Usuarios</div>
+          </div>
+          <div class="kpi-valor">{{ usuarios.total|intcomma }}</div>
+          <div class="kpi-pie">
+            {% if usuarios.variacion is not None %}
+              <span class="delta {% if usuarios.variacion >= 0 %}delta-sube{% else %}delta-baja{% endif %}">{{ usuarios.variacion }}%</span>
+            {% endif %}
+            <span>{{ usuarios.nuevos }} nuevos en 30 días</span>
+          </div>
+        </div>
 
-  <script>
-    function filtrarUsuarios() {
-      var texto = document.getElementById('buscarUsuario').value.toLowerCase();
-      document.querySelectorAll('#tablaUsuarios tr').forEach(function(fila) {
-        var nombre = fila.getAttribute('data-usuario') || '';
-        fila.style.display = nombre.includes(texto) ? '' : 'none';
+        <div class="kpi" style="--kpi-color: var(--cian)">
+          <div class="kpi-cabeza">
+            <div class="kpi-icono"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 11.5 11.5 14 15 10"/></svg></div>
+            <div class="kpi-nombre">Suscripciones</div>
+          </div>
+          <div class="kpi-valor">{{ usuarios.con_suscripcion }}<small>/ {{ usuarios.total }}</small></div>
+          <div class="kpi-pie"><span>{{ usuarios.conversion }}% de la base paga</span></div>
+        </div>
+
+        <div class="kpi" style="--kpi-color: var(--warn)">
+          <div class="kpi-cabeza">
+            <div class="kpi-icono"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 6.5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+            <div class="kpi-nombre">Ingresos del mes</div>
+          </div>
+          <div class="kpi-valor">${{ dinero.mes|pesos }}</div>
+          <div class="kpi-pie">
+            {% if dinero.variacion is not None %}
+              <span class="delta {% if dinero.variacion >= 0 %}delta-sube{% else %}delta-baja{% endif %}">{{ dinero.variacion }}%</span>
+            {% endif %}
+            <span>{{ dinero.mes_cuenta }} ventas</span>
+          </div>
+        </div>
+
+        <div class="kpi" style="--kpi-color: {% if modelo.comparado.nivel == 'malo' %}var(--bad){% else %}var(--ok){% endif %}">
+          <div class="kpi-cabeza">
+            <div class="kpi-icono"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg></div>
+            <div class="kpi-nombre">Acierto del modelo</div>
+          </div>
+          <div class="kpi-valor">{{ modelo.tasa|floatformat:1 }}<small>%</small></div>
+          <div class="kpi-pie"><span>{{ modelo.aciertos }} de {{ modelo.total }} apuestas</span></div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px">
+        <div class="panel">
+          <div class="panel-cabeza">
+            <div class="panel-titulo">Estado de la base</div>
+            <p class="panel-explica">Dónde está cada uno de los {{ usuarios.total }} registrados.</p>
+          </div>
+          <div class="panel-cuerpo">
+            <div class="apilada">
+              <span class="s-activa" style="width: {{ usuarios.pct_con|floatformat:1 }}%"></span>
+              <span class="s-sin" style="width: {{ usuarios.pct_sin|floatformat:1 }}%"></span>
+              <span class="s-bloq" style="width: {{ usuarios.pct_bloq|floatformat:1 }}%"></span>
+            </div>
+            <div class="apilada-leyenda">
+              <div class="apilada-item"><i class="i-activa"></i> Pagando <b>{{ usuarios.con_suscripcion }}</b></div>
+              <div class="apilada-item"><i class="i-sin"></i> Registrados sin pagar <b>{{ usuarios.sin_suscripcion }}</b></div>
+              <div class="apilada-item"><i class="i-bloq"></i> Bloqueados <b>{{ usuarios.bloqueados }}</b></div>
+            </div>
+          </div>
+          <div class="panel-pie"><b>Vencen en 5 días:</b> {{ usuarios.por_vencer|length }} · <b>Ya vencidas:</b> {{ usuarios.vencidas }}</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= MODELO ======================= -->
+    <section class="vista" id="v-modelo">
+      <div class="vista-cabeza">
+        <h1>Modelo</h1>
+        <p>Mide si el modelo acierta lo que promete, comparado con las referencias publicadas del sector.</p>
+      </div>
+
+      {% if modelo.total %}
+      <div class="kpis">
+        <div class="kpi kpi-mini" style="--kpi-color: var(--accent)">
+          <div class="kpi-cabeza"><div class="kpi-nombre">Acierto real</div></div>
+          <div class="kpi-valor">{{ modelo.tasa|floatformat:1 }}<small>%</small></div>
+          <div class="kpi-pie"><span class="delta {% if modelo.comparado.nivel == 'malo' %}delta-baja{% elif modelo.comparado.nivel == 'bueno' %}delta-sube{% else %}delta-neutro{% endif %}">{{ modelo.comparado.texto }}</span></div>
+        </div>
+        <div class="kpi kpi-mini" style="--kpi-color: var(--cian)">
+          <div class="kpi-cabeza"><div class="kpi-nombre">Sesgo</div></div>
+          <div class="kpi-valor">{% if modelo.sesgo >= 0 %}+{% endif %}{{ modelo.sesgo|floatformat:1 }}<small>pts</small></div>
+          <div class="kpi-pie"><span>prometía {{ modelo.esperado|floatformat:1 }}%</span></div>
+        </div>
+        <div class="kpi kpi-mini" style="--kpi-color: {% if modelo.roi >= 0 %}var(--ok){% else %}var(--bad){% endif %}">
+          <div class="kpi-cabeza"><div class="kpi-nombre">ROI</div></div>
+          <div class="kpi-valor">{% if modelo.roi is not None %}{% if modelo.roi >= 0 %}+{% endif %}{{ modelo.roi|floatformat:1 }}<small>%</small>{% else %}—{% endif %}</div>
+          <div class="kpi-pie"><span>{{ modelo.ganancia|floatformat:1 }} u. en {{ modelo.con_cuota }} apuestas</span></div>
+        </div>
+        <div class="kpi kpi-mini" style="--kpi-color: var(--warn)">
+          <div class="kpi-cabeza"><div class="kpi-nombre">Muestra</div></div>
+          <div class="kpi-valor">{{ modelo.total|intcomma }}</div>
+          <div class="kpi-pie"><span>cuota media {{ modelo.cuota_media|floatformat:2 }}</span></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:14px">
+        <div class="panel-cabeza">
+          <div class="panel-titulo">Dónde caes frente a la referencia real</div>
+          <p class="panel-explica">Rangos documentados en estudios públicos de predicción de fútbol.</p>
+        </div>
+        <div class="panel-cuerpo">
+          <div class="regla">
+            <div class="regla-pista">
+              <span class="regla-zona mala"    style="left:0%; width:41%"></span>
+              <span class="regla-zona normal"  style="left:41%; width:14.9%"></span>
+              <span class="regla-zona buena"   style="left:55.9%; width:14.1%"></span>
+              <span class="regla-zona dudosa"  style="left:70%; width:30%"></span>
+            </div>
+            <span class="regla-marca" style="left: {{ modelo.tasa|floatformat:0 }}%" data-valor="{{ modelo.tasa|floatformat:1 }}%"></span>
+          </div>
+          <div class="regla-hitos">
+            <span>0%</span><span>41% suelo</span><span>55.9% tope 1X2</span><span>70% dudoso</span><span>100%</span>
+          </div>
+        </div>
+        <div class="panel-pie">
+          <b>41%</b> es acertar siempre al local · <b>55.9%</b> es el mejor 1X2 documentado · <b>62.7%</b> en Más/Menos 2.5 · por encima de <b>70%</b> sostenido no hay modelo público creíble.
+        </div>
+      </div>
+
+      <div class="dos-columnas" style="margin-top:14px">
+        <div class="panel">
+          <div class="panel-cabeza">
+            <div class="panel-titulo">Calibración</div>
+            <p class="panel-explica">Si dijo 70%, debería acertar 7 de cada 10.</p>
+          </div>
+          <div class="panel-cuerpo">
+            {% for f in calibracion %}
+              <div class="cal-fila">
+                <div class="cal-cabeza">
+                  <span class="cal-rango">{{ f.etiqueta }}</span>
+                  <span class="cal-cuenta">{{ f.cuenta }}</span>
+                  <span class="cal-sello {% if not f.fiable %}sello-vacio{% elif f.veredicto == 'Ajustado' %}sello-ok{% elif f.veredicto == 'Optimista' %}sello-optimista{% else %}sello-conserva{% endif %}">{{ f.veredicto }}</span>
+                </div>
+                <div class="cal-par">
+                  <span class="cal-nombre">Prometió</span>
+                  <span class="cal-pista"><span class="cal-relleno predicho" style="width: {{ f.predicho|floatformat:0 }}%"></span></span>
+                  <span class="cal-cifra">{{ f.predicho|floatformat:0 }}%</span>
+                </div>
+                <div class="cal-par">
+                  <span class="cal-nombre">Acertó</span>
+                  <span class="cal-pista"><span class="cal-relleno real" style="width: {{ f.real|floatformat:0 }}%"></span></span>
+                  <span class="cal-cifra">{{ f.real|floatformat:0 }}%</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          <div class="panel-pie"><b>Optimista</b> promete de más · <b>Conservador</b> se queda corto · <b>Ajustado</b> cumple.</div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-cabeza">
+            <div class="panel-titulo">Por mercado</div>
+            <p class="panel-explica">Qué tipo de apuesta deja plata.</p>
+          </div>
+          <div class="tabla-marco">
+            <table class="tabla">
+              <thead><tr><th>Mercado</th><th class="td-centro">Aciertos</th><th>Acierto</th><th class="td-derecha">ROI</th></tr></thead>
+              <tbody>
+                {% for m in mercados %}
+                <tr>
+                  <td><span style="font-weight:600">{{ m.mercado }}</span>{% if not m.fiable %}<div class="usuario-correo">pocos datos</div>{% endif %}</td>
+                  <td class="td-num td-centro">{{ m.aciertos }}/{{ m.cuenta }}</td>
+                  <td>
+                    <span class="mini-pista"><span class="mini-relleno {% if m.tasa < 50 %}baja{% elif m.tasa < 65 %}media{% endif %}" style="width: {{ m.tasa|floatformat:0 }}%"></span></span>
+                    <span class="td-num" style="margin-left:8px">{{ m.tasa|floatformat:0 }}%</span>
+                  </td>
+                  <td class="td-derecha">
+                    {% if m.roi is not None %}<span class="marca {% if m.roi >= 0 %}marca-ok{% else %}marca-mala{% endif %}">{% if m.roi >= 0 %}+{% endif %}{{ m.roi|floatformat:1 }}%</span>
+                    {% else %}<span class="td-num">—</span>{% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="panel-pie">ROI negativo pierde plata aunque acierte mucho: la cuota es muy baja.</div>
+        </div>
+      </div>
+      {% else %}
+        <div class="panel"><div class="vacio"><b>Sin datos todavía</b>Registra partidos con resultado en el analizador.</div></div>
+      {% endif %}
+    </section>
+
+    <!-- ======================= DINERO ======================= -->
+    <section class="vista" id="v-dinero">
+      <div class="vista-cabeza">
+        <h1>Dinero</h1>
+        <p>Control financiero completo: ingresos, suscripciones y todas las transacciones.</p>
+      </div>
+
+      {% if ambiente != "prod" or not pasarela_lista %}
+      <div class="avisos">
+        <div class="aviso aviso-alerta">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div class="aviso-cuerpo">
+            {% if not pasarela_lista %}Faltan las llaves de la pasarela en <code>.env</code>. Nadie puede pagar.
+            {% else %}Ambiente de <b>pruebas</b> ({{ ambiente }}). Estas cifras no son dinero real.{% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="kpis kpis-6">
+        <div class="kpi kpi-mini" style="--kpi-color: var(--accent)"><div class="kpi-cabeza"><div class="kpi-nombre">Hoy</div></div><div class="kpi-valor">${{ ingresos.hoy.total|pesos }}</div><div class="kpi-pie"><span>{{ ingresos.hoy.cuenta }} ventas</span></div></div>
+        <div class="kpi kpi-mini" style="--kpi-color: var(--accent)"><div class="kpi-cabeza"><div class="kpi-nombre">Semana</div></div><div class="kpi-valor">${{ ingresos.semana.total|pesos }}</div><div class="kpi-pie"><span>{{ ingresos.semana.cuenta }} ventas</span></div></div>
+        <div class="kpi kpi-mini" style="--kpi-color: var(--accent)"><div class="kpi-cabeza"><div class="kpi-nombre">Mes</div></div><div class="kpi-valor">${{ ingresos.mes.total|pesos }}</div><div class="kpi-pie"><span>{{ ingresos.mes.cuenta }} ventas</span></div></div>
+        <div class="kpi kpi-mini" style="--kpi-color: var(--cian)"><div class="kpi-cabeza"><div class="kpi-nombre">Trimestre</div></div><div class="kpi-valor">${{ ingresos.trimestre.total|pesos }}</div><div class="kpi-pie"><span>{{ ingresos.trimestre.cuenta }} ventas</span></div></div>
+        <div class="kpi kpi-mini" style="--kpi-color: var(--cian)"><div class="kpi-cabeza"><div class="kpi-nombre">Año</div></div><div class="kpi-valor">${{ ingresos.anio.total|pesos }}</div><div class="kpi-pie"><span>{{ ingresos.anio.cuenta }} ventas</span></div></div>
+        <div class="kpi kpi-mini" style="--kpi-color: var(--warn)"><div class="kpi-cabeza"><div class="kpi-nombre">Histórico</div></div><div class="kpi-valor">${{ ingresos.historico.total|pesos }}</div><div class="kpi-pie"><span>{{ ingresos.historico.cuenta }} ventas</span></div></div>
+      </div>
+
+      <div class="dos-columnas" style="margin-top:14px">
+        <div class="panel">
+          <div class="panel-cabeza">
+            <div class="panel-titulo">Ingresos · 12 meses</div>
+            <p class="panel-explica">Dinero cobrado cada mes.</p>
+          </div>
+          <div class="panel-cuerpo">
+            <svg class="gr" viewBox="0 0 620 186" role="img" aria-label="Ingresos mensuales">
+              <line class="gr-guia" x1="0" y1="0.5" x2="620" y2="0.5"/>
+              <line class="gr-guia" x1="0" y1="75.5" x2="620" y2="75.5"/>
+              <line class="gr-guia" x1="0" y1="150.5" x2="620" y2="150.5"/>
+              {% for b in grafica_ingresos.barras %}
+                <g class="gr-columna">
+                  <rect class="gr-zona" x="{{ b.x }}" y="0" width="{{ b.ancho }}" height="150"/>
+                  <rect class="gr-barra {% if b.pico %}pico{% endif %}" x="{{ b.x }}" y="{{ b.y }}" width="{{ b.ancho }}" height="{{ b.alto }}" rx="3"><title>{{ b.detalle }}: ${{ b.valor|pesos }} ({{ b.cuenta }} ventas)</title></rect>
+                  <text class="gr-valor" x="{{ b.centro }}" y="{{ b.y|add:'-6' }}" text-anchor="middle">${{ b.valor|pesos }}</text>
+                  <text class="gr-eje" x="{{ b.centro }}" y="168" text-anchor="middle">{{ b.etiqueta }}</text>
+                </g>
+              {% endfor %}
+            </svg>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-cabeza">
+            <div class="panel-titulo">Bruto, comisión y neto</div>
+            <p class="panel-explica">Lo que se cobró frente a lo que realmente llega.</p>
+          </div>
+          <div class="panel-cuerpo">
+            <div style="display:grid;gap:16px">
+              <div><div style="font-family:var(--ff-display);font-size:1.7rem;font-weight:800;letter-spacing:-.04em;color:var(--text-0)">${{ ingresos.historico.total|pesos }}</div><div style="font-size:.76rem;color:var(--text-3)">Bruto cobrado</div></div>
+              <div><div style="font-family:var(--ff-display);font-size:1.7rem;font-weight:800;letter-spacing:-.04em;color:var(--bad)">−${{ ingresos.historico.comision|pesos }}</div><div style="font-size:.76rem;color:var(--text-3)">Comisión estimada</div></div>
+              <div><div style="font-family:var(--ff-display);font-size:1.7rem;font-weight:800;letter-spacing:-.04em;color:var(--accent)">${{ ingresos.historico.neto|pesos }}</div><div style="font-size:.76rem;color:var(--text-3)">Neto estimado</div></div>
+            </div>
+          </div>
+          <div class="panel-pie">La comisión es estimada. Manda el extracto de la pasarela.</div>
+        </div>
+      </div>
+
+      <div class="seccion">
+        <div class="seccion-cabeza"><div class="seccion-titulo">Suscripciones</div></div>
+        <div class="kpis kpis-6">
+          <div class="kpi kpi-mini" style="--kpi-color: var(--accent)"><div class="kpi-cabeza"><div class="kpi-nombre">Activas</div></div><div class="kpi-valor">{{ suscripciones.activas }}</div></div>
+          <div class="kpi kpi-mini" style="--kpi-color: var(--text-3)"><div class="kpi-cabeza"><div class="kpi-nombre">Vencidas</div></div><div class="kpi-valor">{{ suscripciones.vencidas }}</div></div>
+          <div class="kpi kpi-mini {% if suscripciones.por_vencer %}alerta{% endif %}" style="--kpi-color: var(--warn)"><div class="kpi-cabeza"><div class="kpi-nombre">Vencen en 5 días</div></div><div class="kpi-valor">{{ suscripciones.por_vencer }}</div></div>
+          <div class="kpi kpi-mini" style="--kpi-color: var(--cian)"><div class="kpi-cabeza"><div class="kpi-nombre">Renovación auto.</div></div><div class="kpi-valor">{{ suscripciones.renovacion_automatica }}</div></div>
+          <div class="kpi kpi-mini" style="--kpi-color: var(--text-3)"><div class="kpi-cabeza"><div class="kpi-nombre">Canceladas</div></div><div class="kpi-valor">{{ suscripciones.canceladas }}</div></div>
+          <div class="kpi kpi-mini" style="--kpi-color: var(--text-3)"><div class="kpi-cabeza"><div class="kpi-nombre">Sin suscripción</div></div><div class="kpi-valor">{{ suscripciones.sin_suscripcion }}</div></div>
+        </div>
+      </div>
+
+
+      <div class="dos-columnas" style="margin-top:14px">
+        <div class="panel">
+          <div class="panel-cabeza"><div class="panel-titulo">Ventas por plan</div></div>
+          <div class="tabla-marco">
+            <table class="tabla">
+              <thead><tr><th>Plan</th><th class="td-centro">Ventas</th><th class="td-derecha">Ingreso</th></tr></thead>
+              <tbody>
+                {% for f in por_plan %}<tr><td>{{ f.plan }}</td><td class="td-num td-centro">{{ f.cuenta }}</td><td class="td-num td-derecha">${{ f.total|pesos }}</td></tr>
+                {% empty %}<tr><td colspan="3"><div class="vacio">Sin ventas aprobadas.</div></td></tr>{% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-cabeza"><div class="panel-titulo">Ventas por medio de pago</div></div>
+          <div class="tabla-marco">
+            <table class="tabla">
+              <thead><tr><th>Medio</th><th class="td-centro">Ventas</th><th class="td-derecha">Ingreso</th></tr></thead>
+              <tbody>
+                {% for f in por_metodo %}<tr><td>{{ f.metodo|default:"—" }}</td><td class="td-num td-centro">{{ f.cuenta }}</td><td class="td-num td-derecha">${{ f.total|pesos }}</td></tr>
+                {% empty %}<tr><td colspan="3"><div class="vacio">Sin ventas aprobadas.</div></td></tr>{% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:14px">
+          <div class="panel-cabeza"><div class="panel-titulo">Vencen esta semana</div></div>
+          <div class="tabla-marco">
+            <table class="tabla">
+              <thead><tr><th>Usuario</th><th>Plan</th><th class="td-derecha">Vence</th><th class="td-derecha">Renueva sola</th></tr></thead>
+              <tbody>
+                {% for s in renovaciones %}
+                <tr><td>{{ s.usuario.username }}</td><td>{{ s.plan }}</td>
+                  <td class="td-num td-derecha" style="color:var(--warn)">{{ s.vencimiento|date:"d/m/Y" }}</td>
+                  <td class="td-num td-derecha">{% if s.renovacion_automatica %}Sí{% else %}No{% endif %}</td></tr>
+                {% empty %}<tr><td colspan="4"><div class="vacio">Ninguna vence en 7 días.</div></td></tr>{% endfor %}
+              </tbody>
+            </table>
+          </div>
+      </div>
+
+      <div class="panel" style="margin-top:14px">
+        <div class="panel-cabeza">
+          <div class="panel-titulo">Historial de transacciones</div>
+          <p class="panel-explica">{{ total_filtrado }} transacciones con los filtros actuales.</p>
+        </div>
+        <div class="panel-cuerpo">
+          <form method="get" class="filtros">
+            <input type="hidden" name="tab" value="dinero">
+            <div class="campo"><label for="f-q">Buscar</label><input id="f-q" type="text" name="q" value="{{ filtros.q }}" placeholder="Referencia, factura o usuario" style="min-width:210px"></div>
+            <div class="campo"><label for="f-estado">Estado</label>
+              <select id="f-estado" name="estado">
+                <option value="todos">Todos</option>
+                <option value="Aprobado" {% if filtros.estado == "Aprobado" %}selected{% endif %}>Aprobado</option>
+                <option value="Rechazado" {% if filtros.estado == "Rechazado" %}selected{% endif %}>Rechazado</option>
+                <option value="Anulado" {% if filtros.estado == "Anulado" %}selected{% endif %}>Anulado</option>
+                <option value="Error" {% if filtros.estado == "Error" %}selected{% endif %}>Error</option>
+                <option value="Reembolsado" {% if filtros.estado == "Reembolsado" %}selected{% endif %}>Reembolsado</option>
+              </select>
+            </div>
+            <div class="campo"><label for="f-plan">Plan</label>
+              <select id="f-plan" name="plan">
+                <option value="todos">Todos</option>
+                {% for clave, p in planes.items %}<option value="{{ p.nombre }}" {% if filtros.plan == p.nombre %}selected{% endif %}>{{ p.nombre }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="campo"><label for="f-desde">Desde</label><input id="f-desde" type="date" name="desde" value="{{ filtros.desde|date:'Y-m-d' }}"></div>
+            <div class="campo"><label for="f-hasta">Hasta</label><input id="f-hasta" type="date" name="hasta" value="{{ filtros.hasta|date:'Y-m-d' }}"></div>
+            <button type="submit" class="boton boton-acento">Filtrar</button>
+            <a href="{% url 'PanelAdmin' %}?tab=dinero" class="boton">Limpiar</a>
+            <a class="boton" href="{% url 'ExportarFinanzas' %}?formato=pdf&amp;tipo=transacciones&amp;estado={{ filtros.estado }}&amp;plan={{ filtros.plan }}&amp;desde={{ filtros.desde|date:'Y-m-d' }}&amp;hasta={{ filtros.hasta|date:'Y-m-d' }}&amp;q={{ filtros.q|urlencode }}">PDF</a>
+            <a class="boton" href="{% url 'ExportarFinanzas' %}?formato=xlsx&amp;tipo=transacciones&amp;estado={{ filtros.estado }}&amp;plan={{ filtros.plan }}&amp;desde={{ filtros.desde|date:'Y-m-d' }}&amp;hasta={{ filtros.hasta|date:'Y-m-d' }}&amp;q={{ filtros.q|urlencode }}">Excel</a>
+          </form>
+        </div>
+        <div class="tabla-marco">
+          <table class="tabla">
+            <thead><tr><th>Fecha</th><th>Factura</th><th>Usuario</th><th>Plan</th><th>Medio</th><th>Estado</th><th class="td-derecha">Total</th><th class="td-derecha">Neto</th><th class="td-derecha"></th></tr></thead>
+            <tbody>
+              {% for p in pagina %}
+              <tr>
+                <td class="td-num">{{ p.creado|date:"d/m/Y H:i" }}</td>
+                <td class="td-num">{{ p.numero_factura|default:"—" }}</td>
+                <td>{{ p.usuario.username }}</td>
+                <td>{{ p.plan }}</td>
+                <td>{{ p.metodo|default:"—" }}</td>
+                <td><span class="marca {% if p.estado == 'Aprobado' %}marca-ok{% elif p.estado == 'Anulado' %}marca-aviso{% elif p.estado == 'Rechazado' or p.estado == 'Error' %}marca-mala{% else %}marca-gris{% endif %}"><i></i> {{ p.estado }}</span></td>
+                <td class="td-num td-derecha">${{ p.monto|pesos }}</td>
+                <td class="td-num td-derecha">{% if p.neto %}${{ p.neto|pesos }}{% else %}—{% endif %}</td>
+                <td class="td-derecha">
+                  {% if p.estado == "Aprobado" %}<a href="{% url 'DescargarFactura' p.id %}" class="accion">PDF</a>
+                  {% elif p.id_pasarela %}<form action="{% url 'AdminSincronizarPago' p.id %}" method="post" style="display:inline">{% csrf_token %}<button type="submit" class="accion">Consultar</button></form>{% endif %}
+                </td>
+              </tr>
+              {% empty %}<tr><td colspan="9"><div class="vacio"><b>Sin coincidencias</b>Ninguna transacción cumple estos filtros.</div></td></tr>{% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% if pagina.has_other_pages %}
+        <div class="paginacion">
+          {% if pagina.has_previous %}<a class="boton" href="?tab=dinero&amp;pagina={{ pagina.previous_page_number }}&amp;estado={{ filtros.estado }}&amp;plan={{ filtros.plan }}&amp;q={{ filtros.q|urlencode }}">Anterior</a>{% endif %}
+          <span>Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+          {% if pagina.has_next %}<a class="boton" href="?tab=dinero&amp;pagina={{ pagina.next_page_number }}&amp;estado={{ filtros.estado }}&amp;plan={{ filtros.plan }}&amp;q={{ filtros.q|urlencode }}">Siguiente</a>{% endif %}
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="panel" style="margin-top:14px">
+        <div class="panel-cabeza"><div class="panel-titulo">Bitácora de suscripciones</div><p class="panel-explica">Por qué cada usuario tiene acceso hasta esa fecha.</p></div>
+        <div class="tabla-marco">
+          <table class="tabla">
+            <thead><tr><th>Fecha</th><th>Usuario</th><th>Movimiento</th><th class="td-derecha">Días</th><th class="td-derecha">Vence</th></tr></thead>
+            <tbody>
+              {% for m in movimientos %}
+              <tr><td class="td-num">{{ m.creado|date:"d/m/Y H:i" }}</td><td>{{ m.usuario.username }}</td><td>{{ m.tipo }}</td>
+                <td class="td-num td-derecha">{{ m.dias }}</td><td class="td-num td-derecha">{{ m.vencimiento_nuevo|date:"d/m/Y"|default:"—" }}</td></tr>
+              {% empty %}<tr><td colspan="5"><div class="vacio">Sin movimientos.</div></td></tr>{% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= USUARIOS ======================= -->
+    <section class="vista" id="v-usuarios">
+      <div class="vista-cabeza">
+        <h1>Usuarios</h1>
+        <p>Crear cuentas, buscar, y activar o cortar el acceso de cada usuario.</p>
+      </div>
+
+      <div>
+        <div class="panel">
+          <div class="panel-cabeza">
+            <div class="panel-titulo">Registros · 12 meses</div>
+            <p class="panel-explica">Cuentas nuevas por mes.</p>
+          </div>
+          <div class="panel-cuerpo">
+            <svg class="gr gr-cian" viewBox="0 0 620 186" role="img" aria-label="Usuarios nuevos por mes">
+              <line class="gr-guia" x1="0" y1="0.5" x2="620" y2="0.5"/>
+              <line class="gr-guia" x1="0" y1="75.5" x2="620" y2="75.5"/>
+              <line class="gr-guia" x1="0" y1="150.5" x2="620" y2="150.5"/>
+              {% for b in grafica_usuarios.barras %}
+                <g class="gr-columna">
+                  <rect class="gr-zona" x="{{ b.x }}" y="0" width="{{ b.ancho }}" height="150"/>
+                  <rect class="gr-barra {% if b.pico %}pico{% endif %}" x="{{ b.x }}" y="{{ b.y }}" width="{{ b.ancho }}" height="{{ b.alto }}" rx="3"><title>{{ b.detalle }}: {{ b.valor }}</title></rect>
+                  <text class="gr-valor" x="{{ b.centro }}" y="{{ b.y|add:'-6' }}" text-anchor="middle">{{ b.valor }}</text>
+                  <text class="gr-eje" x="{{ b.centro }}" y="168" text-anchor="middle">{{ b.etiqueta }}</text>
+                </g>
+              {% endfor %}
+            </svg>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="panel" style="margin-top:14px">
+        <div class="panel-cabeza" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px">
+            <div class="panel-titulo">Todos los usuarios</div>
+            <p class="panel-explica">{{ perfiles|length }} cuentas registradas.</p>
+          </div>
+          <div class="buscador">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.7" y2="16.7"/></svg>
+            <input type="text" id="buscarUsuario" placeholder="Buscar usuario o correo..." oninput="filtrarUsuarios()" autocomplete="off">
+          </div>
+          <a class="boton boton-acento" href="{% url 'AdminCrearUsuario' %}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Crear usuario
+          </a>
+        </div>
+
+        <div class="tabla-marco">
+          <table class="tabla">
+            <thead><tr><th>Usuario</th><th>Suscripción</th><th>Vence</th><th>Cuenta</th><th class="td-derecha">Acciones</th></tr></thead>
+            <tbody id="tablaUsuarios">
+              {% for i in perfiles %}
+              <tr data-buscar="{{ i.usuario.username|lower }} {{ i.usuario.email|lower }}">
+                <td>
+                  <div class="usuario-celda">
+                    <div class="avatar-ini">{{ i.usuario.username|slice:":2" }}</div>
+                    <div>
+                      <div class="usuario-nombre">{{ i.usuario.username }}</div>
+                      <div class="usuario-correo">{{ i.usuario.email|default:"sin correo" }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  {% if i.usuario.suscripcion.esta_vigente %}<span class="marca marca-ok"><i></i> {{ i.usuario.suscripcion.plan }}</span>
+                  {% else %}<span class="marca marca-gris"><i></i> Sin suscripción</span>{% endif %}
+                </td>
+                <td class="td-num">
+                  {% if i.usuario.suscripcion.esta_vigente %}{{ i.usuario.suscripcion.vencimiento|date:"d/m/Y" }}
+                  <div class="usuario-correo">{{ i.usuario.suscripcion.dias_restantes }} días</div>
+                  {% else %}—{% endif %}
+                </td>
+                <td>
+                  {% if i.usuario.is_active %}<span class="marca marca-ok"><i></i> Activa</span>
+                  {% else %}<span class="marca marca-mala"><i></i> Bloqueada</span>{% endif %}
+                </td>
+                <td>
+                  <div class="acciones">
+                    {% if i.usuario.suscripcion.esta_vigente %}
+                      <form action="{% url 'AdminCancelarSuscripcion' i.usuario.id %}" method="post" style="display:inline"
+                            data-confirmar="cancelar" data-usuario="{{ i.usuario.username }}"
+                            data-plan="{{ i.usuario.suscripcion.plan }}"
+                            data-vence="{{ i.usuario.suscripcion.vencimiento|date:'d/m/Y' }}">
+                        {% csrf_token %}<button type="submit" class="accion accion-no">Cancelar sub.</button>
+                      </form>
+                    {% else %}
+                      <form action="{% url 'AdminActivarSuscripcion' i.usuario.id %}" method="post" style="display:inline">
+                        {% csrf_token %}<input type="hidden" name="plan" value="mensual"><input type="hidden" name="metodo" value="Manual">
+                        <button type="submit" class="accion accion-si">Activar mes</button>
+                      </form>
+                    {% endif %}
+                    <a href="{% url 'AdminEditarUsuario' i.usuario.id %}" class="accion">Editar</a>
+                    {% if i.usuario.is_active %}
+                      <a href="{% url 'AdminEstadoUsuario' i.usuario.id %}" class="accion accion-no">Bloquear</a>
+                    {% else %}
+                      <a href="{% url 'AdminEstadoUsuario' i.usuario.id %}" class="accion accion-si">Activar</a>
+                    {% endif %}
+                    <a href="{% url 'AdminEliminarUsuario' i.usuario.id %}" class="accion accion-mala">Eliminar</a>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <div class="vacio" id="sinResultados" style="display:none"><b>Ningún usuario coincide</b>Prueba con otra parte del nombre o del correo.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= ACCESOS ======================= -->
+    <section class="vista" id="v-accesos">
+      <div class="vista-cabeza">
+        <h1>Accesos</h1>
+        <p>Quién entró, desde qué IP y cuándo. Sirve para detectar claves compartidas.</p>
+      </div>
+      <div class="panel">
+        <div class="tabla-marco">
+          <table class="tabla">
+            <thead><tr><th>Usuario</th><th>Acción</th><th>IP</th><th class="td-derecha">Fecha</th></tr></thead>
+            <tbody>
+              {% for i in accesos %}
+              <tr>
+                <td><div class="usuario-celda"><div class="avatar-ini">{{ i.usuario.username|slice:":2"|default:"?" }}</div><div class="usuario-nombre">{{ i.usuario.username|default:"—" }}</div></div></td>
+                <td>{{ i.accion }}</td>
+                <td class="td-num">{{ i.ip|default:"—" }}</td>
+                <td class="td-num td-derecha">{{ i.creado|date:"d/m/Y H:i" }}</td>
+              </tr>
+              {% empty %}<tr><td colspan="4"><div class="vacio"><b>Sin registros</b>Aquí aparecerá cada inicio de sesión.</div></td></tr>{% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  var TITULOS = { resumen:'Resumen', modelo:'Modelo', dinero:'Dinero', usuarios:'Usuarios', accesos:'Accesos' };
+
+  window.abrirVista = function(nombre, evento) {
+    if (evento) { evento.preventDefault(); }
+    document.querySelectorAll('.vista').forEach(function(v) { v.classList.remove('activa'); });
+    var destino = document.getElementById('v-' + nombre);
+    if (!destino) { return; }
+    destino.classList.add('activa');
+
+    document.querySelectorAll('.rail-link[data-vista]').forEach(function(a) {
+      a.classList.toggle('activo', a.getAttribute('data-vista') === nombre);
+    });
+    document.getElementById('tituloVista').textContent = TITULOS[nombre] || 'Panel';
+    window.scrollTo(0, 0);
+    try { localStorage.setItem('xgol-panel-vista', nombre); } catch (e) {}
+  };
+
+  function filtrarUsuarios() {
+    var texto = document.getElementById('buscarUsuario').value.toLowerCase().trim();
+    var visibles = 0;
+    document.querySelectorAll('#tablaUsuarios tr').forEach(function(fila) {
+      var coincide = (fila.getAttribute('data-buscar') || '').indexOf(texto) !== -1;
+      fila.style.display = coincide ? '' : 'none';
+      if (coincide) { visibles++; }
+    });
+    document.getElementById('sinResultados').style.display = visibles ? 'none' : '';
+  }
+
+  // Vista inicial: la que pida la URL (?tab=), si no la ultima que se uso
+  (function() {
+    var pedida = new URLSearchParams(window.location.search).get('tab');
+    var guardada = null;
+    try { guardada = localStorage.getItem('xgol-panel-vista'); } catch (e) {}
+    var inicial = pedida || guardada || 'resumen';
+    if (document.getElementById('v-' + inicial)) { abrirVista(inicial); }
+  })();
+</script>
+
+<script src="{% static 'js/tour_panel.js' %}?v=2"></script>
+
+<!-- ============================================================
+     CONFIRMAR CANCELACIÓN DE SUSCRIPCIÓN
+     Antes salía el confirm() del navegador, ese cuadro gris que
+     empieza con "127.0.0.1:8000 dice". Se ve fuera de lugar y no
+     alcanza a explicar lo que va a pasar. Este cuadro es del
+     propio panel, usa sus colores y sí muestra los datos.
+     ============================================================ -->
+<div class="dlg-fondo" id="dlgCancelar" hidden>
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlgTitulo">
+    <div class="dlg-icono">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </div>
+    <h3 class="dlg-titulo" id="dlgTitulo">¿Cancelar la suscripción?</h3>
+    <p class="dlg-texto">
+      Se le retirará el acceso al analizador a
+      <strong id="dlgUsuario"></strong> de forma inmediata.
+    </p>
+    <div class="dlg-datos" id="dlgDatos">
+      <div class="dlg-dato"><span>Plan actual</span><b id="dlgPlan">—</b></div>
+      <div class="dlg-dato"><span>Vencía el</span><b id="dlgVence">—</b></div>
+    </div>
+    <p class="dlg-nota">Esta acción no genera devolución del dinero.</p>
+    <div class="dlg-botones">
+      <button type="button" class="dlg-btn dlg-btn-no" id="dlgNo">No, dejarla activa</button>
+      <button type="button" class="dlg-btn dlg-btn-si" id="dlgSi">Sí, cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var fondo = document.getElementById('dlgCancelar');
+    if (!fondo) return;
+
+    var formularioActual = null;
+
+    function abrir(form) {
+      formularioActual = form;
+      document.getElementById('dlgUsuario').textContent = form.dataset.usuario || 'este usuario';
+      document.getElementById('dlgPlan').textContent = form.dataset.plan || '—';
+      document.getElementById('dlgVence').textContent = form.dataset.vence || '—';
+      fondo.hidden = false;
+      document.body.style.overflow = 'hidden';
+      document.getElementById('dlgNo').focus();
+    }
+
+    function cerrar() {
+      fondo.hidden = true;
+      formularioActual = null;
+      document.body.style.overflow = '';
+    }
+
+    //Se engancha en el envio del formulario: si el navegador no ejecuta
+    //este script, el formulario sigue funcionando como siempre.
+    var formularios = document.querySelectorAll('form[data-confirmar="cancelar"]');
+    for (var i = 0; i < formularios.length; i++) {
+      formularios[i].addEventListener('submit', function (e) {
+        if (this.dataset.confirmado === 'si') return;   // ya se confirmo
+        e.preventDefault();
+        abrir(this);
       });
     }
-  </script>
 
-{% endblock %}
+    document.getElementById('dlgSi').addEventListener('click', function () {
+      if (!formularioActual) return;
+      formularioActual.dataset.confirmado = 'si';
+      formularioActual.submit();
+      cerrar();
+    });
+
+    document.getElementById('dlgNo').addEventListener('click', cerrar);
+    fondo.addEventListener('click', function (e) { if (e.target === fondo) cerrar(); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !fondo.hidden) cerrar();
+    });
+  })();
+</script>
+
+</body>
+</html>

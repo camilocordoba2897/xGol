@@ -6,32 +6,53 @@
 
 {% block content %}
 
-  <div class="admin-banner">
-    <div class="admin-icon">⚠️</div>
-    <div class="admin-text">
-      <div class="admin-tag">Acción irreversible</div>
-      <div class="admin-title">Eliminar usuario</div>
-    </div>
-    <div class="admin-badge">ADMINISTRACIÓN</div>
-  </div>
+  {% comment %}
+    Antes esta pantalla usaba el banner verde de administracion, el mismo
+    de crear y editar. Para una accion que borra una cuenta para siempre
+    el verde manda el mensaje contrario, asi que aca todo va en rojo: el
+    borde, el icono y el rotulo. La tarjeta ademas queda centrada; antes
+    se pegaba a la izquierda y dejaba media pantalla vacia.
+  {% endcomment %}
 
-  <div class="card" style="max-width: 520px; border-left: 4px solid var(--bad);">
-    <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 12px;">¿Eliminar a {{ usuario.username }}?</h3>
-    <p style="color: var(--text-1); margin-bottom: 8px;">
-      Estás a punto de eliminar permanentemente la cuenta de
-      <strong style="color: var(--bad);">{{ usuario.username }}</strong>.
-    </p>
-    <p style="color: var(--text-2); font-size: .88rem; margin-bottom: 24px;">
-      Esta acción no se puede deshacer. Se borrarán todos sus datos y su perfil.
-    </p>
+  <div class="elim-caja">
 
-    <form action="{% url 'AdminEliminarUsuario' usuario.id %}" method="post">
-      {% csrf_token %}
-      <div style="display: flex; gap: 10px;">
-        <button type="submit" class="btn" style="background: var(--bad); color: #fff;">Sí, eliminar</button>
-        <a href="{% url 'PanelAdmin' %}" class="btn btn-secondary">Cancelar</a>
+    <div class="elim-aviso">
+      <div class="elim-aviso-icono">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </div>
-    </form>
+      <div>
+        <div class="elim-aviso-tag">Acción irreversible</div>
+        <div class="elim-aviso-titulo">Eliminar usuario</div>
+      </div>
+    </div>
+
+    <div class="elim-tarjeta">
+      <div class="elim-usuario">
+        <div class="elim-avatar">{{ usuario.username|first|upper }}</div>
+        <div class="elim-usuario-datos">
+          <div class="elim-usuario-nombre">{{ usuario.username }}</div>
+          <div class="elim-usuario-correo">{{ usuario.email|default:"Sin correo registrado" }}</div>
+        </div>
+      </div>
+
+      <h2 class="elim-pregunta">¿Eliminar esta cuenta?</h2>
+
+      <ul class="elim-lista">
+        <li>Se borrará la cuenta y su perfil de forma permanente.</li>
+        <li>Se perderá su historial y su suscripción si tenía una.</li>
+        <li>Esta acción no se puede deshacer.</li>
+      </ul>
+
+      <form action="{% url 'AdminEliminarUsuario' usuario.id %}" method="post" class="elim-form">
+        {% csrf_token %}
+        <a href="{% url 'PanelAdmin' %}" class="elim-btn elim-btn-no">Cancelar</a>
+        <button type="submit" class="elim-btn elim-btn-si">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Sí, eliminar
+        </button>
+      </form>
+    </div>
+
   </div>
 
 {% endblock %}

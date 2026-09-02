@@ -5,65 +5,56 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate,login,logout
 from django.contrib import messages
 from usuarios.models import Rol,Perfil,Bitacora
+from usuarios.validaciones import validar_registro
 from django.contrib.auth import update_session_auth_hash
 
 
 def registro(request):
-    if request.method=="POST":
-        username=request.POST["username"]
-        email=request.POST["email"]
-        password=request.POST["password"]
+    if request.method!="POST":
+        return render(request,"registro.html")
 
-        if User.objects.filter(username=username).exists():
-            messages.error(request,"Ese nombre de usuario ya esta registrado")
-            return render(request,"registro.html")
+    #Se valida TODO en el servidor: los pattern del HTML son comodidad,
+    #pero se saltan desde la consola del navegador o con curl.
+    limpios,errores=validar_registro(request.POST)
 
-        import re
-        if len(password)<8 or len(password)>16:
-            messages.error(request,"La contraseña debe tener entre 8 y 16 caracteres")
-            return render(request,"registro.html")
+    if errores:
+        for error in errores:
+            messages.error(request,error)
+        #Se devuelven los datos escritos para que el usuario no tenga que
+        #teclearlos otra vez. La contraseña NO se devuelve nunca.
+        return render(request,"registro.html",{"datos":{
+            "nombre":request.POST.get("nombre",""),
+            "apellidos":request.POST.get("apellidos",""),
+            "username":request.POST.get("username",""),
+            "email":request.POST.get("email",""),
+        }})
 
-        if not re.search(r"[a-z]",password):
-            messages.error(request,"La contraseña debe tener al menos una letra minúscula")
-            return render(request,"registro.html")
+    usuario=User.objects.create_user(
+        username=limpios["username"],
+        email=limpios["email"],
+        password=limpios["password"]
+    )
+    usuario.first_name=limpios["nombre"]
+    usuario.last_name=limpios["apellidos"]
+    usuario.save()
 
-        if not re.search(r"[A-Z]",password):
-            messages.error(request,"La contraseña debe tener al menos una letra mayúscula")
-            return render(request,"registro.html")
+    rol=Rol.objects.filter(nombre="usuario").first()
+    Perfil.objects.create(
+        usuario=usuario,
+        rol=rol,
+        proveedor="local",
+        nombre=limpios["nombre"],
+        apellidos=limpios["apellidos"],
+        tipo_documento=request.POST.get("tipo_documento"),
+        documento=request.POST.get("documento"),
+        fecha_nacimiento=request.POST.get("fecha_nacimiento") or None,
+        ciudad=request.POST.get("ciudad"),
+        pais=request.POST.get("pais"),
+        telefono=request.POST.get("telefono")
+    )
 
-        if not re.search(r"[0-9]",password):
-            messages.error(request,"La contraseña debe tener al menos un número")
-            return render(request,"registro.html")
-
-        if not re.search(r"[^A-Za-z0-9]",password):
-            messages.error(request,"La contraseña debe tener al menos un carácter especial")
-            return render(request,"registro.html")
-
-        usuario=User.objects.create_user(username=username,email=email,password=password)
-
-        usuario.first_name=request.POST.get("nombre","")
-        usuario.last_name=request.POST.get("apellidos","")
-        usuario.save()
-
-        rol=Rol.objects.filter(nombre="usuario").first()
-        Perfil.objects.create(
-            usuario=usuario,
-            rol=rol,
-            proveedor="local",
-            nombre=request.POST.get("nombre"),
-            apellidos=request.POST.get("apellidos"),
-            tipo_documento=request.POST.get("tipo_documento"),
-            documento=request.POST.get("documento"),
-            fecha_nacimiento=request.POST.get("fecha_nacimiento") or None,
-            ciudad=request.POST.get("ciudad"),
-            pais=request.POST.get("pais"),
-            telefono=request.POST.get("telefono")
-        )
-
-        messages.success(request,"Cuenta creada correctamente, ya puedes iniciar sesion")
-        return redirect("Ingresar")
-
-    return render(request,"registro.html")
+    messages.success(request,"Cuenta creada correctamente, ya puedes iniciar sesion")
+    return redirect("Ingresar")
 
 
 def obtener_ip(request):
@@ -104,34 +95,71 @@ def salir(request):
     logout(request)
     return redirect("Ingresar")
 
-
 @rol_requerido("administrador")
 def panel_admin(request):
-    from suscripciones.models import Suscripcion
-    from django.utils import timezone
-    from datetime import timedelta
+    #El panel absorbe el control financiero: antes eran dos pantallas con las
+    #mismas cifras. Aca se muestran en pestanas independientes.
+    from django.conf import settings
+    from django.core.paginator import Paginator
+    from datetime import datetime
+    from usuarios import tablero
+    from suscripciones.planes import PLANES
+    from pagos import pasarela,reportes
 
-    perfiles=Perfil.objects.all().order_by("-creado")
-    accesos=Bitacora.objects.all().order_by("-creado")[:15]
-    total_usuarios=User.objects.count()
+    def _fecha(nombre):
+        crudo=(request.GET.get(nombre) or "").strip()
+        if not crudo:
+            return None
+        try:
+            return datetime.strptime(crudo,"%Y-%m-%d").date()
+        except ValueError:
+            return None
 
-    suscripciones=Suscripcion.objects.all()
-    activas=0
-    por_vencer=[]
-    hoy=timezone.now().date()
-    limite=hoy+timedelta(days=5)
-    for i in suscripciones:
-        if i.esta_vigente():
-            activas=activas+1
-            if i.vencimiento<=limite:
-                por_vencer.append(i)
+    filtros={
+        "estado":request.GET.get("estado","todos"),
+        "plan":request.GET.get("plan","todos"),
+        "metodo":request.GET.get("metodo","todos"),
+        "desde":_fecha("desde"),
+        "hasta":_fecha("hasta"),
+        "q":request.GET.get("q",""),
+    }
+    #Los pendientes son intentos de checkout abandonados, no transacciones:
+    #ensucian el historial y parecen un error del sistema. Se excluyen.
+    consulta=reportes.transacciones(filtros).exclude(estado="Pendiente")
+    paginas=Paginator(consulta,25)
+    pagina=paginas.get_page(request.GET.get("pagina"))
+
+    perfiles=Perfil.objects.select_related("usuario","rol").all().order_by("-creado")
+    accesos=Bitacora.objects.select_related("usuario").all().order_by("-creado")[:12]
+
+    usuarios=tablero.resumen_usuarios()
+    dinero=tablero.resumen_dinero()
+    modelo=tablero.resumen_modelo()
 
     return render(request,"panel_admin.html",{
         "perfiles": perfiles,
         "accesos": accesos,
-        "total_usuarios": total_usuarios,
-        "suscripciones_activas": activas,
-        "por_vencer": por_vencer
+        "usuarios": usuarios,
+        "dinero": dinero,
+        "modelo": modelo,
+        "calibracion": tablero.calibracion(),
+        "mercados": tablero.por_mercado(),
+        "grafica_ingresos": tablero.barras(tablero.serie_ingresos(12)),
+        "grafica_usuarios": tablero.barras(tablero.serie_usuarios(12)),
+
+        #Todo lo que antes vivia en la pantalla de control financiero
+        "ingresos": reportes.resumen_ingresos(),
+        "suscripciones": reportes.resumen_suscripciones(),
+        "por_plan": reportes.ventas_por_plan(),
+        "por_metodo": reportes.ventas_por_metodo(),
+        "renovaciones": reportes.proximas_renovaciones(),
+        "movimientos": reportes.movimientos(),
+        "pagina": pagina,
+        "filtros": filtros,
+        "planes": PLANES,
+        "total_filtrado": consulta.count(),
+        "ambiente": settings.WOMPI_AMBIENTE,
+        "pasarela_lista": pasarela.configurada(),
     })
 
 @login_required(login_url="Ingresar")
@@ -279,4 +307,3 @@ def admin_crear_usuario(request):
         return redirect("PanelAdmin")
 
     return render(request,"admin_crear_usuario.html")
-

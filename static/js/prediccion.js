@@ -1,77 +1,208 @@
 // ============================================================
-//  PREDICCION DESTACADA DEL HOME
-//  Llena la tarjeta del hero con partidos y probabilidades REALES
-//  que calcula el backend (inicio/api_partidos.py) y las va rotando.
-//  La URL llega en el atributo data-url de la tarjeta.
+//  TARJETA DESTACADA DEL HOME
 //
-//  IMPORTANTE: este script NO toca la tarjeta (#predCard). No le
-//  cambia opacidad ni transform, para no interferir con la
-//  animacion card-float del CSS. Solo reemplaza el contenido de
-//  adentro: nombres, escudos, porcentajes, marcador y confianza.
-//  La barra se desliza sola con una transicion de ancho.
+//  Alterna entre dos estados, ninguno de los cuales regala el producto:
 //
-//  Si no hay datos, la tarjeta se queda tal cual esta en el HTML.
+//    RESUELTO   El partido ya se jugo. Se ve que dijo el motor y que paso,
+//               con su ✓ o su ✗. No se regala nada porque ya ocurrio, y es
+//               mucho mas convincente que un porcentaje de un partido futuro.
+//               Se muestran aciertos Y fallos: una tarjeta que solo enseñara
+//               aciertos seria mentira, y ademas se nota enseguida.
+//
+//    BLOQUEADO  El proximo partido. Equipos, hora y liga; el pronostico
+//               detras del muro de suscripcion. Demuestra que el sistema
+//               esta vivo sin dar el numero por el que la gente paga.
+//
+//  IMPORTANTE: este archivo NUNCA recibe porcentajes de partidos por jugar.
+//  El filtro esta en el servidor (inicio/api_partidos.py), no aqui. Ocultar
+//  un dato en pantalla no sirve de nada si viaja en la respuesta: se lee
+//  abriendo las herramientas del navegador.
+//
+//  Como en la version anterior, este script NO toca #predCard por fuera
+//  (ni opacidad ni transform) para no romper la animacion card-float del CSS.
+//  Solo reemplaza lo de dentro.
 // ============================================================
 (function() {
   var card = document.getElementById('predCard');
   if (!card) return;
 
-  var URL_PRED = card.getAttribute('data-url');
-  if (!URL_PRED) return;
+  var URL_DATOS = card.getAttribute('data-url');
+  var URL_PLANES = card.getAttribute('data-planes') || '#planes';
+  if (!URL_DATOS) return;
 
-  var SEGUNDOS_ROTACION = 6;   // cada cuanto cambia de partido
-  var VELOCIDAD_BARRA = '.55s'; // que tan suave se desliza la barra
+  var SEGUNDOS_ROTACION = 7;
 
-  var lista = [];
+  var tarjetas = [];
+  var balance = null;
   var indice = 0;
+  var temporizador = null;
 
-  function texto(id, valor) {
-    var el = document.getElementById(id);
-    if (el) el.textContent = valor;
+  function escapar(t) {
+    return String(t == null ? '' : t)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  function pintar(p) {
-    var logoLocal = document.getElementById('pcLocalLogo');
-    var logoVisit = document.getElementById('pcVisitLogo');
-    if (logoLocal && p.local_escudo) { logoLocal.src = p.local_escudo; logoLocal.alt = p.local; }
-    if (logoVisit && p.visitante_escudo) { logoVisit.src = p.visitante_escudo; logoVisit.alt = p.visitante; }
+  function escudo(url, nombre) {
+    if (url) {
+      return '<img src="' + escapar(url) + '" alt="' + escapar(nombre) + '" loading="lazy">';
+    }
+    // Sin escudo se pone la inicial: mejor eso que un hueco vacio
+    return '<span class="pc-inicial">' + escapar(nombre.charAt(0).toUpperCase()) + '</span>';
+  }
 
-    texto('pcLocalNom', p.local);
-    texto('pcVisitNom', p.visitante);
-    texto('pcLocalRow', p.local);
-    texto('pcVisitRow', p.visitante);
-    texto('pcLocalPct', p.prob_local + '%');
-    texto('pcVisitPct', p.prob_visitante + '%');
-    texto('pcMarcador', p.marcador);
-    texto('pcConfianza', p.confianza + '%');
+  function fechaBonita(iso) {
+    if (!iso) return '';
+    var meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun',
+                 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    var p = String(iso).split('-');
+    if (p.length !== 3) return '';
+    return parseInt(p[2], 10) + ' ' + (meses[parseInt(p[1], 10) - 1] || '');
+  }
 
-    //La barra nunca desaparece: solo se desliza al nuevo ancho
-    var barra1 = document.getElementById('pcBar1');
-    var barra2 = document.getElementById('pcBar2');
-    if (barra1) barra1.style.width = p.prob_local + '%';
-    if (barra2) barra2.style.width = p.prob_visitante + '%';
+  // ------------------------------------------------------------
+  //  PIE COMUN: el balance verificado
+  // ------------------------------------------------------------
+  function pie() {
+    if (!balance || !balance.verificados) {
+      // Sin historial todavia: se enseña de que esta hecho el motor, que es
+      // cierto y no revela nada. Nunca un numero inventado para rellenar.
+      return '<div class="pc-metricas">' +
+        '<div class="pc-metrica"><div class="v">3</div><div class="l">Fuentes cruzadas</div></div>' +
+        '<div class="pc-metrica"><div class="v">12</div><div class="l">Mercados</div></div>' +
+      '</div>';
+    }
+    return '<div class="pc-metricas">' +
+      '<div class="pc-metrica"><div class="v">' + balance.verificados + '</div>' +
+        '<div class="l">Partidos verificados</div></div>' +
+      '<div class="pc-metrica"><div class="v acc">' + balance.acierto + '%</div>' +
+        '<div class="l">Acierto real</div></div>' +
+    '</div>';
+  }
+
+  function cabeza(etiqueta, distintivo) {
+    return '<div class="pc-head">' +
+      '<span class="pc-tag">' + etiqueta + '</span>' + distintivo +
+    '</div>';
+  }
+
+  function equipos(t) {
+    return '<div class="pc-teams">' +
+      '<div class="pc-team">' +
+        '<div class="pc-shield">' + escudo(t.local_escudo, t.local) + '</div>' +
+        '<div class="pc-tname">' + escapar(t.local) + '</div>' +
+      '</div>' +
+      '<div class="pc-vs">VS</div>' +
+      '<div class="pc-team">' +
+        '<div class="pc-shield">' + escudo(t.visitante_escudo, t.visitante) + '</div>' +
+        '<div class="pc-tname">' + escapar(t.visitante) + '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  // ------------------------------------------------------------
+  //  ESTADO 1 — PRONOSTICO YA RESUELTO
+  // ------------------------------------------------------------
+  function pintarResuelto(t) {
+    var ok = !!t.acerto;
+    var sello = ok
+      ? '<span class="pc-sello ok">✓ Acertado</span>'
+      : '<span class="pc-sello no">✗ Fallado</span>';
+
+    return cabeza('Pronóstico verificado', sello) +
+      equipos(t) +
+      '<div class="pc-resultado">' +
+        '<div class="pc-marcador">' + escapar(t.marcador || '—') + '</div>' +
+        '<div class="pc-contexto">' +
+          (t.liga ? escapar(t.liga) + ' · ' : '') + escapar(t.cuando || '') +
+        '</div>' +
+      '</div>' +
+      '<div class="pc-dijo' + (ok ? ' ok' : ' no') + '">' +
+        '<span class="pc-dijo-l">xGol anticipó</span>' +
+        '<strong>' + escapar(t.dijo) + '</strong>' +
+      '</div>' +
+      pie();
+  }
+
+  // ------------------------------------------------------------
+  //  ESTADO 2 — PROXIMO PARTIDO, BLOQUEADO
+  // ------------------------------------------------------------
+  function pintarBloqueado(t) {
+    var vivo = (t.estado === 'IN_PLAY' || t.estado === 'PAUSED');
+    var distintivo = vivo
+      ? '<span class="pc-live">En vivo</span>'
+      : '<span class="pc-hora">' + escapar(t.hora || '') + '</span>';
+
+    return cabeza('Próximo análisis', distintivo) +
+      equipos(t) +
+      '<div class="pc-resultado">' +
+        '<div class="pc-contexto">' +
+          (t.liga ? escapar(t.liga) : '') +
+          (t.fecha ? ' · ' + fechaBonita(t.fecha) : '') +
+        '</div>' +
+      '</div>' +
+      '<a class="pc-candado" href="' + escapar(URL_PLANES) + '">' +
+        '<div class="pc-borroso"><span></span><span></span><span></span></div>' +
+        '<div class="pc-candado-txt">' +
+          '<div class="pc-candado-t">🔒 Pronóstico completo</div>' +
+          '<div class="pc-candado-s">Ganador · goles · marcador · valor</div>' +
+        '</div>' +
+      '</a>' +
+      pie();
+  }
+
+  // ------------------------------------------------------------
+  //  ESTADO 3 — NO HAY NADA QUE ENSEÑAR
+  //  Una tarjeta atascada en "Cargando..." para siempre es lo peor que puede
+  //  pasar en la cara de presentacion del proyecto: parece roto. Si no hay
+  //  datos se dice, con el motivo, y se deja la llamada a la accion.
+  // ------------------------------------------------------------
+  var MOTIVOS = {
+    sin_partidos:        'No hay partidos programados en este momento.',
+    sin_ligas_cubiertas: 'No hay partidos de las ligas que analiza xGol ahora mismo.',
+    sin_conexion:        'No se pudo conectar con el proveedor de datos.',
+    sin_datos:           'No hay partidos disponibles en este momento.'
+  };
+
+  function pintarVacio(motivo) {
+    return cabeza('xGol', '<span class="pc-live">IA en vivo</span>') +
+      '<div class="pc-vacio">' +
+        '<div class="pc-vacio-i">⚽</div>' +
+        '<div class="pc-vacio-t">' + escapar(MOTIVOS[motivo] || MOTIVOS.sin_datos) + '</div>' +
+        '<div class="pc-vacio-s">Vuelve en unos minutos: la agenda se actualiza sola.</div>' +
+      '</div>' +
+      '<a class="pc-candado" href="' + escapar(URL_PLANES) + '">' +
+        '<div class="pc-candado-txt">' +
+          '<div class="pc-candado-t">Analiza cualquier partido</div>' +
+          '<div class="pc-candado-s">Ganador · goles · marcador · valor</div>' +
+        '</div>' +
+      '</a>' +
+      pie();
   }
 
   function rotar() {
-    pintar(lista[indice % lista.length]);
+    if (!tarjetas.length) return;
+    var t = tarjetas[indice % tarjetas.length];
     indice++;
+    card.innerHTML = (t.tipo === 'resuelto') ? pintarResuelto(t) : pintarBloqueado(t);
   }
 
-  fetch(URL_PRED, { headers: { 'X-Requested-With': 'fetch' } })
+  fetch(URL_DATOS, { headers: { 'X-Requested-With': 'fetch' } })
     .then(function(r) { return r.json(); })
     .then(function(d) {
-      lista = d.predicciones || [];
-      if (!lista.length) return;   // sin datos reales: la tarjeta se queda como esta
-
-      //Transicion solo en el ancho de la barra (la tarjeta no se toca)
-      var barra1 = document.getElementById('pcBar1');
-      var barra2 = document.getElementById('pcBar2');
-      if (barra1) barra1.style.transition = 'width ' + VELOCIDAD_BARRA + ' ease';
-      if (barra2) barra2.style.transition = 'width ' + VELOCIDAD_BARRA + ' ease';
-
-      pintar(lista[0]);
-      indice = 1;
-      if (lista.length > 1) setInterval(rotar, SEGUNDOS_ROTACION * 1000);
+      var datos = d.predicciones || d || {};
+      tarjetas = datos.tarjetas || [];
+      balance = datos.balance || null;
+      if (!tarjetas.length) {
+        card.innerHTML = pintarVacio(datos.motivo);
+        return;
+      }
+      rotar();
+      if (tarjetas.length > 1) {
+        temporizador = setInterval(rotar, SEGUNDOS_ROTACION * 1000);
+      }
     })
-    .catch(function() { /* sin conexion: la tarjeta se queda como esta */ });
+    .catch(function() {
+      card.innerHTML = pintarVacio('sin_conexion');
+    });
 })();

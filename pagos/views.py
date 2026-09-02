@@ -1,5 +1,6 @@
 import json
 from django.shortcuts import render,redirect
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse,JsonResponse,HttpResponseBadRequest
@@ -112,13 +113,26 @@ def retorno_pago(request):
         pago.refresh_from_db()
 
     if pago.estado=="Aprobado" and pago.aplicado:
+        #La sesion se pudo perder en el viaje de ida y vuelta a la pasarela
+        #(dominio distinto, cookie SameSite, tunel reiniciado). El estado ya
+        #se verifico arriba contra la API de Wompi (consultar_transaccion),
+        #no contra lo que manda el navegador, asi que si no hay una sesion de
+        #OTRO usuario activa en este navegador, se restaura la del dueno del
+        #pago para que no tenga que volver a iniciar sesion.
+        if not es_dueno and not request.user.is_authenticated:
+            login(request,pago.usuario,backend="django.contrib.auth.backends.ModelBackend")
+            es_dueno=True
+
         if es_dueno:
             return redirect("PagoConfirmado",id=pago.id)
-        #Pago bueno pero sin sesion: se confirma el cobro y se invita a entrar.
+
+        #Aca solo se llega si en el navegador hay una sesion de OTRA cuenta
+        #distinta al dueno del pago. Por seguridad no se cambia sola: se
+        #confirma el cobro y se invita a entrar con la cuenta correcta.
         return render(request,"pago_estado.html",{
             "estado":"Aprobado",
             "titulo":"¡Pago confirmado!",
-            "detalle":"Tu suscripcion ya quedo activa. Inicia sesion para ver el comprobante y entrar al analizador.",
+            "detalle":"Tu suscripcion ya quedo activa. Inicia sesion con tu cuenta para ver el comprobante y entrar al analizador.",
         })
 
     textos={
