@@ -254,3 +254,52 @@ body.perfil {
   .ph-title { font-size: clamp(1.5rem, 7vw, 1.9rem); }
   .ph-avatar-row { flex-wrap: wrap; }
 }
+/* ============================================================
+   DATOS DE IDENTIDAD (solo lectura)
+   Van fuera del formulario: no viajan en el POST, asi que no se
+   pueden cambiar desde aqui. La cedula sale tapada y hay que
+   pulsar el ojo para verla completa.
+   ============================================================ */
+.ph-identidad {
+  margin-top: 22px; padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.ph-identidad-cab { display: flex; gap: 11px; margin-bottom: 14px; }
+.ph-identidad-cab svg {
+  width: 20px; height: 20px; flex-shrink: 0;
+  margin-top: 2px; color: var(--text-2);
+}
+.ph-identidad-titulo {
+  font-family: var(--ff-display); font-size: .95rem; font-weight: 700;
+  color: var(--text-0);
+}
+.ph-identidad-sub { font-size: .78rem; color: var(--text-2); margin-top: 2px; }
+
+.ph-id-fila {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 13px; margin-bottom: 8px;
+  background: var(--bg-0); border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.ph-id-rotulo { flex: 1; font-size: .82rem; color: var(--text-2); }
+.ph-id-valor {
+  font-family: var(--mono, monospace); font-size: .88rem;
+  color: var(--text-0); letter-spacing: .04em;
+}
+/* El [hidden] del HTML no basta si algo fija display: se apaga explicito */
+.ph-id-valor > span[hidden] { display: none; }
+
+.ph-id-ojo {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; flex-shrink: 0;
+  background: transparent; border: none; border-radius: 8px;
+  color: var(--text-2); cursor: pointer;
+  transition: color var(--t), background var(--t);
+}
+.ph-id-ojo:hover { color: var(--text-0); background: rgba(255,255,255,.06); }
+.ph-id-ojo svg { width: 17px; height: 17px; }
+.ph-id-ojo .ojo-cerrado { display: none; }
+.ph-id-ojo.mostrando .ojo-abierto { display: none; }
+.ph-id-ojo.mostrando .ojo-cerrado { display: block; }
+
+.ph-identidad-nota { font-size: .74rem; color: var(--text-2); margin-top: 10px; }

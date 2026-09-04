@@ -279,3 +279,28 @@ input.reg-mal {
   .reg-boton, .reg-campo input, .ph-reqs li { transition: none; }
   .reg-boton:hover { transform: none; }
 }
+/* ---- Campo de fecha de nacimiento ----
+   El input type=date trae su propio icono de calendario, pero el
+   navegador lo pinta oscuro y sobre este fondo no se veia. Se aclara
+   con un filtro para que quede del mismo tono que el resto del texto. */
+.reg-campo input[type="date"] {
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  min-height: 46px;
+}
+.reg-campo input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: .65;
+  filter: invert(1);
+  transition: opacity .18s;
+}
+.reg-campo input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+
+/* En modo claro el icono ya es oscuro: no hay que invertirlo */
+html[data-modo="claro"] .reg-campo input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none;
+}
+
+/* Mientras no hay fecha elegida, el texto guia se ve mas tenue */
+.reg-campo input[type="date"]:invalid { color: #5c6672; }

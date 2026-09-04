@@ -13,6 +13,7 @@
 #del navegador o enviando el formulario con curl, asi que la validacion
 #real tiene que estar aqui.
 import re
+from datetime import date, datetime
 
 import unicodedata
 from django.contrib.auth.models import User
@@ -79,7 +80,9 @@ def _capitalizar(texto):
     return "".join(salida)
 
 
-def validar_usuario(valor):
+def validar_usuario(valor, excluir_id=None):
+    #excluir_id se usa al EDITAR: sin el, el usuario chocaria consigo mismo
+    #al guardar sin cambiar el nombre.
     limpio = str(valor or "").strip()
 
     if not limpio:
@@ -103,13 +106,17 @@ def validar_usuario(valor):
     #iexact: si existe "Juan" no se deja crear "juan". Serian dos cuentas
     #distintas para Django, pero el usuario las leeria como la misma y no
     #sabria con cual entra.
-    if User.objects.filter(username__iexact=limpio).exists():
+    repetidos = User.objects.filter(username__iexact=limpio)
+    if excluir_id is not None:
+        repetidos = repetidos.exclude(pk=excluir_id)
+    if repetidos.exists():
         return valor, "Ese nombre de usuario ya está en uso, elige otro."
 
     return limpio, None
 
 
-def validar_correo(valor):
+def validar_correo(valor, excluir_id=None):
+    #excluir_id se usa al EDITAR, igual que en validar_usuario.
     limpio = str(valor or "").strip().lower()
 
     if not limpio:
@@ -121,7 +128,13 @@ def validar_correo(valor):
     if not PATRON_CORREO.match(limpio):
         return valor, "Escribe un correo válido, por ejemplo: nombre@correo.com"
 
-    if User.objects.filter(email__iexact=limpio).exists():
+    #iexact porque Juan@Correo.com y juan@correo.com son el MISMO buzon:
+    #si se dejan las dos, el usuario no sabria con cual entra ni a cual le
+    #llega el correo de recuperar contrasena.
+    repetidos = User.objects.filter(email__iexact=limpio)
+    if excluir_id is not None:
+        repetidos = repetidos.exclude(pk=excluir_id)
+    if repetidos.exists():
         return valor, "Ese correo ya tiene una cuenta registrada."
 
     return limpio, None
@@ -148,6 +161,117 @@ def validar_contrasena(valor):
     return clave, None
 
 
+# ============================================================
+#  CEDULA
+# ============================================================
+#  La cedula colombiana NO trae digito de verificacion (eso lo tiene el
+#  NIT de las empresas, no la cedula de una persona). Por eso no existe
+#  ninguna cuenta matematica que diga si un numero es real: la unica forma
+#  de confirmarlo de verdad seria consultar a la Registraduria.
+#
+#  Lo que si se puede hacer, y es lo que hace esto, es descartar lo que
+#  seguro NO es una cedula: letras, simbolos, largos imposibles, ceros al
+#  inicio y numeros de relleno (1111111). Ojo: esto valida el FORMATO, no
+#  confirma que la cedula exista.
+DOCUMENTO_MIN = 6
+DOCUMENTO_MAX = 10
+
+
+def validar_documento(valor, excluir_id=None):
+    #Se quitan puntos, espacios y guiones: mucha gente la escribe 1.234.567.890
+    limpio = re.sub(r"[.\s\-]", "", str(valor or "").strip())
+
+    if not limpio:
+        return valor, "El numero de cedula no puede quedar vacio."
+
+    if not limpio.isdigit():
+        return valor, "La cedula solo puede tener numeros, sin letras ni simbolos."
+
+    if limpio.startswith("0"):
+        return valor, "El numero de cedula no puede empezar por cero."
+
+    if len(limpio) < DOCUMENTO_MIN:
+        return valor, "La cedula debe tener al menos %d digitos." % DOCUMENTO_MIN
+
+    if len(limpio) > DOCUMENTO_MAX:
+        return valor, "La cedula no puede pasar de %d digitos." % DOCUMENTO_MAX
+
+    #Solo se descarta el relleno evidente: 1111111, 2222222. No se
+    #descartan secuencias como 1234567 porque ESE numero si le puede haber
+    #tocado a alguien de verdad, y bloquear a una persona real es peor que
+    #dejar pasar un numero inventado (que igual se puede inventar otro).
+    if len(set(limpio)) == 1:
+        return valor, "Ese numero de cedula no es valido."
+
+    #Se guarda solo el numero, sin puntos, para que no queden dos formas
+    #distintas del mismo documento en la base.
+    from usuarios.models import Perfil
+    repetidos = Perfil.objects.filter(documento=limpio)
+    if excluir_id is not None:
+        repetidos = repetidos.exclude(usuario_id=excluir_id)
+    if repetidos.exists():
+        return valor, "Ya hay una cuenta registrada con esa cedula."
+
+    return limpio, None
+
+
+# ============================================================
+#  FECHA DE NACIMIENTO — solo mayores de edad
+# ============================================================
+EDAD_MINIMA = 18
+EDAD_MAXIMA = 110
+
+
+def calcular_edad(fecha, hoy=None):
+    #Los anos cumplidos de verdad: si todavia no llego el cumpleanos de
+    #este ano, se resta uno. Sin esto, alguien que cumple 18 en diciembre
+    #podria entrar desde enero.
+    if hoy is None:
+        hoy = date.today()
+    anos = hoy.year - fecha.year
+    if (hoy.month, hoy.day) < (fecha.month, fecha.day):
+        anos -= 1
+    return anos
+
+
+def validar_fecha_nacimiento(valor, hoy=None):
+    crudo = str(valor or "").strip()
+
+    if not crudo:
+        return valor, "La fecha de nacimiento no puede quedar vacia."
+
+    #El input type=date manda AAAA-MM-DD. Se aceptan tambien las formas
+    #que la gente escribe a mano cuando teclea la fecha.
+    fecha = None
+    for formato in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y"):
+        try:
+            fecha = datetime.strptime(crudo, formato).date()
+            break
+        except ValueError:
+            continue
+
+    if fecha is None:
+        return valor, "Escribe una fecha de nacimiento valida."
+
+    if hoy is None:
+        hoy = date.today()
+
+    if fecha > hoy:
+        return valor, "La fecha de nacimiento no puede ser futura."
+
+    edad = calcular_edad(fecha, hoy)
+
+    if edad > EDAD_MAXIMA:
+        return valor, "Revisa la fecha de nacimiento, no parece correcta."
+
+    if edad < EDAD_MINIMA:
+        return valor, ("Debes ser mayor de %d anos para crear una cuenta en xGol." % EDAD_MINIMA)
+
+    #Se devuelve como objeto date: asi el modelo lo guarda sin depender
+    #del formato con que venga escrito.
+    return fecha, None
+
+
 def validar_registro(datos):
     #Valida el formulario completo. Devuelve (limpios, errores).
     #Se revisa TODO y no se corta en el primer fallo: si el usuario se
@@ -172,6 +296,14 @@ def validar_registro(datos):
         errores.append(error)
 
     limpios["password"], error = validar_contrasena(datos.get("password"))
+    if error:
+        errores.append(error)
+
+    limpios["documento"], error = validar_documento(datos.get("documento"))
+    if error:
+        errores.append(error)
+
+    limpios["fecha_nacimiento"], error = validar_fecha_nacimiento(datos.get("fecha_nacimiento"))
     if error:
         errores.append(error)
 

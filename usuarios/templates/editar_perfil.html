@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/perfil.css' %}?v=11">
-<link rel="stylesheet" href="{% static 'css/boton_inicio.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'css/perfil.css' %}?v=12">
+<link rel="stylesheet" href="{% static 'css/boton_inicio.css' %}?v=2">
 <script>
   // Aplicamos el tema guardado ANTES de pintar para que no parpadee
   (function() {
@@ -98,7 +98,8 @@
         {% else %}
         <div class="ph-field">
           <label>Correo</label>
-          <input type="email" name="correo" value="{{ user.email }}" placeholder="tucorreo@ejemplo.com" class="ph-input">
+          <input type="email" name="correo" value="{{ user.email }}" placeholder="tucorreo@ejemplo.com" class="ph-input"
+                 required maxlength="254" title="Aqui te llega la factura de tu plan">
         </div>
         {% endif %}
 
@@ -109,6 +110,56 @@
 
         <button type="submit" class="ph-btn ph-btn-lima">Guardar datos</button>
       </form>
+
+      {% comment %}
+        DATOS DE IDENTIDAD — fuera del <form> a proposito.
+        Al quedar fuera no viajan en el POST de "Guardar datos", asi que
+        no hay forma de cambiarlos desde aqui ni aunque se edite el HTML
+        desde el navegador.
+
+        Por que se muestran y no se ocultan del todo: en Colombia la Ley
+        1581 de 2012 (Habeas Data) le da al titular el derecho a CONOCER
+        los datos que se guardan sobre el. Esconderle su propia cedula
+        iria en contra de eso. Lo que si es riesgo es dejarla EDITABLE
+        (cambiar el documento es la forma clasica de robar una cuenta) y
+        tenerla a la vista todo el tiempo. Por eso sale tapada, con los
+        ultimos digitos, y hay que pulsar para verla completa: es lo mismo
+        que hacen los bancos y las billeteras.
+      {% endcomment %}
+      {% if perfil.documento or perfil.fecha_nacimiento %}
+      <div class="ph-identidad">
+        <div class="ph-identidad-cab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2.2"/><line x1="14" y1="10.5" x2="18" y2="10.5"/><line x1="14" y1="14" x2="18" y2="14"/></svg>
+          <div>
+            <h3 class="ph-identidad-titulo">Datos de identidad</h3>
+            <p class="ph-identidad-sub">Se registraron al crear la cuenta y no se pueden editar aqui.</p>
+          </div>
+        </div>
+
+        {% if perfil.documento %}
+        <div class="ph-id-fila">
+          <span class="ph-id-rotulo">Cedula</span>
+          <span class="ph-id-valor">
+            <span id="ph-doc-tapado">&bull;&bull;&bull;&bull;&bull;&bull;{{ perfil.documento|slice:"-4:" }}</span>
+            <span id="ph-doc-claro" hidden>{{ perfil.documento }}</span>
+          </span>
+          <button type="button" class="ph-id-ojo" id="ph-doc-ojo" aria-pressed="false" aria-label="Mostrar la cedula completa">
+            <svg class="ojo-abierto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="ojo-cerrado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.6 20.6 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a20.6 20.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
+        {% endif %}
+
+        {% if perfil.fecha_nacimiento %}
+        <div class="ph-id-fila">
+          <span class="ph-id-rotulo">Fecha de nacimiento</span>
+          <span class="ph-id-valor">{{ perfil.fecha_nacimiento|date:"d/m/Y" }}</span>
+        </div>
+        {% endif %}
+
+        <p class="ph-identidad-nota">Si algun dato quedo mal, escribe a soporte para corregirlo.</p>
+      </div>
+      {% endif %}
     </section>
 
     {% if es_google %}
@@ -304,6 +355,31 @@
   })();
 </script>
 {% endif %}
+
+
+<script>
+  // Ojo de la cedula: la muestra completa solo mientras se pulsa "ver".
+  // Que svg se ve lo decide el CSS con la clase "mostrando"; si se hiciera
+  // con el atributo hidden, las reglas del CSS lo pisarian y se verian los
+  // dos ojos a la vez (ya paso antes en el registro).
+  // Va fuera del bloque condicional de la contrasena: los datos de
+  // identidad se muestran tambien a quien entra con Google.
+  (function(){
+    var boton  = document.getElementById("ph-doc-ojo");
+    var tapado = document.getElementById("ph-doc-tapado");
+    var claro  = document.getElementById("ph-doc-claro");
+    if(!boton || !tapado || !claro) return;
+
+    boton.addEventListener("click", function(){
+      var verla = !boton.classList.contains("mostrando");
+      boton.classList.toggle("mostrando", verla);
+      tapado.hidden = verla;
+      claro.hidden  = !verla;
+      boton.setAttribute("aria-pressed", verla ? "true" : "false");
+      boton.setAttribute("aria-label", verla ? "Ocultar la cedula" : "Mostrar la cedula completa");
+    });
+  })();
+</script>
 
 </body>
 </html>

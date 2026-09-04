@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/panel_admin.css' %}?v=9">
+<link rel="stylesheet" href="{% static 'css/panel_admin.css' %}?v=11">
 <script>
   // Tema y modo aplicados ANTES de pintar para que no parpadee
   (function() {
@@ -75,11 +75,13 @@
     </div>
 
     <div class="topbar-acciones">
-      <a class="boton boton-acento" href="{% url 'AdminCrearUsuario' %}">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Crear usuario
-      </a>
-
+      {% comment %}
+        Aqui habia otro boton "Crear usuario". Se quito porque estaba
+        repetido: el que sirve esta dentro de la vista Usuarios, junto al
+        buscador, que es donde se esta trabajando con las cuentas. Este
+        salia en todas las vistas (Resumen, Modelo, Dinero...) sin venir
+        al caso.
+      {% endcomment %}
       <button type="button" class="icono-btn" onclick="abrirGuia()" title="Ver la guía paso a paso" aria-label="Ver la guía paso a paso">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.2 9.2a2.8 2.8 0 0 1 5.5.8c0 1.9-2.8 2.8-2.8 2.8"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </button>
@@ -558,13 +560,27 @@
             <thead><tr><th>Usuario</th><th>Suscripción</th><th>Vence</th><th>Cuenta</th><th class="td-derecha">Acciones</th></tr></thead>
             <tbody id="tablaUsuarios">
               {% for i in perfiles %}
-              <tr data-buscar="{{ i.usuario.username|lower }} {{ i.usuario.email|lower }}">
+              <tr data-buscar="{{ i.usuario.username|lower }} {{ i.usuario.email|lower }} {{ i.documento|default:'' }}">
                 <td>
                   <div class="usuario-celda">
                     <div class="avatar-ini">{{ i.usuario.username|slice:":2" }}</div>
                     <div>
                       <div class="usuario-nombre">{{ i.usuario.username }}</div>
                       <div class="usuario-correo">{{ i.usuario.email|default:"sin correo" }}</div>
+                      {% comment %}
+                        La cedula y la fecha de nacimiento van aqui, bajo el
+                        correo, y no en columnas propias: la tabla ya tiene
+                        cinco y dos mas la dejarian apretada. Asi quedan
+                        registradas sin estorbar, y la cedula ademas entra
+                        en el buscador de arriba.
+                      {% endcomment %}
+                      {% if i.documento or i.fecha_nacimiento %}
+                        <div class="usuario-doc">
+                          {% if i.documento %}<span title="Numero de cedula">CC {{ i.documento }}</span>{% endif %}
+                          {% if i.documento and i.fecha_nacimiento %}<span class="usuario-doc-sep">&middot;</span>{% endif %}
+                          {% if i.fecha_nacimiento %}<span title="Fecha de nacimiento">{{ i.fecha_nacimiento|date:"d/m/Y" }}</span>{% endif %}
+                        </div>
+                      {% endif %}
                     </div>
                   </div>
                 </td>

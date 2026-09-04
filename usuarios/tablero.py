@@ -13,6 +13,52 @@ from analizador.models import RegistroApuesta
 
 MESES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]
 
+
+# ============================================================
+#  QUIEN CUENTA COMO CLIENTE
+# ============================================================
+#  El administrador no es un cliente: no paga, no compra plan y no se
+#  gestiona a si mismo. Si se cuenta junto a los demas, ensucia el total
+#  de cuentas, el porcentaje de conversion y la grafica de registros, y
+#  ademas aparecia en la lista con botones de Bloquear y Eliminar que no
+#  tenian sentido.
+#
+#  En este proyecto alguien es administrador de dos formas (las mismas
+#  que revisa usuarios/decoradores.py):
+#     - is_superuser = True
+#     - su perfil tiene el rol llamado "administrador"
+#  Se contemplan las dos para que no se cuele ninguno.
+ROL_ADMIN = "administrador"
+
+
+def es_administrador(usuario):
+    #True si esa cuenta es de administracion y no de un cliente.
+    if usuario is None:
+        return False
+    if getattr(usuario, "is_superuser", False) or getattr(usuario, "is_staff", False):
+        return True
+    perfil = getattr(usuario, "perfil", None)
+    rol = getattr(perfil, "rol", None) if perfil is not None else None
+    return rol is not None and (rol.nombre or "").strip().lower() == ROL_ADMIN
+
+
+def usuarios_clientes():
+    #Todas las cuentas MENOS las de administracion. Es el conjunto que se
+    #cuenta y se lista en el panel.
+    return (User.objects
+            .exclude(is_superuser=True)
+            .exclude(is_staff=True)
+            .exclude(perfil__rol__nombre__iexact=ROL_ADMIN))
+
+
+def perfiles_clientes():
+    #Lo mismo pero desde Perfil, que es lo que pinta la tabla del panel.
+    from usuarios.models import Perfil
+    return (Perfil.objects
+            .exclude(usuario__is_superuser=True)
+            .exclude(usuario__is_staff=True)
+            .exclude(rol__nombre__iexact=ROL_ADMIN))
+
 #Cortes de probabilidad para medir la calibracion del modelo
 RANGOS=[(0.30,0.50),(0.50,0.60),(0.60,0.70),(0.70,0.80),(0.80,0.90),(0.90,1.01)]
 
@@ -104,7 +150,8 @@ def resumen_usuarios():
   hace_30=timezone.now()-timedelta(days=30)
   hace_60=timezone.now()-timedelta(days=60)
 
-  usuarios=User.objects.all()
+  #Sin las cuentas de administracion: no son clientes (ver arriba)
+  usuarios=usuarios_clientes()
   total=usuarios.count()
   nuevos=usuarios.filter(date_joined__gte=hace_30).count()
   previos=usuarios.filter(date_joined__gte=hace_60,date_joined__lt=hace_30).count()
@@ -324,7 +371,7 @@ def serie_usuarios(meses=12):
   desde=_primer_dia(hoy,meses-1)
 
   mapa={}
-  for creado in User.objects.filter(date_joined__gte=_inicio_dia(desde)).values_list("date_joined",flat=True):
+  for creado in usuarios_clientes().filter(date_joined__gte=_inicio_dia(desde)).values_list("date_joined",flat=True):
     fecha=timezone.localtime(creado).date() if timezone.is_aware(creado) else creado.date()
     llave=(fecha.year,fecha.month)
     mapa[llave]=mapa.get(llave,0)+1

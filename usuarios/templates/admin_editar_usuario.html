@@ -16,6 +16,18 @@
   </div>
 
   <div class="card" style="max-width: 520px;">
+
+    {% comment %}
+      Sin esto la pantalla rechazaba el correo repetido pero no decia por
+      que: el formulario se recargaba igual y parecia que no habia pasado
+      nada.
+    {% endcomment %}
+    {% if messages %}
+      {% for i in messages %}
+        <div style="background: rgba(248,113,113,.10); border: 1px solid rgba(248,113,113,.32); border-left: 3px solid var(--bad); border-radius: 10px; padding: 11px 14px; margin-bottom: 16px; font-size: .86rem; color: var(--text-0);" role="alert">{{ i }}</div>
+      {% endfor %}
+    {% endif %}
+
     <form action="{% url 'AdminEditarUsuario' usuario.id %}" method="post">
       {% csrf_token %}
 
@@ -34,7 +46,8 @@
 
       <div style="margin-bottom: 16px;">
         <label style="display: block; font-size: .85rem; font-weight: 600; color: var(--text-1); margin-bottom: 6px;">Correo</label>
-        <input type="email" name="correo" value="{{ usuario.email }}" placeholder="correo@ejemplo.com"
+        <input type="email" name="correo" value="{{ usuario.email }}" placeholder="correo@ejemplo.com" required
+               maxlength="254" title="Aqui se envia la factura. Ej: nombre@correo.com"
                style="width: 100%; background: var(--bg-0); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--text-0); font-family: var(--ff-body); font-size: .95rem;">
       </div>
 

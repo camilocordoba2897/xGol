@@ -4,7 +4,7 @@
 {% block Titulo %}Crear cuenta{% endblock %}
 
 {% block estilos %}
-  <link rel="stylesheet" href="{% static 'css/registro.css' %}?v=3">
+  <link rel="stylesheet" href="{% static 'css/registro.css' %}?v=4">
 {% endblock %}
 
 {% block content %}
@@ -64,6 +64,30 @@
                  maxlength="254" autocomplete="email"
                  title="Escribe un correo válido. Ej: nombre@correo.com">
           <small class="reg-pista" data-para="reg-email"></small>
+        </div>
+      </div>
+
+      <div class="reg-fila">
+        <div class="reg-campo">
+          <label for="reg-documento">Cédula</label>
+          <input type="text" name="documento" id="reg-documento" placeholder="Solo números" required
+                 value="{{ datos.documento|default:'' }}"
+                 inputmode="numeric" pattern="[1-9][0-9]{5,9}"
+                 minlength="6" maxlength="10" autocomplete="off"
+                 title="Entre 6 y 10 dígitos, sin puntos ni letras">
+          <small class="reg-pista" data-para="reg-documento"></small>
+        </div>
+        <div class="reg-campo">
+          <label for="reg-nacimiento">Fecha de nacimiento</label>
+          {% comment %}
+            type=date ya trae el calendario del navegador y ademas deja
+            teclear la fecha a mano, que es lo que se pidio. El tope de
+            los 18 anos lo pone el JS de abajo.
+          {% endcomment %}
+          <input type="date" name="fecha_nacimiento" id="reg-nacimiento" required
+                 value="{{ datos.fecha_nacimiento|default:'' }}"
+                 title="Debes ser mayor de 18 años">
+          <small class="reg-pista" data-para="reg-nacimiento"></small>
         </div>
       </div>
 
@@ -230,6 +254,66 @@
   enlazar("reg-apellidos",reSoloNombre,function(c){ revisarNombre(c,"Los apellidos"); },true);
   enlazar("reg-username",/[^A-Za-z0-9]/g,revisarUsuario,true);
   enlazar("reg-email",/\s/g,revisarCorreo,true);
+
+  // ---- Cedula: solo numeros ----
+  // El filtro de "enlazar" ya borra letras y simbolos al teclear Y al pegar.
+  // El maxlength del HTML corta en 10, asi que no hay que contarlos aqui.
+  function revisarDocumento(campo){
+    var v=campo.value.trim();
+    if(!v){ marcar(campo,""); return; }
+    if(v.charAt(0)==="0"){ marcar(campo,"No puede empezar por cero."); return; }
+    if(v.length<6){ marcar(campo,"La cedula debe tener al menos 6 digitos."); return; }
+    if(/^(\d)\1+$/.test(v)){ marcar(campo,"Ese numero de cedula no es valido."); return; }
+    marcar(campo,"");
+  }
+  enlazar("reg-documento",/[^0-9]/g,revisarDocumento,true);
+
+  // ---- Fecha de nacimiento: solo mayores de 18 ----
+  (function(){
+    var campo=document.getElementById("reg-nacimiento");
+    if(!campo) return;
+
+    var hoy=new Date();
+
+    function aTexto(f){
+      var m=String(f.getMonth()+1); if(m.length<2) m="0"+m;
+      var d=String(f.getDate());    if(d.length<2) d="0"+d;
+      return f.getFullYear()+"-"+m+"-"+d;
+    }
+
+    // Con esto el calendario del navegador ni siquiera deja elegir una
+    // fecha de alguien menor de 18. El limite de abajo evita fechas absurdas.
+    var tope=new Date(hoy.getFullYear()-18,hoy.getMonth(),hoy.getDate());
+    var piso=new Date(hoy.getFullYear()-110,hoy.getMonth(),hoy.getDate());
+    campo.max=aTexto(tope);
+    campo.min=aTexto(piso);
+
+    function edad(f){
+      var a=hoy.getFullYear()-f.getFullYear();
+      var mes=hoy.getMonth()-f.getMonth();
+      if(mes<0||(mes===0&&hoy.getDate()<f.getDate())) a--;
+      return a;
+    }
+
+    function revisar(){
+      var v=campo.value;
+      if(!v){ marcar(campo,""); return; }
+      var partes=v.split("-");
+      if(partes.length!==3){ marcar(campo,"Escribe una fecha valida."); return; }
+      var f=new Date(+partes[0],+partes[1]-1,+partes[2]);
+      if(isNaN(f.getTime())){ marcar(campo,"Escribe una fecha valida."); return; }
+      if(f>hoy){ marcar(campo,"La fecha no puede ser futura."); return; }
+      var a=edad(f);
+      if(a>110){ marcar(campo,"Revisa la fecha, no parece correcta."); return; }
+      if(a<18){ marcar(campo,"Debes ser mayor de 18 anos para registrarte."); return; }
+      marcar(campo,"");
+    }
+
+    campo.addEventListener("input",revisar);
+    campo.addEventListener("change",revisar);
+    campo.addEventListener("blur",revisar);
+    if(campo.value) revisar();
+  })();
 })();
 </script>
 
