@@ -5,7 +5,9 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate,login,logout
 from django.contrib import messages
 from usuarios.models import Rol,Perfil,Bitacora
-from usuarios.validaciones import validar_registro
+from usuarios.validaciones import (validar_registro, validar_usuario,
+                                    validar_correo, validar_nombre,
+                                    validar_contrasena)
 from django.contrib.auth import update_session_auth_hash
 
 
@@ -27,6 +29,8 @@ def registro(request):
             "apellidos":request.POST.get("apellidos",""),
             "username":request.POST.get("username",""),
             "email":request.POST.get("email",""),
+            "documento":request.POST.get("documento",""),
+            "fecha_nacimiento":request.POST.get("fecha_nacimiento",""),
         }})
 
     usuario=User.objects.create_user(
@@ -45,9 +49,11 @@ def registro(request):
         proveedor="local",
         nombre=limpios["nombre"],
         apellidos=limpios["apellidos"],
-        tipo_documento=request.POST.get("tipo_documento"),
-        documento=request.POST.get("documento"),
-        fecha_nacimiento=request.POST.get("fecha_nacimiento") or None,
+        #Se guardan los valores YA validados y limpios: la cedula sin puntos
+        #y la fecha como objeto date, no lo que vino crudo del POST.
+        tipo_documento=request.POST.get("tipo_documento") or "CC",
+        documento=limpios["documento"],
+        fecha_nacimiento=limpios["fecha_nacimiento"],
         ciudad=request.POST.get("ciudad"),
         pais=request.POST.get("pais"),
         telefono=request.POST.get("telefono")
@@ -129,7 +135,11 @@ def panel_admin(request):
     paginas=Paginator(consulta,25)
     pagina=paginas.get_page(request.GET.get("pagina"))
 
-    perfiles=Perfil.objects.select_related("usuario","rol").all().order_by("-creado")
+    #Sin las cuentas de administracion: el admin no es un cliente y no
+    #tiene sentido que se liste con botones de Bloquear o Eliminar.
+    perfiles=(tablero.perfiles_clientes()
+              .select_related("usuario","rol").order_by("-creado"))
+
     accesos=Bitacora.objects.select_related("usuario").all().order_by("-creado")[:12]
 
     usuarios=tablero.resumen_usuarios()
@@ -172,18 +182,41 @@ def editar_perfil(request):
         accion=request.POST.get("accion")
 
         if accion=="datos":
-            request.user.first_name=request.POST.get("nombre","")
+            #Se validan con las mismas reglas del registro. excluir_id evita
+            #que el usuario choque consigo mismo al guardar sin cambiar nada.
+            #Ninguno lleva required en el formulario, asi que solo se revisa
+            #lo que venga escrito; si viene, tiene que ser valido.
+            nombre_crudo=(request.POST.get("nombre") or "").strip()
+            if nombre_crudo:
+                nombre,e_nombre=validar_nombre(nombre_crudo,"El nombre")
+                if e_nombre:
+                    messages.error(request,e_nombre)
+                    return redirect("EditarPerfil")
+            else:
+                nombre=""
 
             if not es_google:
                 nuevo_usuario=request.POST.get("username","").strip()
                 if nuevo_usuario and nuevo_usuario!=request.user.username:
-                    if User.objects.filter(username=nuevo_usuario).exclude(pk=request.user.pk).exists():
-                        messages.error(request,"Ese nombre de usuario ya esta en uso")
+                    #Antes usaba filter(username=...) exacto: dejaba pasar
+                    #"Juan" existiendo "juan", que el usuario lee igual.
+                    limpio,error=validar_usuario(nuevo_usuario,excluir_id=request.user.pk)
+                    if error:
+                        messages.error(request,error)
                         return redirect("EditarPerfil")
-                    request.user.username=nuevo_usuario
+                    request.user.username=limpio
 
-                request.user.email=request.POST.get("correo","")
+                #El correo no se validaba: por aca tambien se podian repetir.
+                #El correo es obligatorio: es donde le llega la factura de
+                #su plan y por donde recupera la contrasena.
+                correo,e_correo=validar_correo(request.POST.get("correo"),
+                                                excluir_id=request.user.pk)
+                if e_correo:
+                    messages.error(request,e_correo)
+                    return redirect("EditarPerfil")
+                request.user.email=correo
 
+            request.user.first_name=nombre
             request.user.save()
 
             perfil.telefono=request.POST.get("telefono")
@@ -246,6 +279,13 @@ def admin_eliminar_usuario(request,id):
         messages.error(request,"No puedes eliminar tu propia cuenta")
         return redirect("PanelAdmin")
 
+    #Tampoco a OTRO administrador: ya no salen en la lista, pero la URL se
+    #puede escribir a mano y sin esto quedaria abierta.
+    from usuarios import tablero
+    if tablero.es_administrador(usuario):
+        messages.error(request,"No se puede eliminar una cuenta de administracion")
+        return redirect("PanelAdmin")
+
     if request.method=="POST":
         nombre=usuario.username
         usuario.delete()
@@ -260,8 +300,29 @@ def admin_editar_usuario(request,id):
     perfil,creado=Perfil.objects.get_or_create(usuario=usuario)
 
     if request.method=="POST":
-        usuario.first_name=request.POST.get("nombre","")
-        usuario.email=request.POST.get("correo","")
+        #Aca tampoco se validaba nada. Se excluye al propio usuario para que
+        #no choque consigo mismo al guardar sin cambiar el correo.
+        #El nombre si puede quedar vacio (hay cuentas viejas sin el), asi que
+        #solo se revisa cuando viene escrito.
+        nombre_crudo=(request.POST.get("nombre") or "").strip()
+        if nombre_crudo:
+            nombre,e_nombre=validar_nombre(nombre_crudo,"El nombre")
+        else:
+            nombre,e_nombre="",None
+
+        #El correo si es obligatorio: es donde llega la factura.
+        correo,e_correo=validar_correo(request.POST.get("correo"),excluir_id=usuario.pk)
+
+        errores=[e for e in (e_nombre,e_correo) if e]
+        if errores:
+            for error in errores:
+                messages.error(request,error)
+            return render(request,"admin_editar_usuario.html",{
+                "usuario":usuario,"perfil":perfil,
+            })
+
+        usuario.first_name=nombre
+        usuario.email=correo
         usuario.save()
 
         perfil.telefono=request.POST.get("telefono")
@@ -280,6 +341,12 @@ def admin_estado_usuario(request,id):
         messages.error(request,"No puedes desactivar tu propia cuenta")
         return redirect("PanelAdmin")
 
+    #Ni bloquear a otro administrador: dejaria el panel sin quien lo maneje
+    from usuarios import tablero
+    if tablero.es_administrador(usuario):
+        messages.error(request,"No se puede bloquear una cuenta de administracion")
+        return redirect("PanelAdmin")
+
     usuario.is_active=not usuario.is_active
     usuario.save()
 
@@ -291,13 +358,25 @@ def admin_estado_usuario(request,id):
 @rol_requerido("administrador")
 def admin_crear_usuario(request):
     if request.method=="POST":
-        username=request.POST.get("username")
-        email=request.POST.get("email")
-        password=request.POST.get("password")
+        #Aca no se validaba el correo: por eso quedaron dos cuentas con el
+        #mismo. Ahora usa las MISMAS reglas del registro publico, que ya
+        #estaban escritas en usuarios/validaciones.py.
+        #El correo es OBLIGATORIO: es la direccion a la que se envia la
+        #factura cuando el usuario compra un plan. Una cuenta sin correo se
+        #queda sin comprobante y sin forma de recuperar la contrasena.
+        username,e_usuario=validar_usuario(request.POST.get("username"))
+        email,e_correo=validar_correo(request.POST.get("email"))
+        password,e_clave=validar_contrasena(request.POST.get("password"))
 
-        if User.objects.filter(username=username).exists():
-            messages.error(request,"Ese nombre de usuario ya esta registrado")
-            return redirect("AdminCrearUsuario")
+        errores=[e for e in (e_usuario,e_correo,e_clave) if e]
+        if errores:
+            for error in errores:
+                messages.error(request,error)
+            #Se devuelve lo que ya habia escrito para no teclearlo de nuevo
+            return render(request,"admin_crear_usuario.html",{"datos":{
+                "username":request.POST.get("username",""),
+                "email":request.POST.get("email",""),
+            }})
 
         usuario=User.objects.create_user(username=username,email=email,password=password)
         rol=Rol.objects.filter(nombre="usuario").first()

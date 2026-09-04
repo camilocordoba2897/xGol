@@ -62,13 +62,16 @@
         <div class="ficha-campo">
           <label for="adm-username">Nombre de usuario</label>
           <input type="text" name="username" id="adm-username" placeholder="Ej: juanperez" required
+                 value="{{ datos.username|default:'' }}"
                  autocomplete="off" spellcheck="false">
         </div>
 
         <div class="ficha-campo">
-          <label for="adm-email">Correo <span class="ficha-opcional">(opcional)</span></label>
-          <input type="email" name="email" id="adm-email" placeholder="correo@ejemplo.com"
-                 autocomplete="off" spellcheck="false">
+          <label for="adm-email">Correo</label>
+          <input type="email" name="email" id="adm-email" placeholder="correo@ejemplo.com" required
+                 value="{{ datos.email|default:'' }}"
+                 maxlength="254" autocomplete="off" spellcheck="false"
+                 title="Aqui se envia la factura. Ej: nombre@correo.com">
         </div>
 
         <div class="ficha-campo ficha-campo-clave">

@@ -78,7 +78,11 @@ header {
   background: linear-gradient(135deg, var(--bg-0) 0%, var(--bg-1) 55%, var(--accent-deep) 160%);
   color: var(--text-0);
   text-align: center;
-  padding: 38px 24px 32px;
+  /* Se bajo de 38/32 a 26/22 para compensar el logo mas grande: sin esto
+     la franja crecia de 126px a 154px y quedaba un huecote arriba y abajo.
+     Con esto el logo se ve grande y la franja queda incluso mas compacta
+     que antes (99px). Los 24px de los lados no se tocan. */
+  padding: 26px 24px 22px;
   position: relative;
   overflow: hidden;
   border-bottom: 1px solid var(--line);
@@ -92,9 +96,17 @@ header::before {
 }
 header h1 {
   font-family: var(--ff-display);
-  font-size: 2.15rem;
+  /* Era 2.15rem y quedaba chico dentro de la franja. Al subirlo a 3.2rem
+     hay que bajarle tambien el relleno de arriba (ver la regla header)
+     y el interlineado; si no, la franja entera crece y el logo se ve
+     grande pero rodeado de mas hueco todavia. */
+  font-size: 3.2rem;
   font-weight: 700;
   letter-spacing: -0.03em;
+  /* El body pone 1.65 de interlineado, pensado para parrafos. En un
+     titulo de una sola linea eso solo agrega aire arriba y abajo de la
+     letra, que era buena parte del espacio que sobraba. */
+  line-height: 1;
   position: relative;
   z-index: 1;
 }
@@ -154,6 +166,17 @@ nav a:hover {
   transform: translateY(-2px);
 }
 nav a svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+/* El boton de inicio comparte fila con Analizador/Ingresar y con
+   Salir/Registro, que son pastillas completamente redondas. Su hoja
+   propia (boton_inicio.css) le pone esquinas de 10px, y al lado de los
+   otros se veia disparejo. Aca se le iguala SOLO el borde.
+   El selector lleva "nav" delante para que pese mas que la regla de esa
+   hoja y para que el cambio quede unicamente en las pantallas que usan
+   esta barra; el boton suelto del analizador y el de ingresar conservan
+   sus esquinas, porque alli no tienen ningun otro boton al lado.
+   Color, tamano y el efecto al senalarlo quedan igual que estaban. */
+nav a.btn-inicio { border-radius: 999px; }
 
 /* ── CONTENT ── */
 .content-wrapper {
@@ -564,15 +587,26 @@ footer p::before { content: ''; display: inline-block; width: 6px; height: 6px; 
 
 /* El botón peligroso sí lleva relieve: antes era plano y no se
    notaba que estaba señalado. */
+/* Rojo oscuro y sin resplandor. Antes iba en el rojo claro de --bad con
+   una sombra roja alrededor que hacia efecto de luz, y al pasar el mouse
+   se ACLARABA todavia mas. Para el boton que borra una cuenta el sentido
+   correcto es el contrario: se ve serio y se oscurece al senalarlo.
+   La sombra es negra y sutil, no de color, para que no vuelva a brillar. */
+/* Rojo firme, sin resplandor. Se oscurece MUCHO al senalarlo: la
+   diferencia entre los dos tonos es de 2,2 a 1, asi el cambio se nota
+   de una. Antes se aclaraba (efecto luz) y luego quedo tan oscuro que
+   reposo y hover se veian casi iguales; este es el punto medio.
+   La sombra es negra y no de color, para que no vuelva a brillar. */
 .elim-btn-si {
-  background: var(--bad); color: #2a0505; border-color: var(--bad);
-  box-shadow: 0 2px 6px rgba(248,113,113,.22);
+  background: #c23434; color: #ffffff; border-color: #d14040;
+  box-shadow: 0 1px 3px rgba(0,0,0,.45);
 }
 .elim-btn-si:hover {
-  background: #fa8f8f; border-color: #fa8f8f;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(248,113,113,.45);
+  background: #6e1414; border-color: #8a1c1c;
+  box-shadow: 0 3px 10px rgba(0,0,0,.55);
 }
+/* Al hacer clic, mas oscuro todavia */
+.elim-btn-si:active { background: #5a1010; border-color: #701616; }
 .elim-btn:active { transform: translateY(0); box-shadow: none; }
 .elim-btn:focus-visible { outline: 2px solid var(--bad); outline-offset: 3px; }
 

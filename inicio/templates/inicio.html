@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/home.css' %}?v=31">
+<link rel="stylesheet" href="{% static 'css/home.css' %}?v=32">
 <script>
   // Aplicamos el tema guardado ANTES de pintar para que no parpadee
   (function() {
@@ -26,7 +26,15 @@
 <!-- NAVBAR -->
 <nav class="nav" id="navbar">
   <div class="nav-inner">
-    <a href="{% url 'Inicio' %}" class="nav-logo"><span class="x">x</span>Gol</a>
+    {% comment %}
+      El logo del SENA va antes del de xGol. Los dos se envuelven juntos
+      para que queden pegados y separados del menu; asi el de xGol solo se
+      corre a la derecha lo que ocupa el del SENA, sin mover nada mas.
+    {% endcomment %}
+    <div class="nav-marcas">
+      <img class="nav-sena" src="{% static 'img/sena.png' %}" alt="SENA" width="332" height="320">
+      <a href="{% url 'Inicio' %}" class="nav-logo"><span class="x">x</span>Gol</a>
+    </div>
 
     <div class="nav-links">
       <a href="#inicio">Inicio</a>
@@ -312,6 +320,13 @@
           <a href="{% url 'AvisoLegal' %}">Aviso legal</a>
           <a href="{% url 'JuegoResponsable' %}">Juego responsable</a>
         </div>
+
+        {% comment %}
+          El logo del SENA cierra la columna derecha del pie, debajo de los
+          enlaces legales. Va dentro de .ft-right, que ya alinea todo a la
+          derecha, asi que queda a plomo con los enlaces de arriba.
+        {% endcomment %}
+        <img class="ft-sena" src="{% static 'img/sena.png' %}" alt="SENA" width="332" height="320">
       </div>
     </div>
 

@@ -123,6 +123,28 @@ body.home {
   white-space: nowrap;
 }
 .nav-logo .x { color: var(--acc); transition: color var(--t); }
+
+/* ---- Logo del SENA junto al de xGol ----
+   Los dos van dentro de .nav-marcas para que queden pegados entre si y
+   separados del menu. El de xGol no cambia de tamano: solo se corre a la
+   derecha lo que ocupa el del SENA.
+   38px es el alto que hace que los dos se vean del mismo porte (el logo
+   del SENA es casi cuadrado, asi que necesita un poco mas de alto que la
+   altura de las letras para pesar igual a la vista).
+   Al ser 38px y no 52, la barra NO crece: el que manda su altura sigue
+   siendo el texto de xGol. */
+.nav-marcas {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+.nav-sena {
+  height: 38px;
+  width: auto;
+  display: block;
+  flex-shrink: 0;
+}
 .nav-links {
   display: flex;
   gap: 4px;
@@ -808,6 +830,15 @@ body.home {
   letter-spacing: -0.03em;
 }
 .ft-logo .x { color: var(--acc); }
+
+/* Logo del SENA al cierre de la columna derecha del pie. 58px llena bien
+   ese espacio sin competir con los enlaces de arriba. */
+.ft-sena {
+  height: 58px;
+  width: auto;
+  display: block;
+  margin-top: 6px;
+}
 .ft-tag { color: var(--texto-1); font-size: .82rem; margin-top: 8px; max-width: 300px; line-height: 1.6; }
 .ft-social { display: flex; gap: 12px; }
 .ft-social a {
@@ -882,6 +913,11 @@ body.home {
   .hero { padding-top: 100px; }
   .hero-cta .btn { width: 100%; justify-content: center; }
   .nav-inner { padding: 12px 16px; gap: 10px; }
+  /* En pantallas chicas el logo del SENA baja un punto para dejarle
+     aire al boton del menu. */
+  .nav-sena { height: 32px; }
+  .nav-marcas { gap: 10px; }
+  .ft-sena { height: 48px; }
   .sec { padding: 64px 18px; }
 }
 

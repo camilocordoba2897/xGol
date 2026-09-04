@@ -90,6 +90,8 @@ def resumen_ingresos():
 
 
 def resumen_suscripciones():
+  #El import va aqui dentro y no arriba para no cruzar las apps al cargar
+  from usuarios import tablero
   hoy=timezone.localdate()
   todas=Suscripcion.objects.all()
   vigentes=todas.filter(activa=True,vencimiento__gte=hoy)
@@ -98,7 +100,10 @@ def resumen_suscripciones():
     "vencidas":todas.filter(vencimiento__lt=hoy).count(),
     "por_vencer":vigentes.filter(vencimiento__lte=hoy+timedelta(days=5)).count(),
     "renovacion_automatica":vigentes.filter(renovacion_automatica=True).count(),
-    "sin_suscripcion":User.objects.filter(suscripcion__isnull=True).count(),
+    #Sin las cuentas de administracion: el admin no compra plan, y si se
+    #cuenta aqui aparece siempre como un cliente que nunca ha pagado.
+    "sin_suscripcion":tablero.usuarios_clientes().filter(suscripcion__isnull=True).count(),
+
     "canceladas":todas.filter(cancelada_en__isnull=False).count(),
   }
 

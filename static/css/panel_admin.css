@@ -115,12 +115,13 @@ a { color: inherit; text-decoration: none; }
    al pasar el mouse. El verde va escrito directo, como en
    boton_inicio.css, para que sea el mismo en todas las pantallas. */
 .rail-inicio { color: #4ade80; background: rgba(74,222,128,.10); }
+/* Solo el color, sin la sombra verde: hacia el mismo halo de luz que
+   se le quito al boton de inicio de las demas pantallas. */
 .rail-inicio:hover {
   color: #05140b; background: #4ade80;
-  box-shadow: 0 5px 14px rgba(74,222,128,.34);
   transform: translateY(-2px);
 }
-.rail-inicio:active { transform: translateY(0); box-shadow: 0 2px 6px rgba(74,222,128,.30); }
+.rail-inicio:active { transform: translateY(0); background: #3fc972; }
 @media (prefers-reduced-motion: reduce) {
   .rail-inicio:hover { transform: none; }
 }
@@ -173,8 +174,24 @@ html[data-modo="claro"] .icono-btn .ic-luna { display: block; }
 .boton svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
 .boton:hover { border-color: var(--text-3); background: var(--bg-3); color: var(--text-0); }
 .boton:active { transform: scale(.98); }
-.boton-acento { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); filter: saturate(.68) brightness(.82); }
-.boton-acento:hover { background: var(--accent-dim); border-color: var(--accent-dim); color: var(--accent-ink); }
+/* Boton principal (Crear usuario, Filtrar). Conserva su color; lo que
+   cambia es que al senalarlo se OSCURECE en vez de aclararse. Antes
+   pasaba a --accent-dim, que es un verde mas claro, y quedaba con ese
+   aire de luz. Se oscurece bajandole el brightness al filtro que ya
+   tenia, asi sigue funcionando igual con los otros temas de color
+   (azul, morado, naranja) sin escribir un color fijo para cada uno. */
+.boton-acento {
+  background: var(--accent); border-color: var(--accent);
+  color: var(--accent-ink);
+  filter: saturate(.68) brightness(.82);
+  transition: filter var(--t), border-color var(--t), background var(--t), color var(--t);
+}
+.boton-acento:hover {
+  background: var(--accent); border-color: var(--accent);
+  color: var(--accent-ink);
+  filter: saturate(.68) brightness(.60);
+}
+.boton-acento:active { filter: saturate(.68) brightness(.50); }
 
 /* ============================================================
    LIENZO
@@ -555,6 +572,19 @@ table.tabla th.td-derecha, table.tabla td.td-derecha { text-align: right; }
 }
 .usuario-nombre { font-weight: 600; color: var(--text-0); }
 .usuario-correo { font-size: .74rem; color: var(--text-3); }
+
+/* Cedula y fecha de nacimiento: van bajo el correo, en tipografia
+   monoespaciada y mas tenues, para que se lean como dato de registro
+   y no compitan con el nombre del usuario. */
+.usuario-doc {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  margin-top: 3px;
+  font-family: var(--ff-mono);
+  font-size: .68rem;
+  color: var(--text-3);
+  opacity: .78;
+}
+.usuario-doc-sep { opacity: .5; }
 
 .marca {
   display: inline-flex; align-items: center; gap: 6px;
