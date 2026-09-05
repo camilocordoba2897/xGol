@@ -145,7 +145,14 @@
     }
   }
 
+  var ligaAnterior = null;
+
   function cargarPartidos(liga) {
+    // Cambio de liga: se marca para bajar a los pronosticables al pintar
+    if (liga !== ligaAnterior) {
+      bajarEnLaProxima = true;
+      ligaAnterior = liga;
+    }
     ligaActual = liga;
     marcarFicha(liga);
     mensaje('Buscando partidos…');
@@ -313,25 +320,32 @@
 
   // ============================================================
   //  LLEVAR AL USUARIO A LOS PARTIDOS QUE SI PUEDE PRONOSTICAR
-  //  Solo la primera vez que se pintan partidos: si luego cambia
-  //  de liga o de fecha, se respeta donde este mirando.
+  //  Baja al entrar y CADA VEZ QUE SE CAMBIA DE LIGA. Antes solo lo
+  //  hacia la primera vez, asi que al elegir otra liga la lista
+  //  arrancaba en los partidos ya jugados y tocaba bajar a mano.
+  //  Con el filtro de fecha NO baja: ahi el usuario acaba de tocar el
+  //  calendario, que esta arriba, y moverle la pantalla estorba.
   // ============================================================
-  var yaBajamos = false;
+  var bajarEnLaProxima = true;   // la primera carga si baja
 
   function bajarAPorJugar() {
-    if (yaBajamos) return;
+    if (!bajarEnLaProxima) return;
+
+    // Se consume aunque no haya a donde ir: si esta liga no tiene partidos
+    // por jugar, no queda pendiente para el proximo repintado.
+    bajarEnLaProxima = false;
 
     var destino = el('lp-por-jugar');
     if (!destino) return;   // liga sin partidos por jugar: no hay a donde ir
-
-    yaBajamos = true;
 
     // Si la guia paso a paso esta abierta, moverse le desordena el foco
     var guia = document.querySelector('.tour-raiz.abierto');
     if (guia) return;
 
-    // El splash tapa la pantalla al entrar: se espera a que se vaya
-    var espera = document.getElementById('splash') ? 2200 : 260;
+    // Un respiro corto para que la lista ya este pintada antes de moverse.
+    // Antes aca se esperaban 2,2s cuando estaba la pantalla de bienvenida;
+    // esa pantalla se quito, asi que ya no hay nada que esperar.
+    var espera = 260;
     setTimeout(function() {
       if (document.querySelector('.tour-raiz.abierto')) return;
 
