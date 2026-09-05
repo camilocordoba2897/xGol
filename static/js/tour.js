@@ -651,8 +651,9 @@
 
   function iniciar() {
     vigilarPantallas();
-    // El splash tarda ~1.85s en irse: esperamos a que desaparezca.
-    var espera = document.getElementById('splash') ? 2100 : 400;
+    // Respiro corto antes de abrir la guia. Antes eran 2,1s por la pantalla
+    // de bienvenida, que ya no existe.
+    var espera = 400;
     quizaAbrirSolo('lista', espera);
   }
 

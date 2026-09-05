@@ -4877,38 +4877,5 @@ document.addEventListener('keydown', (e) => {
   });
 })();
 
-// ---- SPLASH SCREEN ----
-(function() {
-  const splash = document.getElementById('splash');
-  if (!splash) return;
-  // Mostrar solo una vez por sesión: recargas posteriores van directas
-  let shown = false;
-  try { shown = sessionStorage.getItem('fba_splash_seen') === '1'; } catch(e) {}
-  if (shown) { splash.remove(); return; }
-  try { sessionStorage.setItem('fba_splash_seen', '1'); } catch(e) {}
-
-  const particles = document.getElementById('splash-particles');
-  // Generar partículas aleatorias
-  for (let i = 0; i < 18; i++) {
-    const p = document.createElement('div');
-    p.className = 'splash-p';
-    const angle = Math.random() * 360;
-    const dist = 80 + Math.random() * 220;
-    const px = Math.cos(angle * Math.PI / 180) * dist;
-    const py = Math.sin(angle * Math.PI / 180) * dist;
-    p.style.cssText = `
-      left:${40 + Math.random()*20}%;
-      top:${40 + Math.random()*20}%;
-      --px:${px}px;--py:${py}px;
-      animation-delay:${0.15 + Math.random()*0.4}s;
-      animation-duration:${1.1 + Math.random()*0.6}s;
-      width:${2+Math.random()*3}px;height:${2+Math.random()*3}px;
-    `;
-    particles.appendChild(p);
-  }
-  // Ocultar splash después de ~1.3s
-  setTimeout(() => {
-    splash.classList.add('hide');
-    setTimeout(() => splash.remove(), 550);
-  }, 1300);
-})();
+// La pantalla de bienvenida (el balon con "Analizador de Futbol") se
+// quito: al entrar se va derecho a la herramienta sin esa espera.

@@ -8,9 +8,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/analizador.css' %}?v=26">
+<link rel="stylesheet" href="{% static 'css/analizador.css' %}?v=30">
 <link rel="stylesheet" href="{% static 'css/calendario.css' %}?v=3">
-<link rel="stylesheet" href="{% static 'css/analisis.css' %}?v=15">
+<link rel="stylesheet" href="{% static 'css/analisis.css' %}?v=18">
 <link rel="stylesheet" href="{% static 'css/boton_inicio.css' %}?v=2">
 <script>
   // Aplicamos el modo guardado ANTES de pintar para que no parpadee
@@ -32,11 +32,6 @@
 </head>
 <body>
 
-<a class="volver-inicio btn-inicio" href="{% url 'Inicio' %}">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-  Inicio
-</a>
-
 {% if user.is_superuser or rol_actual == "administrador" %}
 <a class="panel-admin" href="{% url 'PanelAdmin' %}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6 4.6 5.8v5.4c0 4.6 3.1 8.8 7.4 10.2 4.3-1.4 7.4-5.6 7.4-10.2V5.8z"/><path d="M9.2 12.1 11.3 14.2 15 10.4"/></svg><span class="pa-texto">Panel admin</span></a>
 {% endif %}
@@ -50,15 +45,6 @@
     guardarApuestas: "{% url 'GuardarApuestas' %}"
   };
 </script>
-
-<!-- SPLASH SCREEN -->
-<div id="splash">
-  <div class="splash-particles" id="splash-particles"></div>
-  <div class="splash-ball">⚽</div>
-  <div class="splash-logo">Analizador <span>de Fútbol</span></div>
-  <div class="splash-sub">Estadísticas · Probabilidades · Predicciones</div>
-  <div class="splash-bar-wrap"><div class="splash-bar"></div></div>
-</div>
 
 <div class="app">
   <header class="lab-bar">
@@ -241,7 +227,7 @@
   </div>
 </div>
 
-<script src="{% static 'js/analizador.js' %}?v=10"></script>
+<script src="{% static 'js/analizador.js' %}?v=11"></script>
 <script src="{% static 'js/vista.js' %}?v=4"></script>
 <script>
   window.XGOL_AUTO = {
@@ -252,7 +238,7 @@
     motor: "{% url 'MotorPronostico' %}"
   };
 </script>
-<script src="{% static 'js/auto.js' %}?v=15"></script>
+<script src="{% static 'js/auto.js' %}?v=17"></script>
 <script src="{% static 'js/seguimiento.js' %}?v=1"></script>
 <script src="{% static 'js/motor.js' %}?v=1"></script>
 <script>
@@ -277,7 +263,7 @@
     marcar();
   })();
 </script>
-<script src="{% static 'js/tour.js' %}?v=4"></script>
+<script src="{% static 'js/tour.js' %}?v=5"></script>
 <script src="{% static 'js/subir.js' %}?v=1"></script>
 </body>
 </html>
