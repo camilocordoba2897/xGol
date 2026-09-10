@@ -44,6 +44,17 @@ PARTIDOS_PROFUNDO = 60    #historial largo para enfrentamientos directos.
                           #que no gasta cuota extra. El motor sigue usando 15.
 DIAS_ATRAS = 14           #ventana hacia atras: para mostrar los que ya se jugaron
                           #con su marcador, igual que en la referencia.
+DIAS_HISTORIAL = 365      #ventana del historial de UN equipo.
+                          #ESTO ARREGLA EL AVISO "historial insuficiente".
+                          #football-data.org, si no se le pasa un rango de
+                          #fechas, devuelve SOLO la temporada activa. En
+                          #agosto y septiembre eso son cero, uno o dos
+                          #partidos por equipo, y el analizador cortaba el
+                          #pronostico de TODA la liga. Con un año de ventana
+                          #siempre hay 40-60 partidos, juegue la fecha que
+                          #juegue el calendario. Misma peticion, mismo coste.
+MINIMO_HISTORIAL = 5      #por debajo de esto se completa con el historico local
+TEMPORADAS_RESPALDO = 3   #temporadas del CSV que se cargan en memoria
 MAX_PARTIDOS = 120        #tope de partidos en la lista (la ventana completa
                           #-14/+45 dias da muchas jornadas por liga)
 
@@ -179,12 +190,22 @@ def _fila_desde_partido(m, id_equipo, nombre_equipo):
     return fila
 
 
-def _fd_historial(id_equipo, nombre_equipo, limite):
-    #Ultimos partidos jugados por el equipo, mas recientes primero
-    crudo, error = _pedir_fd(f"teams/{id_equipo}/matches", {
-        "status": "FINISHED",
-        "limit": limite,
-    })
+def _fd_historial(id_equipo, nombre_equipo, limite, con_ventana=True):
+    #Ultimos partidos jugados por el equipo, mas recientes primero.
+    #
+    #con_ventana=True pide un año hacia atras con dateFrom/dateTo. Es lo
+    #correcto: sin fechas la API se queda en la temporada activa y al empezar
+    #el campeonato devuelve casi nada. No se manda "limit" junto con el rango
+    #porque el recorte lo haria la API por fecha ascendente y nos quedariamos
+    #con los partidos MAS VIEJOS; se ordena y se recorta aqui.
+    parametros = {"status": "FINISHED"}
+    if con_ventana:
+        hoy = date.today()
+        parametros["dateFrom"] = (hoy - timedelta(days=DIAS_HISTORIAL)).isoformat()
+        parametros["dateTo"] = hoy.isoformat()
+    else:
+        parametros["limit"] = limite
+    crudo, error = _pedir_fd(f"teams/{id_equipo}/matches", parametros)
     if error:
         return [], error
     partidos = crudo.get("matches", [])
@@ -195,6 +216,143 @@ def _fd_historial(id_equipo, nombre_equipo, limite):
         if fila:
             filas.append(fila)
     return filas, None
+
+
+# ============================================================
+#  RESPALDO INVISIBLE DESDE EL HISTORICO LOCAL
+#
+#  Esta lista NO se muestra como lista en ninguna pantalla. Existe solo para
+#  que el motor y las tarjetas de "ultimos resultados" nunca se queden sin
+#  historial: arranque de temporada, equipo recien ascendido, o un fallo
+#  puntual del proveedor. Antes, en esos casos, el analizador cortaba el
+#  pronostico con "historial insuficiente" aunque el motor si podia calcularlo.
+#
+#  COSTE: cero peticiones de red. Se lee datos_historicos/<liga>.csv, que ya
+#  esta en disco, y el indice se arma UNA sola vez por proceso.
+#
+#  El emparejado de nombres reutiliza el de api_historico (normalizar,
+#  _parecido, MARGEN_AMBIGUO). Se hace asi a proposito: si aqui se escribiera
+#  otra comparacion, tarde o temprano los dos criterios se separarian y el
+#  mismo equipo tendria historia distinta segun por donde entre.
+# ============================================================
+_INDICE_HISTORICO = {}   #{liga: {clave_normalizada: {"nombres": set, "partidos": []}}}
+
+
+def _indice_historico(liga):
+    #El indice se agrupa por nombre NORMALIZADO, no por el nombre tal cual
+    #viene del CSV. Es importante: el historico escribe el mismo club de dos
+    #formas ("Nottm Forest" y "Nott'm Forest") y si se guardaran por separado
+    #el desempate los veria como dos equipos distintos empatados a 1.0, los
+    #daria por ambiguos y el equipo se quedaria sin historia.
+    if liga in _INDICE_HISTORICO:
+        return _INDICE_HISTORICO[liga]
+    indice = {}
+    try:
+        from analizador import api_historico
+        partidos, _informe, error = api_historico.historial(
+            liga, temporadas=TEMPORADAS_RESPALDO)
+        if not error:
+            for p in partidos:
+                for lado in ("local", "visitante"):
+                    clave = api_historico.normalizar(p.get(lado))
+                    if not clave:
+                        continue
+                    casilla = indice.setdefault(clave, {"nombres": set(), "partidos": []})
+                    casilla["nombres"].add(p.get(lado))
+                    casilla["partidos"].append(p)
+    except Exception:
+        indice = {}
+    _INDICE_HISTORICO[liga] = indice
+    return indice
+
+
+def _equipo_en_historico(liga, *nombres):
+    #Clave del equipo dentro del indice, o None si no se puede decidir con
+    #seguridad.
+    #
+    #Se aceptan VARIOS nombres del mismo equipo (el corto y el largo) porque
+    #football-data.org usa apodos que no se parecen al historico: dice "PSG"
+    #y "Barca" donde el historico dice "Paris SG" y "Barcelona". Contra el
+    #nombre largo ("Paris Saint-Germain FC", "FC Barcelona") si emparejan.
+    #Basta con que UNO de los nombres acierte.
+    indice = _indice_historico(liga)
+    if not indice:
+        return None
+    try:
+        from analizador import api_historico
+    except Exception:
+        return None
+    for nombre in nombres:
+        clave = api_historico.normalizar(nombre)
+        if not clave:
+            continue
+        mejor, puntaje_mejor, segundo = None, 0.0, 0.0
+        for clave_csv in indice:
+            puntaje = api_historico._parecido(clave_csv, clave)
+            if puntaje > puntaje_mejor:
+                segundo = puntaje_mejor
+                mejor, puntaje_mejor = clave_csv, puntaje
+            elif puntaje > segundo:
+                segundo = puntaje
+        if not mejor or puntaje_mejor < 0.5:
+            continue
+        #Un empate entre dos equipos DISTINTOS no se resuelve al azar. En
+        #Brasil hay tres "Atletico" y darle a uno la historia de otro es un
+        #error que no se ve por ninguna parte: el motor no falla, simplemente
+        #miente sobre dos equipos a la vez. Preferimos no saber a saber mal.
+        if (puntaje_mejor - segundo) < api_historico.MARGEN_AMBIGUO:
+            continue
+        return mejor
+    return None
+
+
+def _filas_desde_historico(liga, nombre_equipo, limite, fechas_ocupadas=None,
+                           nombre_largo=None):
+    #Filas en el MISMO esquema que devuelve la API, para que ni el motor ni
+    #el frontend noten la diferencia.
+    if limite <= 0:
+        return []
+    clave = _equipo_en_historico(liga, nombre_equipo, nombre_largo)
+    if not clave:
+        return []
+    casilla = _indice_historico(liga)[clave]
+    nombres_csv = casilla["nombres"]
+    partidos = sorted(casilla["partidos"],
+                      key=lambda p: p.get("fecha") or "", reverse=True)
+    ocupadas = set(fechas_ocupadas or ())
+    filas = []
+    for p in partidos:
+        if len(filas) >= limite:
+            break
+        fecha = p.get("fecha") or ""
+        #Un equipo no juega dos veces el mismo dia: con la fecha basta para no
+        #duplicar un partido que la API ya trajo.
+        if fecha in ocupadas:
+            continue
+        ocupadas.add(fecha)
+        es_local = p.get("local") in nombres_csv
+        rival = p.get("visitante") if es_local else p.get("local")
+        gf = p.get("goles_local") if es_local else p.get("goles_visitante")
+        gc = p.get("goles_visitante") if es_local else p.get("goles_local")
+        if gf is None or gc is None:
+            continue
+        fila = {
+            "fecha": fecha,
+            "equipo": nombre_equipo,
+            "rival": rival or "",
+            "sede": "local" if es_local else "visitante",
+            "goles_f": gf,
+            "goles_c": gc,
+            "resultado": "W" if gf > gc else ("L" if gf < gc else "D"),
+        }
+        fila.update(COLUMNAS_VACIAS)
+        #El historico no trae el marcador al descanso: van vacias, nunca en 0.
+        fila["goles_1t_f"] = ""
+        fila["goles_1t_c"] = ""
+        fila["goles_2t_f"] = ""
+        fila["goles_2t_c"] = ""
+        filas.append(fila)
+    return filas
 
 
 # ============================================================
@@ -217,26 +375,53 @@ def partidos_liga(liga):
     return datos, None
 
 
-def historial_equipo(id_equipo, nombre_equipo, limite=PARTIDOS_HISTORIAL):
+def historial_equipo(id_equipo, nombre_equipo, limite=PARTIDOS_HISTORIAL, liga=None,
+                     nombre_largo=None):
     #Se pide SIEMPRE el historial profundo (una sola peticion) y se recorta.
     #Asi el motor sigue recibiendo sus 15 partidos de siempre y el bloque de
     #enfrentamientos puede mirar mas atras sin gastar otra llamada a la API.
-    filas, error = historial_profundo(id_equipo, nombre_equipo)
+    filas, error = historial_profundo(id_equipo, nombre_equipo, liga, nombre_largo)
     if error:
         return [], error
     return filas[:limite], None
 
 
-def historial_profundo(id_equipo, nombre_equipo):
-    #Historial largo, para enfrentamientos directos. Mismo endpoint y misma
-    #peticion que antes: solo cambia el "limit", asi que no cuesta cuota extra.
-    llave = f"auto_hist_{id_equipo}_{PARTIDOS_PROFUNDO}"
+def historial_profundo(id_equipo, nombre_equipo, liga=None, nombre_largo=None):
+    #Historial largo de un equipo. Tres intentos, del mas fiable al mas barato:
+    #
+    #   1. La API con un año de ventana  -> lo normal, datos frescos y reales
+    #   2. La API como se pedia antes    -> por si el proveedor rechaza el rango
+    #   3. El historico local en disco   -> red de seguridad, cero peticiones
+    #
+    #El paso 3 es el que hace que NUNCA vuelva a salir el aviso de "historial
+    #insuficiente" en las ocho ligas que tienen CSV descargado.
+    llave = f"auto_hist_{id_equipo}_{PARTIDOS_PROFUNDO}_{liga or ''}"
     datos = cache.get(llave)
     if datos is not None:
         return datos, None
-    datos, error = _fd_historial(id_equipo, nombre_equipo, PARTIDOS_PROFUNDO)
-    if error:
-        return [], error
+
+    datos, error = _fd_historial(id_equipo, nombre_equipo, PARTIDOS_PROFUNDO,
+                                 con_ventana=True)
+
+    #Con 429 no se reintenta: la segunda peticion fallaria igual y solo
+    #serviria para hundir mas la cuota del minuto.
+    if error != ERROR_CUOTA and (error or len(datos) < MINIMO_HISTORIAL):
+        otros, error_otros = _fd_historial(id_equipo, nombre_equipo,
+                                           PARTIDOS_PROFUNDO, con_ventana=False)
+        if not error_otros and len(otros) > len(datos):
+            datos, error = otros, None
+
+    if liga and len(datos) < MINIMO_HISTORIAL:
+        respaldo = _filas_desde_historico(
+            liga, nombre_equipo, PARTIDOS_PROFUNDO - len(datos),
+            {f.get("fecha") for f in datos}, nombre_largo)
+        if respaldo:
+            datos = datos + respaldo
+            datos.sort(key=lambda f: f.get("fecha") or "", reverse=True)
+            error = None
+
+    if not datos:
+        return [], error or ERROR_RED
     #6 horas: el historial de un equipo solo cambia cuando juega
     cache.set(llave, datos, 21600)
     return datos, None
@@ -292,12 +477,17 @@ def _calcular_h2h(filas_local, nombre_local, nombre_visitante):
     }
 
 
-def enfrentamiento(id_local, nombre_local, id_visitante, nombre_visitante, limite=PARTIDOS_HISTORIAL):
-    #Lo que consume el frontend para llenar el motor de una sola vez
-    profundo_local, error = historial_profundo(id_local, nombre_local)
+def enfrentamiento(id_local, nombre_local, id_visitante, nombre_visitante,
+                   limite=PARTIDOS_HISTORIAL, liga=None,
+                   largo_local=None, largo_visitante=None):
+    #Lo que consume el frontend para llenar el motor de una sola vez.
+    #liga se usa solo para el respaldo local: si la API responde bien, no
+    #cambia absolutamente nada respecto a antes.
+    profundo_local, error = historial_profundo(id_local, nombre_local, liga, largo_local)
     if error:
         return {"error": error}
-    filas_visitante, error = historial_equipo(id_visitante, nombre_visitante, limite)
+    filas_visitante, error = historial_equipo(id_visitante, nombre_visitante, limite,
+                                              liga, largo_visitante)
     if error:
         return {"error": error}
     filas_local = profundo_local[:limite]

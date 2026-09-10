@@ -258,7 +258,8 @@ body.home {
   color: var(--acc); font-size: .95rem;
 }
 .hd-name { font-size: .9rem; color: var(--texto-1); font-weight: 600; }
-.hd-caret { color: var(--texto-3); font-size: .7rem; }
+.hd-caret { color: var(--texto-3); display: inline-flex; align-items: center; }
+.hd-caret svg { width: 14px; height: 14px; transition: transform var(--t); }
 .hd-menu {
   position: absolute; top: calc(100% + 14px); right: 0;
   min-width: 220px;
@@ -274,10 +275,23 @@ body.home {
 }
 .hd-menu.open { opacity: 1; visibility: visible; transform: translateY(0); }
 .hd-menu-item {
-  display: block; padding: 11px 14px; border-radius: 10px;
+  display: flex; align-items: center; gap: 11px;
+  padding: 11px 14px; border-radius: 10px;
   color: var(--texto-1); text-decoration: none; font-size: .88rem;
   white-space: nowrap; transition: background var(--t), color var(--t);
 }
+/* Iconos del menu de cuenta. Antes iban emojis, que los dibuja el sistema
+   operativo: se ven de un color en Windows, de otro en Mac y de otro en
+   Android, y ninguno combina con el resto de la pagina. Estos son SVG con
+   currentColor, asi que toman el color del propio enlace y cambian con el
+   hover igual que el texto. */
+.hd-menu-item .hd-ic {
+  width: 17px; height: 17px; flex-shrink: 0;
+  color: var(--texto-3); transition: color var(--t);
+}
+.hd-menu-item:hover .hd-ic { color: var(--acc); }
+.hd-menu-exit .hd-ic { color: rgba(252,165,165,.75); }
+.hd-menu-exit:hover .hd-ic { color: #fca5a5; }
 .hd-menu-item:hover { background: rgba(255,255,255,.06); color: var(--texto-0); }
 .hd-menu-exit { color: #fca5a5; }
 .hd-menu-exit:hover { background: rgba(248,113,113,.1); }
@@ -547,6 +561,15 @@ body.home {
   background: var(--acc);
   animation: pulse 2s infinite;
 }
+/* Cuantos partidos hay en vivo. Solo aparece cuando hay alguno. */
+.mtab-cuenta {
+  min-width: 19px; height: 19px; padding: 0 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 999px;
+  background: var(--acc); color: #05140b;
+  font-size: .7rem; font-weight: 800; line-height: 1;
+}
+.mtab-cuenta[hidden] { display: none; }
 .mtab-dot.mtab-dot-apagado {
   background: #f87171;
   animation: none;

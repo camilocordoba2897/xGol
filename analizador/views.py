@@ -186,7 +186,17 @@ def auto_enfrentamiento(request):
         return JsonResponse({"error":"faltan los equipos"},status=400)
     nombre_local=(request.GET.get("nombre_local") or "Local")[:80]
     nombre_visitante=(request.GET.get("nombre_visitante") or "Visitante")[:80]
-    datos=api_datos.enfrentamiento(id_local,nombre_local,id_visitante,nombre_visitante)
+    #La liga solo se usa como respaldo: si un equipo viene con pocos partidos
+    #(arranque de temporada o ascendido), el historial se completa desde
+    #datos_historicos/<liga>.csv sin gastar ni una peticion a la API.
+    liga=(request.GET.get("liga") or "").strip()[:10]
+    #El nombre largo llega ademas del corto: football-data dice "PSG" y "Barca"
+    #donde el historico dice "Paris SG" y "Barcelona". Contra el largo
+    #("Paris Saint-Germain FC", "FC Barcelona") si emparejan.
+    largo_local=(request.GET.get("largo_local") or "")[:120]
+    largo_visitante=(request.GET.get("largo_visitante") or "")[:120]
+    datos=api_datos.enfrentamiento(id_local,nombre_local,id_visitante,nombre_visitante,
+        liga=liga or None,largo_local=largo_local or None,largo_visitante=largo_visitante or None)
     return JsonResponse(datos)
 
 

@@ -109,6 +109,8 @@ RUIDO = {
 ALIAS_HISTORICO = {
     #España
     "ath madrid": "atletico madrid",
+    "atleti": "atletico madrid",
+    "barca": "barcelona",
     "ath bilbao": "athletic club",
     "espanol": "espanyol",
     "sociedad": "real sociedad",
@@ -144,9 +146,16 @@ ALIAS_HISTORICO = {
     "leipzig": "rb leipzig",
     #Francia
     "paris sg": "paris saint germain",
+    "psg": "paris saint germain",
     "marseille": "olympique marseille",
     "lyon": "olympique lyonnais",
+    "olympique lyon": "olympique lyonnais",
     "st etienne": "saint etienne",
+    "rennes": "stade rennais",
+    "reims": "stade reims",
+    "nice": "ogc nice",
+    "lens": "rc lens",
+    "angers": "angers sco",
     #Paises Bajos
     "psv eindhoven": "psv",
     "az alkmaar": "az",

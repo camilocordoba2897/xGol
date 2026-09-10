@@ -32,6 +32,20 @@
 </head>
 <body>
 
+{% comment %}
+Boton Inicio: fijo arriba a la izquierda. Solo se ve en la lista de partidos;
+en la pantalla del pronostico se esconde desde auto.js, porque ahi ya esta
+"Volver a los partidos" y dos botones de volver confunden.
+
+OJO: va con {% comment %} y no con la llave-almohadilla de una linea. Esa solo
+sirve para comentarios de UNA linea: si se parte en varias, Django no la
+reconoce y la imprime tal cual encima de la pagina.
+{% endcomment %}
+<a class="volver-inicio btn-inicio" id="btn-inicio" href="{% url 'Inicio' %}">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+  Inicio
+</a>
+
 {% if user.is_superuser or rol_actual == "administrador" %}
 <a class="panel-admin" href="{% url 'PanelAdmin' %}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6 4.6 5.8v5.4c0 4.6 3.1 8.8 7.4 10.2 4.3-1.4 7.4-5.6 7.4-10.2V5.8z"/><path d="M9.2 12.1 11.3 14.2 15 10.4"/></svg><span class="pa-texto">Panel admin</span></a>
 {% endif %}
@@ -238,9 +252,9 @@
     motor: "{% url 'MotorPronostico' %}"
   };
 </script>
-<script src="{% static 'js/auto.js' %}?v=17"></script>
+<script src="{% static 'js/auto.js' %}?v=19"></script>
 <script src="{% static 'js/seguimiento.js' %}?v=1"></script>
-<script src="{% static 'js/motor.js' %}?v=1"></script>
+<script src="{% static 'js/motor.js' %}?v=2"></script>
 <script>
   // Puente fichas -> <select>: escribe el valor y lanza 'change'.
   // auto.js sigue leyendo el select exactamente igual que antes.

@@ -67,9 +67,25 @@
     if (!balance || !balance.verificados) {
       // Sin historial todavia: se enseña de que esta hecho el motor, que es
       // cierto y no revela nada. Nunca un numero inventado para rellenar.
+      // LOS DOS NUMEROS DE ABAJO SON PROMESAS, NO ADORNOS: esta tarjeta lleva
+      // candado, asi que es lo que se le ensena a alguien ANTES de que pague.
+      //
+      //   3 fuentes  -> dixon_coles, elo y mercado. Son las que mezcla el
+      //                 motor y las que salen en "De donde sale este
+      //                 pronostico". Comprobable en pantalla.
+      //
+      //   8 mercados -> 1X2, doble oportunidad, ambos marcan, mas/menos de
+      //                 1.5, 2.5, 3.5 y 4.5 goles, y marcador exacto. Se
+      //                 cuentan abriendo un pronostico.
+      //
+      // Aca decia 12 y no salia de ningun lado: estaba escrito a mano y no
+      // coincidia con nada. Se dejan 8 a proposito aunque el motor calcula
+      // mas cosas: prometer de menos y entregar de mas se perdona; al reves
+      // no. Si algun dia se agrega un mercado a la pantalla, este numero se
+      // sube AQUI, contando lo que se ve, no lo que se calcula por dentro.
       return '<div class="pc-metricas">' +
         '<div class="pc-metrica"><div class="v">3</div><div class="l">Fuentes cruzadas</div></div>' +
-        '<div class="pc-metrica"><div class="v">12</div><div class="l">Mercados</div></div>' +
+        '<div class="pc-metrica"><div class="v">8</div><div class="l">Mercados</div></div>' +
       '</div>';
     }
     return '<div class="pc-metricas">' +

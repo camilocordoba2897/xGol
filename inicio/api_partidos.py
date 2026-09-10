@@ -9,8 +9,13 @@ from django.core.cache import cache
 BASE = "https://api.football-data.org/v4"
 ZONA = ZoneInfo("America/Bogota")
 
-#Competencias para la tabla (codigos de football-data.org). El plan gratuito
-#cubre estas; la Liga BetPlay (Colombia) no esta disponible en esta API.
+#REGLA: esta lista tiene que ser EXACTAMENTE la misma que
+#analizador/api_datos.py::LIGAS. Ni una liga de mas.
+#
+#Si el home anunciara una competencia que el motor no puede pronosticar,
+#estariamos vendiendo algo que no existe. Por eso se quitaron la Copa
+#Libertadores y la Liga BetPlay: football-data.org no las cubre y el
+#analizador nunca pudo calcularlas.
 LIGAS = {
     "Premier League": "PL",
     "LaLiga": "PD",
@@ -19,8 +24,19 @@ LIGAS = {
     "Ligue 1": "FL1",
     "Champions League": "CL",
     "Eredivisie": "DED",
+    "Primeira Liga": "PPL",
     "Brasileirao": "BSA",
 }
+
+#Los codigos, que es por lo que de verdad hay que filtrar.
+#
+#POR QUE NO POR NOMBRE: football-data.org NO llama a las ligas como las
+#llamamos nosotros. A LaLiga le dice "Primera Division", al Brasileirao
+#"Campeonato Brasileiro Serie A" y a la Champions "UEFA Champions League".
+#Comparar por nombre hacia que esas tres se descartaran en silencio y la
+#tarjeta del home se quedara sin partidos sin que nadie supiera por que.
+#El codigo ("PD", "BSA", "CL") si viene siempre igual.
+CODIGOS = set(LIGAS.values())
 
 def _pedir(ruta, parametros=None):
     #Llama a un endpoint de football-data.org y devuelve el JSON (o {} si falla)
@@ -83,6 +99,15 @@ def _reloj(utc, estado, minuto_api):
         return {"minuto": 90, "periodo": "2T", "etiqueta": "90+", "fuente": "estimado"}
     return {"minuto": m, "periodo": "2T", "etiqueta": f"{m}'", "fuente": "estimado"}
 
+def _codigo_competencia(m):
+    return ((m.get("competition") or {}).get("code") or "")
+
+
+def _cubierta(m):
+    #Solo pasan las competencias que el analizador sabe pronosticar
+    return _codigo_competencia(m) in CODIGOS
+
+
 def _partido(m):
     #Da forma a un partido para el frontend (equipos, hora, marcador, estado)
     comp = m.get("competition", {})
@@ -94,6 +119,7 @@ def _partido(m):
     parcial = (m.get("score", {}) or {}).get("halfTime", {}) or {}
     return {
         "liga": comp.get("name", ""),
+        "liga_codigo": comp.get("code", ""),
         "liga_logo": comp.get("emblem", ""),
         "local": local.get("shortName") or local.get("name", ""),
         "local_logo": local.get("crest", ""),
@@ -114,29 +140,38 @@ def _partido(m):
     }
 
 def _partidos_rango(desde, hasta):
+    #Se filtra por competencia cubierta: el plan gratuito devuelve tambien
+    #Championship, Mundial y Eurocopa, que el analizador no pronostica. Si
+    #salieran en el home, el usuario veria partidos que luego no encuentra.
     datos = _pedir("matches", {"dateFrom": desde, "dateTo": hasta})
-    return [_partido(m) for m in datos.get("matches", [])]
+    return [_partido(m) for m in datos.get("matches", []) if _cubierta(m)]
 
 def partidos_hoy():
-    datos = cache.get("partidos_hoy")
+    datos = cache.get("partidos_hoy_v2")
     if datos is None:
         hoy = date.today().isoformat()
         datos = _partidos_rango(hoy, hoy)
-        cache.set("partidos_hoy", datos, 180)
+        cache.set("partidos_hoy_v2", datos, 180)
     return datos
 
 def partidos_proximos():
-    datos = cache.get("partidos_proximos")
+    #ARRANCA HOY, no mañana.
+    #
+    #Antes empezaba al dia siguiente porque los de hoy los cubria la pestaña
+    #"Hoy". Al quitar esa pestaña, los partidos de hoy se habrian perdido de
+    #la pagina entera. Se descartan solo los que ya terminaron: en una lista
+    #que se llama "Proximos" un partido con resultado final no pinta nada.
+    datos = cache.get("partidos_proximos_v3")
     if datos is None:
         hoy = date.today()
-        desde = (hoy + timedelta(days=1)).isoformat()
         hasta = (hoy + timedelta(days=7)).isoformat()
-        datos = _partidos_rango(desde, hasta)
-        cache.set("partidos_proximos", datos, 600)
+        datos = [p for p in _partidos_rango(hoy.isoformat(), hasta)
+                 if p.get("estado") != "FINISHED"]
+        cache.set("partidos_proximos_v3", datos, 600)
     return datos
 
 def partidos_vivo():
-    datos = cache.get("partidos_vivo")
+    datos = cache.get("partidos_vivo_v2")
     if datos is None:
         #Ventana de 3 dias, no solo hoy: football-data fecha los partidos en UTC.
         #Un partido de las 22:30 UTC del domingo cae en lunes para un servidor
@@ -147,8 +182,9 @@ def partidos_vivo():
             "dateTo": (hoy + timedelta(days=1)).isoformat(),
         })
         vivos = {"IN_PLAY", "PAUSED"}
-        datos = [_partido(m) for m in crudo.get("matches", []) if m.get("status") in vivos]
-        cache.set("partidos_vivo", datos, 30)
+        datos = [_partido(m) for m in crudo.get("matches", [])
+                 if m.get("status") in vivos and _cubierta(m)]
+        cache.set("partidos_vivo_v2", datos, 30)
     return datos
 
 def tabla_posiciones(liga):
@@ -355,10 +391,6 @@ def _ligas_anunciables():
     return set(LIGAS.values())
 
 
-def _codigo_de_liga(nombre):
-    return LIGAS.get(nombre or "")
-
-
 def _proximos_bloqueados(limite):
     #Partidos que se van a jugar. SIN NINGUN NUMERO de pronostico.
     #
@@ -403,7 +435,7 @@ def _proximos_bloqueados(limite):
         vistos.add(clave)
         if not p.get("local") or not p.get("visitante"):
             continue
-        codigo = _codigo_de_liga(p.get("liga"))
+        codigo = p.get("liga_codigo") or ""
         if codigo not in ligas:
             descartados_por_liga += 1
             continue
@@ -426,7 +458,7 @@ def _proximos_bloqueados(limite):
 
 
 def predicciones_destacadas():
-    datos = cache.get("tarjeta_home")
+    datos = cache.get("tarjeta_home_v2")
     if datos is not None:
         return datos
 
@@ -454,5 +486,5 @@ def predicciones_destacadas():
     }
     #Sin datos se cachea solo 60 segundos: si el problema era pasajero, la
     #tarjeta se arregla sola en un minuto en vez de quedarse mal cinco.
-    cache.set("tarjeta_home", datos, 300 if tarjetas else 60)
+    cache.set("tarjeta_home_v2", datos, 300 if tarjetas else 60)
     return datos
