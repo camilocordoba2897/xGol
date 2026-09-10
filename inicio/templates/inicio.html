@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/home.css' %}?v=33">
+<link rel="stylesheet" href="{% static 'css/home.css' %}?v=34">
 <script>
   // Aplicamos el tema guardado ANTES de pintar para que no parpadee
   (function() {
@@ -541,11 +541,24 @@
   });
 
   // ===== Scroll reveal (aparición suave de secciones) =====
+  //
+  // OJO CON EL UMBRAL, QUE AQUI HUBO UN FALLO FEO:
+  //
+  // Antes iba threshold 0.12, o sea "revelame la seccion cuando se vea el 12%
+  // de ella". Eso funciona con secciones normales, pero se rompe en silencio
+  // en cuanto una crece: si una seccion mide 6.000 px, su 12% son 720 px, mas
+  // que la altura de la pantalla, asi que el 12% NO SE PUEDE VER NUNCA. La
+  // seccion se queda con opacity 0 para siempre... ocupando su espacio
+  // completo. El resultado es un hueco enorme y vacio en mitad de la pagina.
+  //
+  // Con threshold 0 basta con que asome un pixel, y el rootMargin de abajo
+  // retrasa un poco la entrada para que la animacion se siga notando igual.
+  // Da igual lo que crezca la lista de partidos: siempre se revela.
   var observer = new IntersectionObserver(function(entries) {
     entries.forEach(function(e) {
       if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
     });
-  }, { threshold: 0.12 });
+  }, { threshold: 0, rootMargin: '0px 0px -60px 0px' });
   document.querySelectorAll('.reveal').forEach(function(el) { observer.observe(el); });
 
   // ===== Partículas del fondo =====
@@ -794,12 +807,18 @@
     } catch (e) { cont.innerHTML = vacio('No se pudieron cargar los partidos'); }
   }
 
+  // Tope de filas del home. Nueve ligas por ocho dias pasan de cien partidos,
+  // y volcarlos todos aqui deja una pagina de varios miles de pixeles por la
+  // que hay que bajar sin parar antes de llegar a nada mas. El home es un
+  // aperitivo; la lista completa esta en el analizador.
+  var TOPE_PROXIMOS = 24;
+
   async function cargarProximos() {
     var cont = document.getElementById('lista-proximos');
     cont.innerHTML = vacio('Cargando…');
     try {
       var d = await traer(PART.proximos); var l = d.partidos || [];
-      cont.innerHTML = l.length ? l.map(filaPartido).join('') : vacio('No hay próximos partidos en las ligas seguidas');
+      cont.innerHTML = l.length ? l.slice(0, TOPE_PROXIMOS).map(filaPartido).join('') : vacio('No hay próximos partidos en las ligas seguidas');
     } catch (e) { cont.innerHTML = vacio('No se pudieron cargar los partidos'); }
   }
 
