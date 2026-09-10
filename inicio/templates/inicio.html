@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/home.css' %}?v=32">
+<link rel="stylesheet" href="{% static 'css/home.css' %}?v=33">
 <script>
   // Aplicamos el tema guardado ANTES de pintar para que no parpadee
   (function() {
@@ -55,17 +55,17 @@
             <div class="hd-avatar-ph">{{ user.username|first|upper }}</div>
           {% endif %}
           <span class="hd-name">{{ user.username }}</span>
-          <span class="hd-caret">▾</span>
+          <span class="hd-caret"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></span>
 
           <div class="hd-menu" id="accountMenu">
-            <a href="{% url 'EditarPerfil' %}" class="hd-menu-item">⚙️ Administrar cuenta</a>
+            <a href="{% url 'EditarPerfil' %}" class="hd-menu-item"><svg class="hd-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Administrar cuenta</span></a>
             {% if not user.is_superuser and rol_actual != "administrador" %}
-              <a href="{% url 'Suscripcion' %}" class="hd-menu-item">⭐ {% if suscripcion_activa %}Mejorar plan{% else %}Mis planes{% endif %}</a>
+              <a href="{% url 'Suscripcion' %}" class="hd-menu-item"><svg class="hd-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span>{% if suscripcion_activa %}Mejorar plan{% else %}Mis planes{% endif %}</span></a>
             {% endif %}
             {% if user.is_superuser or rol_actual == "administrador" %}
-              <a href="{% url 'PanelAdmin' %}" class="hd-menu-item">🛡️ Panel de administración</a>
+              <a href="{% url 'PanelAdmin' %}" class="hd-menu-item"><svg class="hd-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg><span>Panel de administración</span></a>
             {% endif %}
-            <a href="{% url 'Salir' %}" class="hd-menu-item hd-menu-exit">↩ Cerrar sesión</a>
+            <a href="{% url 'Salir' %}" class="hd-menu-item hd-menu-exit"><svg class="hd-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Cerrar sesión</span></a>
           </div>
         </div>
 
@@ -142,7 +142,7 @@
         </a>
         <div class="pc-metricas">
           <div class="pc-metrica"><div class="v">3</div><div class="l">Fuentes cruzadas</div></div>
-          <div class="pc-metrica"><div class="v">12</div><div class="l">Mercados</div></div>
+          <div class="pc-metrica"><div class="v">8</div><div class="l">Mercados</div></div>
         </div>
       </div>
     </div>
@@ -157,9 +157,8 @@
 
   <div class="mcen">
     <div class="mtabs">
-      <button class="mtab activo" onclick="cambiarTabPartidos('hoy', this)">Hoy</button>
-      <button class="mtab" onclick="cambiarTabPartidos('proximos', this)">Próximos</button>
-      <button class="mtab" onclick="cambiarTabPartidos('vivo', this)"><span class="mtab-dot"></span>En vivo</button>
+      <button class="mtab activo" onclick="cambiarTabPartidos('proximos', this)">Próximos</button>
+      <button class="mtab" onclick="cambiarTabPartidos('vivo', this)"><span class="mtab-dot"></span>En vivo<span class="mtab-cuenta" id="vivoCuenta" hidden></span></button>
       <div class="mtab-dd" id="tablaDD">
         <button class="mtab mtab-trigger" id="ddTrigger" onclick="toggleTablaDD(event)" aria-haspopup="true" aria-expanded="false">
           Tabla de ligas
@@ -172,19 +171,20 @@
           <button class="dd-item" data-liga="bundesliga" role="menuitem" onclick="elegirLigaTabla('bundesliga')"><img src="{% static 'img/ligas/bundesliga.png' %}" alt=""><span>Bundesliga</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
           <button class="dd-item" data-liga="ligue1" role="menuitem" onclick="elegirLigaTabla('ligue1')"><img src="{% static 'img/ligas/ligue1.png' %}" alt=""><span>Ligue 1</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
           <button class="dd-item" data-liga="champions" role="menuitem" onclick="elegirLigaTabla('champions')"><img src="{% static 'img/ligas/champions.png' %}" alt=""><span>Champions League</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
-          <button class="dd-item" data-liga="libertadores" role="menuitem" onclick="elegirLigaTabla('libertadores')"><img src="{% static 'img/ligas/libertadores.png' %}" alt=""><span>Copa Libertadores</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
-          <button class="dd-item" data-liga="betplay" role="menuitem" onclick="elegirLigaTabla('betplay')"><img src="{% static 'img/ligas/betplay.png' %}" alt=""><span>Liga BetPlay</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
+          <button class="dd-item" data-liga="eredivisie" role="menuitem" onclick="elegirLigaTabla('eredivisie')"><img src="{% static 'img/ligas/eredivisie.png' %}" alt="" onerror="this.style.visibility='hidden'"><span>Eredivisie</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
+          <button class="dd-item" data-liga="primeiraliga" role="menuitem" onclick="elegirLigaTabla('primeiraliga')"><img src="{% static 'img/ligas/primeiraliga.png' %}" alt="" onerror="this.style.visibility='hidden'"><span>Primeira Liga</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
+          <button class="dd-item" data-liga="brasileirao" role="menuitem" onclick="elegirLigaTabla('brasileirao')"><img src="{% static 'img/ligas/brasileirao.png' %}" alt="" onerror="this.style.visibility='hidden'"><span>Brasileirão</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
         </div>
       </div>
     </div>
 
     <!-- PESTAÑA: HOY (se rellena sola desde la API) -->
-    <div class="mpanel activo" id="mpanel-hoy">
+    <div class="mpanel" id="mpanel-hoy">
       <div id="lista-hoy"></div>
     </div>
 
     <!-- PESTAÑA: PRÓXIMOS (se rellena sola desde la API) -->
-    <div class="mpanel" id="mpanel-proximos">
+    <div class="mpanel activo" id="mpanel-proximos">
       <div id="lista-proximos"></div>
     </div>
 
@@ -217,8 +217,8 @@
 <!-- LIGAS -->
 <section class="sec reveal" id="ligas">
   <div class="sec-eyebrow">Cobertura global</div>
-  <h2 class="sec-title">Analiza cualquier liga del mundo</h2>
-  <p class="sec-sub">Si tienes los datos del equipo, xGol lo analiza. Estas son las ligas más consultadas.</p>
+  <h2 class="sec-title">Las ligas que puedes predecir</h2>
+  <p class="sec-sub">Estas nueve competencias, y solo estas, son las que el motor de xGol calcula. Las mismas que encuentras dentro del analizador.</p>
   <div class="leagues-grid">
     <div class="league" onclick="abrirLiga('premier')"><div class="ic"><img src="{% static 'img/ligas/premierleague.png' %}" alt="Premier League"></div><div class="nm">Premier League</div><div class="ds">Inglaterra</div></div>
     <div class="league" onclick="abrirLiga('laliga')"><div class="ic"><img src="{% static 'img/ligas/laliga.png' %}" alt="LaLiga"></div><div class="nm">LaLiga</div><div class="ds">España</div></div>
@@ -226,16 +226,17 @@
     <div class="league" onclick="abrirLiga('bundesliga')"><div class="ic"><img src="{% static 'img/ligas/bundesliga.png' %}" alt="Bundesliga"></div><div class="nm">Bundesliga</div><div class="ds">Alemania</div></div>
     <div class="league" onclick="abrirLiga('ligue1')"><div class="ic"><img src="{% static 'img/ligas/ligue1.png' %}" alt="Ligue 1"></div><div class="nm">Ligue 1</div><div class="ds">Francia</div></div>
     <div class="league" onclick="abrirLiga('champions')"><div class="ic"><img src="{% static 'img/ligas/champions.png' %}" alt="Champions League"></div><div class="nm">Champions League</div><div class="ds">Europa</div></div>
-    <div class="league" onclick="abrirLiga('libertadores')"><div class="ic"><img src="{% static 'img/ligas/libertadores.png' %}" alt="Libertadores"></div><div class="nm">Libertadores</div><div class="ds">Sudamérica</div></div>
-    <div class="league" onclick="abrirLiga('betplay')"><div class="ic"><img src="{% static 'img/ligas/betplay.png' %}" alt="Liga BetPlay"></div><div class="nm">Liga BetPlay</div><div class="ds">Colombia</div></div>
+    <div class="league" onclick="abrirLiga('eredivisie')"><div class="ic"><img src="{% static 'img/ligas/eredivisie.png' %}" alt="Eredivisie" onerror="this.style.visibility='hidden'"></div><div class="nm">Eredivisie</div><div class="ds">Países Bajos</div></div>
+    <div class="league" onclick="abrirLiga('primeiraliga')"><div class="ic"><img src="{% static 'img/ligas/primeiraliga.png' %}" alt="Primeira Liga" onerror="this.style.visibility='hidden'"></div><div class="nm">Primeira Liga</div><div class="ds">Portugal</div></div>
+    <div class="league" onclick="abrirLiga('brasileirao')"><div class="ic"><img src="{% static 'img/ligas/brasileirao.png' %}" alt="Brasileirão" onerror="this.style.visibility='hidden'"></div><div class="nm">Brasileirão</div><div class="ds">Brasil</div></div>
   </div>
 </section>
 
 <!-- EQUIPOS DESTACADOS (carrusel infinito) -->
 <section class="sec reveal">
-  <div class="sec-eyebrow">Los más analizados</div>
+  <div class="sec-eyebrow">Tabla en vivo</div>
   <h2 class="sec-title">Equipos destacados</h2>
-  <p class="sec-sub">Los clubes que más pasan por el motor de predicción.</p>
+  <p class="sec-sub">Los primeros de la Premier League ahora mismo. Datos de la tabla oficial, no ejemplos.</p>
   <div class="carousel">
     <div class="car-track" id="carTrack">
       <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/uyhbfe1612467038.png/medium" alt="Arsenal"></div><div><div class="tc-name">Arsenal</div><div class="tc-form">Forma <b>W W W D W</b></div></div></div>
@@ -443,8 +444,9 @@
     bundesliga:  { nombre:'Bundesliga',        pais:'Alemania',   logo:"{% static 'img/ligas/bundesliga.png' %}",    fd:'BL1' },
     ligue1:      { nombre:'Ligue 1',           pais:'Francia',    logo:"{% static 'img/ligas/ligue1.png' %}",        fd:'FL1' },
     champions:   { nombre:'Champions League',  pais:'Europa',     logo:"{% static 'img/ligas/champions.png' %}",     fd:'CL'  },
-    libertadores:{ nombre:'Copa Libertadores', pais:'Sudamérica', logo:"{% static 'img/ligas/libertadores.png' %}",  sdb:'4501' },
-    betplay:     { nombre:'Liga BetPlay',      pais:'Colombia',   logo:"{% static 'img/ligas/betplay.png' %}",       sdb:'4497' }
+    eredivisie:  { nombre:'Eredivisie',        pais:'Países Bajos', logo:"{% static 'img/ligas/eredivisie.png' %}",   fd:'DED' },
+    primeiraliga:{ nombre:'Primeira Liga',     pais:'Portugal',   logo:"{% static 'img/ligas/primeiraliga.png' %}",  fd:'PPL' },
+    brasileirao: { nombre:'Brasileirão',       pais:'Brasil',     logo:"{% static 'img/ligas/brasileirao.png' %}",   fd:'BSA' }
   };
   var LG_EQUIPOS_URL = "{% url 'EquiposLiga' %}";
   var lgCache = {};
@@ -481,9 +483,10 @@
         .then(function(r) { return r.json(); })
         .then(function(j) { return (j.equipos || []).map(function(e) { return { nombre: e.nombre, escudo: e.escudo }; }); });
     }
-    return fetch('https://www.thesportsdb.com/api/v1/json/3/lookup_all_teams.php?id=' + cfg.sdb)
-      .then(function(r) { return r.json(); })
-      .then(function(j) { return (j.teams || []).map(function(t) { return { nombre: t.strTeam, escudo: t.strBadge || t.strTeamBadge || '' }; }); });
+    // Todas las ligas del home tienen codigo de football-data. Antes habia
+    // dos (Libertadores y BetPlay) que tiraban de thesportsdb y solo podian
+    // listar equipos: ni partidos, ni tabla real, ni pronostico. Se quitaron.
+    return Promise.resolve([]);
   }
 
   function lgPintar(lista) {
@@ -559,8 +562,18 @@
   }
 
   // ===== Carrusel infinito: duplicamos el contenido para el loop =====
+  // Los chips que vienen en el HTML son solo el molde de arranque. En cuanto
+  // llega la tabla real (cargarCarrusel, mas abajo) se reemplazan por datos
+  // de verdad. En un producto de predicciones una forma escrita a mano es lo
+  // primero que tumba la credibilidad, asi que si la tabla no llega tampoco
+  // se deja la inventada: se borra la linea de forma y se queda el nombre.
   var track = document.getElementById('carTrack');
-  track.innerHTML = track.innerHTML + track.innerHTML;
+  window.CARRUSEL_BASE = track.innerHTML;
+  window.pintarCarrusel = function(html) {
+    if (html) window.CARRUSEL_BASE = html;
+    track.innerHTML = window.CARRUSEL_BASE + window.CARRUSEL_BASE;
+  };
+  window.pintarCarrusel();
 
   // ===== Temas de color =====
   function cambiarTema(color) {
@@ -735,6 +748,43 @@
     return await r.json();
   }
 
+  // ===== Equipos destacados con datos reales =====
+  // Sale de la MISMA tabla de posiciones que ya usa la pestaña de arriba, asi
+  // que comparte cache (15 min) y no gasta una peticion aparte por visita.
+  function limpiar(t) {
+    var d = document.createElement('div');
+    d.textContent = String(t == null ? '' : t);
+    return d.innerHTML;
+  }
+
+  async function cargarCarrusel() {
+    if (typeof window.pintarCarrusel !== 'function') return;
+    try {
+      var d = await traer(PART.tabla + '?liga=PL');
+      var t = (d.tabla || []).slice(0, 10);
+      if (!t.length) throw new Error('tabla vacia');
+      var html = t.map(function(e) {
+        // football-data no siempre publica la forma en el plan gratuito. Si no
+        // viene, se pone el puesto y los puntos, que son igual de reales.
+        var forma = String(e.forma || '').replace(/,/g, ' ').trim();
+        var detalle = forma
+          ? 'Forma <b>' + limpiar(forma) + '</b>'
+          : limpiar(e.puesto) + '.º · <b>' + limpiar(e.puntos) + ' pts</b>';
+        var img = e.escudo
+          ? '<img src="' + limpiar(e.escudo) + '" alt="' + limpiar(e.equipo) + '" loading="lazy">'
+          : '';
+        return '<div class="team-chip"><div class="tc-shield">' + img + '</div>' +
+               '<div><div class="tc-name">' + limpiar(e.equipo) + '</div>' +
+               '<div class="tc-form">' + detalle + '</div></div></div>';
+      }).join('');
+      window.pintarCarrusel(html);
+    } catch (e) {
+      // Sin datos reales NO se deja la forma de ejemplo puesta
+      window.pintarCarrusel(
+        window.CARRUSEL_BASE.replace(/<div class="tc-form">[\s\S]*?<\/div>/g, ''));
+    }
+  }
+
   async function cargarHoy() {
     var cont = document.getElementById('lista-hoy');
     cont.innerHTML = vacio('Cargando…');
@@ -760,6 +810,10 @@
       var d = await traer(PART.vivo); var l = d.partidos || [];
             cont.innerHTML = l.length ? l.map(tarjetaVivo).join('') : vacio('No hay partidos en vivo en este momento');
             document.querySelectorAll('.mtab-dot').forEach(function(d) { d.classList.toggle('mtab-dot-apagado', !l.length); });
+            // Cuantos hay ahora mismo. Si no hay ninguno el contador se esconde
+            // en vez de mostrar un cero, que solo ocupa sitio.
+            var cuenta = document.getElementById('vivoCuenta');
+            if (cuenta) { cuenta.textContent = l.length; cuenta.hidden = !l.length; }
     } catch (e) { cont.innerHTML = vacio('No se pudo cargar el directo'); }
   }
 
@@ -793,34 +847,12 @@
   function tablaFD(code) {
     return traer(PART.tabla + '?liga=' + code).then(function(d) { return d.tabla || []; });
   }
-  function sdbTabla(id, season) {
-    return fetch('https://www.thesportsdb.com/api/v1/json/3/lookuptable.php?l=' + id + '&s=' + season)
-      .then(function(r) { return r.json(); })
-      .then(function(j) {
-        return (j.table || []).map(function(t) {
-          return {
-            puesto: parseInt(t.intRank, 10),
-            equipo: t.strTeam,
-            escudo: t.strBadge || '',
-            jugados: t.intPlayed,
-            diferencia: parseInt(t.intGoalDifference, 10),
-            puntos: t.intPoints
-          };
-        });
-      }).catch(function() { return []; });
-  }
-  async function tablaSDB(id) {
-    var y = new Date().getFullYear();
-    var t = await sdbTabla(id, y);
-    if (!t.length) t = await sdbTabla(id, y - 1);
-    return t;
-  }
 
   async function cargarTablaLiga(cfg) {
     var cont = document.getElementById('tabla-posiciones');
     cont.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--texto-3)">Cargando…</td></tr>';
     try {
-      var l = cfg.fd ? await tablaFD(cfg.fd) : await tablaSDB(cfg.sdb);
+      var l = await tablaFD(cfg.fd);
       cont.innerHTML = l.length ? l.map(filaTabla).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--texto-3)">Tabla no disponible para esta competición</td></tr>';
     } catch (e) { cont.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--texto-3)">No se pudo cargar la tabla</td></tr>'; }
   }
@@ -873,10 +905,10 @@
     if (dd && dd.classList.contains('open') && !dd.contains(e.target)) cerrarTablaDD();
   });
 
-  document.addEventListener('DOMContentLoaded', function() { cargarTab('hoy'); cargarVivo(); });
+  document.addEventListener('DOMContentLoaded', function() { cargarTab('proximos'); cargarVivo(); cargarCarrusel(); });
 </script>
 
-<script src="{% static 'js/prediccion.js' %}?v=2"></script>
+<script src="{% static 'js/prediccion.js' %}?v=3"></script>
 
 <!-- BOTON SUBIR -->
 <button type="button" class="subir" id="btnSubir" onclick="irArriba()" title="Volver al inicio" aria-label="Volver al inicio de la página">

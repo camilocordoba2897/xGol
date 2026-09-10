@@ -51,15 +51,35 @@
   // ============================================================
   //  CAMBIO ENTRE PANTALLAS
   // ============================================================
-  function verPantalla(cual) {
+  function verPantalla(cual, irAPorJugar) {
     var lista = el('pantalla-lista');
     var pron = el('pantalla-pronostico');
     if (!lista || !pron) return;
     lista.classList.toggle('activa', cual === 'lista');
     pron.classList.toggle('activa', cual === 'pronostico');
+
+    // El boton "Inicio" solo tiene sentido en la lista. Dentro del pronostico
+    // ya esta "Volver a los partidos", y dos botones de volver uno encima del
+    // otro confunden mas de lo que ayudan.
+    var inicio = el('btn-inicio');
+    if (inicio) inicio.style.display = (cual === 'lista') ? '' : 'none';
+
+    // Al volver del pronostico NO se sube del todo: se cae en los partidos
+    // que si se pueden pronosticar, igual que al cambiar de liga. Arriba del
+    // todo estan los que ya se jugaron, que no sirven para nada aqui.
+    if (irAPorJugar) {
+      bajarEnLaProxima = true;
+      bajarAPorJugar();
+      return;
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
-  window.volverALista = function() { verPantalla('lista'); };
+
+  window.volverALista = function() {
+    // Si esta liga no tiene partidos por jugar no hay a donde bajar, y en ese
+    // caso si se sube al principio para no dejar la pantalla a media altura.
+    verPantalla('lista', !!el('lp-por-jugar'));
+  };
 
   // Lo usa el modo manual: tras cargar los CSV, saltar al pronostico
   window.verPronostico = function() {
@@ -377,9 +397,14 @@
       if (boton) { boton.disabled = false; boton.textContent = 'Pronóstico'; }
     };
 
+    // La liga viaja para que el backend pueda completar el historial desde
+    // datos_historicos/<liga>.csv si la API devuelve pocos partidos.
     var q = 'local=' + p.local.id + '&visitante=' + p.visitante.id +
+            '&liga=' + encodeURIComponent(ligaActual) +
             '&nombre_local=' + encodeURIComponent(p.local.nombre) +
-            '&nombre_visitante=' + encodeURIComponent(p.visitante.nombre);
+            '&nombre_visitante=' + encodeURIComponent(p.visitante.nombre) +
+            '&largo_local=' + encodeURIComponent(p.local.nombre_largo || '') +
+            '&largo_visitante=' + encodeURIComponent(p.visitante.nombre_largo || '');
 
     pedirJSON(RUTAS.enfrentamiento + '?' + q)
       .then(function(d) {
@@ -394,8 +419,24 @@
         }
         var fl = (d.local && d.local.filas) || [];
         var fv = (d.visitante && d.visitante.filas) || [];
-        if (fl.length < 3 || fv.length < 3) {
-          alert('Estos equipos no tienen historial suficiente (mínimo 3 partidos jugados por equipo). Prueba con otro partido.');
+
+        // AQUI ESTABA EL BLOQUEO QUE TUMBABA LIGAS ENTERAS.
+        //
+        // Antes, si un equipo traia menos de 3 partidos, se cortaba el
+        // pronostico. El problema es que ese historial NO es lo que calcula
+        // el pronostico: el motor (analizador/motor/) trabaja con el ajuste
+        // de la liga completa, el Elo y el mercado. Esas 15 filas solo pintan
+        // las tarjetas de "ultimos resultados".
+        //
+        // Es decir: se estaba negando un pronostico que el motor si podia
+        // dar, y encima a toda la liga a la vez cada vez que empezaba una
+        // temporada. Ahora se sigue adelante con lo que haya; las tarjetas de
+        // forma se pintan con los partidos disponibles y ya esta.
+        //
+        // Solo se avisa si NO hay absolutamente nada de ninguno de los dos,
+        // que con el respaldo del historico local ya casi no puede pasar.
+        if (!fl.length && !fv.length) {
+          alert('No se pudo traer el historial de estos equipos. Inténtalo de nuevo en un momento.');
           return;
         }
 

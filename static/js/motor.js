@@ -68,9 +68,63 @@
   //  los numeros del motor. Asi vista.js no se entera de nada y
   //  pinta todo con una sola fuente de verdad.
   // ------------------------------------------------------------
+  // ------------------------------------------------------------
+  //  MODELO NEUTRO DE ESPERA
+  //  Se usa SOLO en el instante que va entre abrir la pantalla y que
+  //  responda el motor, y unicamente cuando el calculo local no puede
+  //  correr por falta de partidos (un equipo con 0, 1 o 2 partidos, cosa
+  //  normal al empezar la temporada). Sin esto, ahi salian NaN% por todas
+  //  las tarjetas durante medio segundo. No es un pronostico: es un relleno
+  //  que el motor sobrescribe enseguida.
+  // ------------------------------------------------------------
+  function modeloEspera() {
+    var L1 = 1.35, L2 = 1.15, N = 8;
+    function poisson(k, lam) {
+      var f = 1, i;
+      for (i = 2; i <= k; i++) f *= i;
+      return Math.exp(-lam) * Math.pow(lam, k) / f;
+    }
+    var mat = [], h, a, suma = 0;
+    for (h = 0; h < N; h++) {
+      mat[h] = [];
+      for (a = 0; a < N; a++) { mat[h][a] = poisson(h, L1) * poisson(a, L2); suma += mat[h][a]; }
+    }
+    var pH = 0, pD = 0, pA = 0, btts = 0, acum = [0, 0, 0, 0, 0], i2;
+    for (h = 0; h < N; h++) {
+      for (a = 0; a < N; a++) {
+        mat[h][a] /= suma;
+        var p = mat[h][a];
+        if (h > a) pH += p; else if (h === a) pD += p; else pA += p;
+        if (h >= 1 && a >= 1) btts += p;
+        if (h + a <= 4) { for (i2 = h + a; i2 < 5; i2++) acum[i2] += p; }
+      }
+    }
+    return {
+      lam1: L1, lam2: L2, lamTotal: L1 + L2,
+      pH: pH, pD: pD, pA: pA,
+      over15: 1 - acum[1], over25: 1 - acum[2], over35: 1 - acum[3], over45: 1 - acum[4],
+      btts: btts, p00: mat[0][0], mat: mat,
+      rho: 0, rhoDynamic: false, rhoN: 0, neutral: esNeutral(),
+      usedXG: false, usedXGOT: false, usedPPDA: false,
+      trendGF1: 1, trendGF2: 1,
+      wXGF1: null, wXGA1: null, wXGF2: null, wXGA2: null,
+      contextUsed1: esNeutral() ? 'neutral' : 'local',
+      contextUsed2: esNeutral() ? 'neutral' : 'away',
+      motor: true, motorFuentes: [], motorPartidos: 0
+    };
+  }
+
+  function sirve(m) {
+    return m && isFinite(m.pH) && isFinite(m.pD) && isFinite(m.pA) &&
+           isFinite(m.lam1) && isFinite(m.lam2) && m.mat && m.mat.length;
+  }
+
   window.buildModel = function(s1, s2) {
     if (!datos || clave !== claveActual() || !datos.matriz) {
-      return buildOriginal(s1, s2);   // aun no llego el motor, o fallo
+      // aun no llego el motor, o fallo
+      var local;
+      try { local = buildOriginal(s1, s2); } catch (e) { local = null; }
+      return sirve(local) ? local : modeloEspera();
     }
     var m = datos.mercados || {};
     var r = m['1x2'] || {};
