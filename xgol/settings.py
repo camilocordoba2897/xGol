@@ -56,6 +56,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    #Sirve los archivos de static/ en produccion. Sin esto, con
+    #DEBUG=False el sitio sale sin CSS ni imagenes.
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -143,6 +146,14 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+#Comprime los archivos de static/ al correr collectstatic. No usa
+#manifiesto, asi que si un CSS apunta a una imagen que no existe el
+#despliegue NO se cae.
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage'},
+}
 
 #albergar las imagenes del proyecto
 MEDIA_URL = '/media/'
