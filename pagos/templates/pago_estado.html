@@ -60,14 +60,17 @@
     </div>
   {% endif %}
 
-  <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-    {% if estado == "Aprobado" %}
-      <a href="{% url 'Ingresar' %}" class="btn btn-primary">Iniciar sesión</a>
-    {% elif estado != "Pendiente" %}
-      <a href="{% url 'Suscripcion' %}" class="btn btn-primary">Intentar de nuevo</a>
-    {% endif %}
-    <a href="{% url 'Inicio' %}" class="btn-inicio">Volver al inicio</a>
-  </div>
+  {# Con el pago aprobado no va ningun boton: el usuario ya pago y la barra de
+     arriba tiene Inicio y Analizador. Poner "Iniciar sesion" ahi confundia,
+     porque se lo decia a alguien que acababa de entrar con su cuenta. #}
+  {% if estado != "Aprobado" %}
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+      {% if estado != "Pendiente" %}
+        <a href="{% url 'Suscripcion' %}" class="btn btn-primary">Intentar de nuevo</a>
+      {% endif %}
+      <a href="{% url 'Inicio' %}" class="btn-inicio">Volver al inicio</a>
+    </div>
+  {% endif %}
 
 </div>
 {% endblock %}

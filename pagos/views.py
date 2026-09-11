@@ -7,6 +7,7 @@ from django.http import HttpResponse,JsonResponse,HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.urls import reverse
+from urllib.parse import urlparse
 from django.core.cache import cache
 from django.conf import settings
 
@@ -21,12 +22,30 @@ LIMITE_INTENTOS=8
 
 
 def _url_publica(request,nombre_url):
+    #A DONDE VUELVE EL USUARIO DESPUES DE PAGAR.
+    #
     #En produccion la URL base viene de .env porque detras de un proxy el
     #request puede reportar http:// y Wompi exige una URL alcanzable.
+    #
+    #PERO SOLO SE USA SI EL NAVEGADOR ESTA DE VERDAD EN ESE DOMINIO.
+    #
+    #Antes se usaba siempre, y eso rompia el pago en local: con el navegador
+    #en 127.0.0.1 y PAGOS_URL_BASE apuntando al tunel, Wompi cobraba bien y
+    #despues devolvia al usuario a un tunel apagado (ERR_NGROK_3200). El
+    #dinero salia y el cliente veia una pagina de error.
+    #
+    #Comparando el anfitrion se acierta en los tres casos sin tocar el .env:
+    #   navegador en 127.0.0.1  -> vuelve a 127.0.0.1
+    #   navegador en el tunel   -> vuelve al tunel
+    #   navegador en el dominio -> vuelve al dominio, con su https del .env
+    ruta=reverse(nombre_url)
     base=(getattr(settings,"PAGOS_URL_BASE","") or "").rstrip("/")
     if base:
-        return base+reverse(nombre_url)
-    return request.build_absolute_uri(reverse(nombre_url))
+        anfitrion_base=(urlparse(base).hostname or "").lower()
+        anfitrion_actual=request.get_host().split(":")[0].lower()
+        if anfitrion_base and anfitrion_base==anfitrion_actual:
+            return base+ruta
+    return request.build_absolute_uri(ruta)
 
 
 # ============================================================
@@ -67,6 +86,12 @@ def procesar_pago(request,clave_plan):
     if error or pago is None:
         messages.error(request,"No se pudo iniciar el pago. Intentalo de nuevo.")
         return redirect("Suscripcion")
+
+    #Se marca en la sesion que fue ESTE navegador el que inicio ESTE pago.
+    #Sin esta marca, el retorno tendria que fiarse solo del id que viaja en la
+    #direccion, y ese id no es un secreto: queda en el historial, en la barra
+    #del navegador y en el comprobante de Wompi.
+    request.session["pago_en_curso"]=pago.id
 
     return redirect(pasarela.url_checkout(pago,_url_publica(request,"RetornoPago")))
 
@@ -119,20 +144,41 @@ def retorno_pago(request):
         #no contra lo que manda el navegador, asi que si no hay una sesion de
         #OTRO usuario activa en este navegador, se restaura la del dueno del
         #pago para que no tenga que volver a iniciar sesion.
+        #AQUI HABIA UN AGUJERO DE SEGURIDAD, y conviene dejarlo escrito para
+        #que no se reabra:
+        #
+        #Antes bastaba con llegar sin sesion y con el id de la transaccion en
+        #la direccion para quedar dentro como el dueno del pago. Pero ese id
+        #NO es un secreto: sale en el comprobante de Wompi, queda en el
+        #historial del navegador y viaja en la barra de direcciones. Si el
+        #administrador probaba una compra alguna vez, su id de transaccion se
+        #convertia en una llave permanente de su cuenta: cualquiera que
+        #abriera esa direccion entraba como administrador.
+        #
+        #Ahora se exige ademas la marca que se dejo en la sesion al iniciar el
+        #pago. Solo el navegador que arranco la compra puede volver a entrar
+        #solo. Si la sesion se perdio de verdad, se cae a la pantalla de
+        #abajo, que es incomoda pero segura.
         if not es_dueno and not request.user.is_authenticated:
-            login(request,pago.usuario,backend="django.contrib.auth.backends.ModelBackend")
-            es_dueno=True
+            if request.session.get("pago_en_curso")==pago.id:
+                login(request,pago.usuario,backend="django.contrib.auth.backends.ModelBackend")
+                es_dueno=True
 
         if es_dueno:
+            request.session.pop("pago_en_curso",None)
             return redirect("PagoConfirmado",id=pago.id)
 
         #Aca solo se llega si en el navegador hay una sesion de OTRA cuenta
         #distinta al dueno del pago. Por seguridad no se cambia sola: se
         #confirma el cobro y se invita a entrar con la cuenta correcta.
+        #Mensaje corto y sin hablar de cuentas. El usuario acaba de pagar:
+        #lo unico que necesita saber es que su suscripcion quedo activa. La
+        #barra de arriba ya tiene Inicio y Analizador, asi que no hacen falta
+        #botones aqui abajo.
         return render(request,"pago_estado.html",{
             "estado":"Aprobado",
             "titulo":"¡Pago confirmado!",
-            "detalle":"Tu suscripcion ya quedo activa. Inicia sesion con tu cuenta para ver el comprobante y entrar al analizador.",
+            "detalle":"Tu suscripcion ya esta activa. Ya puedes entrar al analizador y usar el motor de prediccion.",
         })
 
     textos={
