@@ -164,6 +164,9 @@ ODDS_API_KEY = os.getenv("ODDS_API_KEY", "")
 #Configurar allauth para el inicio de sesion con Google
 SITE_ID=1
 ACCOUNT_ADAPTER='usuarios.adapters.AdaptadorCuenta'
+#Impide que la entrada con Google caiga en una cuenta administrativa por
+#coincidir el correo. Ver el motivo completo en usuarios/adapters.py.
+SOCIALACCOUNT_ADAPTER='usuarios.adapters.AdaptadorSocial'
 
 AUTHENTICATION_BACKENDS=[
     'django.contrib.auth.backends.ModelBackend',

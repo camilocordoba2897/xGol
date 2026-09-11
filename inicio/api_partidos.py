@@ -242,24 +242,49 @@ def equipos_liga(liga):
 #
 #  Lo que si sale, y es lo que de verdad vende:
 #
-#    1. PRONOSTICOS YA RESUELTOS. El partido ya se jugo, asi que no se regala
-#       nada. Se muestra que dijo el motor y que paso, con su ✓ o su ✗ segun
-#       corresponda. Se muestran los aciertos Y los fallos: una tarjeta que
-#       solo enseñara aciertos seria mentira, y ademas se nota.
+#    EL PROXIMO PARTIDO, BLOQUEADO. Equipos, hora y liga, con el pronostico
+#    detras del muro de suscripcion. Demuestra que el sistema esta vivo y
+#    trabajando sobre partidos reales de hoy, sin regalar el numero por el
+#    que la gente paga.
 #
-#    2. EL PROXIMO PARTIDO, BLOQUEADO. Equipos, hora y liga, con el pronostico
-#       detras del muro de suscripcion. Demuestra que el sistema esta vivo y
-#       trabajando sobre partidos reales de hoy.
-#
-#    3. EL BALANCE VERIFICADO. Cuantos partidos lleva medidos y con que
-#       acierto. Es historico, no es el producto, y es lo mas creible que se
-#       puede enseñar.
+#    Las tarjetas de partidos ya resueltos y el balance de acierto estan
+#    apagados: ver el bloque de MAX_RESUELTOS mas abajo, donde esta el
+#    motivo completo.
 #
 #  COSTE EN API: cero peticiones extra. Todo sale de la base de datos.
 # ============================================================
 PROVEEDOR = "motor-xgol"
 MAX_TARJETAS = 6
-MAX_RESUELTOS = 3
+
+# ------------------------------------------------------------
+#  APAGADOS A PROPOSITO: tarjetas de partidos ya resueltos y balance de
+#  acierto. La tarjeta del home ensena SIEMPRE el proximo partido con el
+#  candado.
+#
+#  POR QUE SE APAGARON, para que no se vuelvan a encender sin pensarlo:
+#
+#  1. EL BALANCE MENTIA SIN QUERER. Con seis partidos evaluados salia "83%
+#     de acierto real" (cinco de seis). La medicion seria del motor, hecha
+#     a ciegas sobre 5.353 partidos con calibrar_con_historico, da 53,3%.
+#     Publicar 83% en la portada es una cifra que no se puede defender: son
+#     seis partidos, es ruido, y cualquiera que mire las metricas del motor
+#     ve que no cuadra.
+#
+#  2. ADEMAS "ACIERTO" ES LA METRICA EQUIVOCADA. Este proyecto vende
+#     probabilidades calibradas, no aciertos. Un modelo que dice 60% y
+#     acierta el 45% esta roto aunque ese 45% suene bien.
+#
+#  3. LAS TARJETAS RESUELTAS ENSENAN MARCADORES EN LA PORTADA, que es
+#     justo lo contrario de lo que se quiere: la tarjeta existe para
+#     demostrar que el motor esta vivo, no para contar partidos viejos.
+#
+#  CUANDO SE PODRIAN ENCENDER: cuando haya varios cientos de pronosticos
+#  evaluados Y lo que se ensene sea una metrica de calibracion, no un
+#  porcentaje de acierto. Hasta entonces, 3 fuentes y 8 mercados, que son
+#  ciertos y comprobables.
+# ------------------------------------------------------------
+MAX_RESUELTOS = 0
+MOSTRAR_BALANCE = False
 
 def _partidos_crudos(desde, hasta):
     llave = f"crudos_{desde}_{hasta}"
@@ -458,13 +483,11 @@ def _proximos_bloqueados(limite):
 
 
 def predicciones_destacadas():
-    datos = cache.get("tarjeta_home_v2")
+    datos = cache.get("tarjeta_home_v3")
     if datos is not None:
         return datos
 
-    resueltos = _resueltos()
-    #Se dejan huecos para los proximos: la tarjeta alterna entre pasado
-    #verificado y futuro bloqueado, que es lo que convence sin regalar nada.
+    resueltos = _resueltos(MAX_RESUELTOS) if MAX_RESUELTOS else []
     proximos, motivo = _proximos_bloqueados(MAX_TARJETAS - len(resueltos))
 
     #Se intercalan: resuelto, proximo, resuelto, proximo...
@@ -477,7 +500,7 @@ def predicciones_destacadas():
 
     datos = {
         "tarjetas": tarjetas[:MAX_TARJETAS],
-        "balance": _balance(),
+        "balance": (_balance() if MOSTRAR_BALANCE else None),
         "fuente": PROVEEDOR,
         #Si no hay nada que enseñar, el frontend necesita saber POR QUE para
         #decirlo en pantalla. Una tarjeta atascada en "Cargando..." para
@@ -486,5 +509,5 @@ def predicciones_destacadas():
     }
     #Sin datos se cachea solo 60 segundos: si el problema era pasajero, la
     #tarjeta se arregla sola en un minuto en vez de quedarse mal cinco.
-    cache.set("tarjeta_home_v2", datos, 300 if tarjetas else 60)
+    cache.set("tarjeta_home_v3", datos, 300 if tarjetas else 60)
     return datos
