@@ -310,13 +310,12 @@
         <p>Control financiero completo: ingresos, suscripciones y todas las transacciones.</p>
       </div>
 
-      {% if ambiente != "prod" or not pasarela_lista %}
+      {% if not pasarela_lista %}
       <div class="avisos">
         <div class="aviso aviso-alerta">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           <div class="aviso-cuerpo">
-            {% if not pasarela_lista %}Faltan las llaves de la pasarela en <code>.env</code>. Nadie puede pagar.
-            {% else %}Ambiente de <b>pruebas</b> ({{ ambiente }}). Estas cifras no son dinero real.{% endif %}
+            Faltan las llaves de la pasarela en <code>.env</code>. Nadie puede pagar.
           </div>
         </div>
       </div>
