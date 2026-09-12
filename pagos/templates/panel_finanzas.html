@@ -134,14 +134,10 @@
     {% endfor %}
   {% endif %}
 
-  {% if ambiente != "prod" or not pasarela_lista %}
+  {% if not pasarela_lista %}
   <div class="card" style="border-left: 4px solid var(--warn); margin-bottom: 20px;">
     <p style="color: var(--warn); font-size: .9rem;">
-      {% if not pasarela_lista %}
-        Faltan llaves de la pasarela en el archivo <code>.env</code>. Nadie puede pagar hasta que estén.
-      {% else %}
-        Estás en ambiente de <strong>pruebas</strong> ({{ ambiente }}). Las cifras de abajo son de sandbox, no dinero real.
-      {% endif %}
+      Faltan llaves de la pasarela en el archivo <code>.env</code>. Nadie puede pagar hasta que estén.
     </p>
   </div>
   {% endif %}
