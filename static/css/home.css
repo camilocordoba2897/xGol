@@ -140,7 +140,10 @@ body.home {
   flex-shrink: 0;
 }
 .nav-sena {
-  height: 38px;
+  /* Sube de 38 a 45 junto con el logo de xGol para que los dos
+     crezcan parejo. Sigue por debajo del alto del logo de xGol, asi
+     que la barra NO crece. */
+  height: 45px;
   width: auto;
   display: block;
   flex-shrink: 0;
