@@ -143,7 +143,17 @@ body {
 .tac-suave  { stroke: rgba(var(--accent-rgb),.14); stroke-width: 1; fill: none; }
 
 /* — radar giratorio (reemplaza los blobs pulsantes) — */
-.radar-grp { transform-box: fill-box; transform-origin: center; animation: radarGiro 6s linear infinite; }
+/* El cono del radar se dibuja en coordenadas absolutas dentro del viewBox
+   y gira alrededor del centro del radar (220,300), que es el mismo centro
+   de los dos anillos. Antes el grupo llevaba transform="translate(220,300)"
+   en el HTML, pero esta animacion de CSS lo borraba; ademas giraba sobre el
+   centro de su propia caja. Por eso el cono se salia hacia arriba en vez de
+   barrer el radar. */
+.radar-grp {
+  transform-box: view-box;
+  transform-origin: 220px 300px;
+  animation: radarGiro 6s linear infinite;
+}
 @keyframes radarGiro { to { transform: rotate(360deg); } }
 .radar-barrido { fill: url(#radarGrad); }
 .radar-anillo { stroke: rgba(var(--accent-rgb),.22); stroke-width: 1; fill: none; }
