@@ -119,10 +119,17 @@ class CheckoutTests(TestCase):
                               fecha_nacimiento=date(1990, 1, 1))
         self.client.force_login(self.usuario)
 
-    def test_cuenta_de_google_sin_cedula_va_a_completar_perfil(self):
+    def test_cuenta_de_google_sin_cedula_la_completa_en_el_mismo_checkout(self):
+        #Sin desvio al perfil: los campos salen encima del boton de pagar
         Perfil.objects.filter(usuario=self.usuario).update(documento=None, fecha_nacimiento=None)
-        self.assertRedirects(self.client.get(reverse("Checkout", args=["mensual"])),
-                             reverse("EditarPerfil"), fetch_redirect_response=False)
+        r = self.client.get(reverse("Checkout", args=["mensual"]))
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'name="documento"')
+        self.assertContains(r, 'name="fecha_nacimiento"')
+
+    def test_con_identidad_completa_no_pide_nada(self):
+        r = self.client.get(reverse("Checkout", args=["mensual"]))
+        self.assertNotContains(r, 'name="documento"')
 
     def test_muestra_el_precio_del_servidor(self):
         r = self.client.get(reverse("Checkout", args=["mensual"]))

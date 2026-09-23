@@ -5,6 +5,36 @@
   Confirma tu plan
 {% endblock %}
 
+{% block estilos %}
+<style>
+  /* Dos columnas en escritorio. En el celular se apilan y el resumen, que
+     es donde esta el boton de pagar, pasa a ir primero. */
+  .co-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+  @media (max-width: 760px) {
+    .co-grid { grid-template-columns: 1fr; gap: 20px; }
+    .co-resumen { order: -1; }
+  }
+
+  /* Paso de mayoria de edad dentro del resumen, justo encima del boton */
+  .co-edad { margin-top: 18px; padding: 16px; border-radius: 12px;
+             background: var(--bg-1); border: 1px solid var(--line);
+             border-left: 3px solid var(--accent); }
+  .co-edad-t { font-family: var(--ff-display); font-weight: 700; color: var(--text-0);
+               font-size: .95rem; margin-bottom: 4px; }
+  .co-edad-s { color: var(--text-2); font-size: .8rem; line-height: 1.5; margin-bottom: 12px; }
+  .co-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 420px) { .co-campos { grid-template-columns: 1fr; } }
+  .co-campo label { display: block; color: var(--text-2); font-size: .74rem; font-weight: 600;
+                    margin-bottom: 5px; }
+  .co-campo input { width: 100%; box-sizing: border-box; padding: 11px 12px; border-radius: 10px;
+                    background: var(--bg-2); border: 1px solid var(--line); color: var(--text-0);
+                    font-size: .92rem; font-family: inherit; color-scheme: dark; }
+  .co-campo input:focus { outline: none; border-color: var(--accent);
+                          box-shadow: 0 0 0 3px var(--accent-glow); }
+  .co-nota { color: var(--text-3); font-size: .72rem; margin-top: 10px; line-height: 1.5; }
+</style>
+{% endblock %}
+
 {% block content %}
 {# Los datos de la tarjeta ya NO se escriben aqui. Este formulario solo envia  #}
 {# la clave del plan; el precio, la referencia y la firma los calcula el       #}
@@ -18,13 +48,13 @@
 
   {% if messages %}
     {% for i in messages %}
-      <div class="card" style="border-left: 4px solid var(--warn); margin-bottom: 18px;">
+      <div class="card" style="border-left: 4px solid {% if i.tags == 'error' %}var(--bad){% else %}var(--warn){% endif %}; margin-bottom: 18px;" role="alert">
         <p style="color: var(--text-1);">{{ i }}</p>
       </div>
     {% endfor %}
   {% endif %}
 
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start;">
+  <div class="co-grid">
 
     <!-- MEDIOS DE PAGO (izquierda) -->
     <div>
@@ -43,7 +73,7 @@
     </div>
 
     <!-- RESUMEN DEL PLAN (derecha) -->
-    <div class="card" style="background: var(--bg-2);">
+    <div class="card co-resumen" style="background: var(--bg-2);">
       <h3 style="font-family: var(--ff-display); font-size: 1.5rem; color: var(--text-0); margin-bottom: 6px;">Plan {{ plan.nombre }}</h3>
       <p style="color: var(--text-2); font-size: .9rem; margin-bottom: 18px;">Características principales</p>
 
@@ -84,6 +114,35 @@
       {% if pasarela_lista %}
         <form action="{% url 'ProcesarPago' clave_plan %}" method="post" id="formPago">
           {% csrf_token %}
+          {% if pide_documento or pide_fecha %}
+          {# Cuentas de Google o creadas desde el panel: no pasaron por el  #}
+          {# registro. Se piden aqui mismo y viajan con el mismo clic de     #}
+          {# pagar; el servidor las valida y las guarda antes de cobrar.     #}
+          <div class="co-edad">
+            <div class="co-edad-t">Confirma que eres mayor de edad</div>
+            <p class="co-edad-s">xGol es solo para mayores de 18 años. Lo pedimos una sola vez.</p>
+            <div class="co-campos">
+              {% if pide_documento %}
+              <div class="co-campo">
+                <label for="co-documento">Cédula</label>
+                <input type="text" name="documento" id="co-documento" required autofocus
+                       inputmode="numeric" pattern="[1-9][0-9]{5,9}" minlength="6" maxlength="10"
+                       placeholder="Solo números" autocomplete="off"
+                       value="{{ borrador.documento|default:'' }}"
+                       title="Entre 6 y 10 dígitos, sin puntos ni letras">
+              </div>
+              {% endif %}
+              {% if pide_fecha %}
+              <div class="co-campo">
+                <label for="co-nacimiento">Fecha de nacimiento</label>
+                <input type="date" name="fecha_nacimiento" id="co-nacimiento" required
+                       value="{{ borrador.fecha_nacimiento|default:'' }}">
+              </div>
+              {% endif %}
+            </div>
+            <p class="co-nota">Se guardan en tu perfil y no se pueden cambiar después.</p>
+          </div>
+          {% endif %}
           <button type="submit" class="btn btn-primary" id="btnPagar"
                   style="width: 100%; justify-content: center; margin-top: 18px; padding: 14px;">
             Ir a pagar ${{ plan.precio|pesos }}
@@ -112,6 +171,29 @@
 </div>
 
 <script>
+  // Fecha de nacimiento: el calendario no deja elegir a un menor de 18.
+  // Es comodidad; la regla real la aplica el servidor.
+  (function() {
+    var campo = document.getElementById('co-nacimiento');
+    if (!campo) return;
+    var hoy = new Date();
+    function aTexto(f) {
+      return f.getFullYear() + '-' + String(f.getMonth() + 1).padStart(2, '0') + '-' + String(f.getDate()).padStart(2, '0');
+    }
+    campo.max = aTexto(new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate()));
+    campo.min = aTexto(new Date(hoy.getFullYear() - 110, hoy.getMonth(), hoy.getDate()));
+  })();
+
+  // Cedula: solo numeros, tambien al pegar
+  (function() {
+    var campo = document.getElementById('co-documento');
+    if (!campo) return;
+    campo.addEventListener('input', function() {
+      var limpio = campo.value.replace(/[^0-9]/g, '');
+      if (limpio !== campo.value) campo.value = limpio;
+    });
+  })();
+
   // Evita el doble envio: un segundo clic crearia otro intento de pago.
   (function() {
     var formulario = document.getElementById('formPago');

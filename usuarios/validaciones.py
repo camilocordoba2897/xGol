@@ -315,6 +315,37 @@ def validar_fecha_nacimiento(valor, hoy=None):
     return fecha, None
 
 
+def completar_identidad(perfil, documento, fecha_nacimiento):
+    #Guarda la cedula y la fecha de nacimiento que le FALTEN al perfil (las
+    #cuentas de Google y las creadas desde el panel no pasaron por el
+    #registro). Las que ya estan no se tocan: cambiar el documento es la
+    #forma clasica de quedarse con una cuenta ajena.
+    #La usan el perfil y el pago, para que la regla viva en un solo sitio.
+    #Devuelve el mensaje de error, o None si quedo guardado.
+    from django.db import IntegrityError
+
+    cambios = []
+    if not perfil.documento:
+        limpio, error = validar_documento(documento, excluir_id=perfil.usuario_id)
+        if error:
+            return error
+        perfil.documento = limpio
+        perfil.tipo_documento = perfil.tipo_documento or "CC"
+        cambios += ["documento", "tipo_documento"]
+    if not perfil.fecha_nacimiento:
+        fecha, error = validar_fecha_nacimiento(fecha_nacimiento)
+        if error:
+            return error
+        perfil.fecha_nacimiento = fecha
+        cambios.append("fecha_nacimiento")
+    if cambios:
+        try:
+            perfil.save(update_fields=cambios)
+        except IntegrityError:
+            return "Ya hay una cuenta registrada con esa cedula."
+    return None
+
+
 def validar_registro(datos):
     #Valida el formulario completo. Devuelve (limpios, errores).
     #Se revisa TODO y no se corta en el primer fallo: si el usuario se

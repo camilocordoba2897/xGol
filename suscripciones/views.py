@@ -8,7 +8,6 @@ from django.conf import settings
 from suscripciones.models import Suscripcion
 from suscripciones.planes import PLANES,obtener_plan,nivel_de_plan
 from usuarios.decoradores import rol_requerido
-from usuarios.models import falta_identidad
 
 @login_required(login_url="Ingresar")
 def suscripcion(request):
@@ -45,9 +44,15 @@ def checkout(request,clave_plan):
     if plan is None:
         return redirect("Suscripcion")
 
-    if falta_identidad(request.user):
-        messages.info(request,"Antes de comprar un plan completa tu cedula y tu fecha de nacimiento: xGol es solo para mayores de 18 años.")
-        return redirect("EditarPerfil")
+    #Si le faltan la cedula o la fecha de nacimiento (cuentas de Google o
+    #creadas desde el panel), se piden AQUI MISMO, encima del boton de pagar.
+    #Antes se le mandaba al perfil a buscarlas al final de la pagina, y cada
+    #paso de mas en el momento de pagar es un cliente que se va.
+    from usuarios.models import Perfil
+    perfil,creado=Perfil.objects.get_or_create(usuario=request.user)
+    #Lo que escribio antes de un error vuelve a aparecer: no se le hace
+    #teclear dos veces.
+    borrador=request.session.pop("identidad_borrador",{})
 
     #Misma regla que en procesar_pago: no se muestra el checkout de un plan
     #que el usuario no puede comprar, aunque llegue por la URL directa.
@@ -68,7 +73,10 @@ def checkout(request,clave_plan):
         "subtotal": desglose["subtotal"],
         "iva": desglose["iva"],
         "pasarela_lista": pasarela.configurada(),
-        "ambiente": settings.WOMPI_AMBIENTE
+        "ambiente": settings.WOMPI_AMBIENTE,
+        "pide_documento": not perfil.documento,
+        "pide_fecha": not perfil.fecha_nacimiento,
+        "borrador": borrador,
     })
 
 

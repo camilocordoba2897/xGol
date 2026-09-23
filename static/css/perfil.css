@@ -303,3 +303,31 @@ body.perfil {
 .ph-id-ojo.mostrando .ojo-cerrado { display: block; }
 
 .ph-identidad-nota { font-size: .74rem; color: var(--text-2); margin-top: 10px; }
+/* ============================================================
+   COMPLETAR IDENTIDAD — tarjeta destacada arriba de todo
+   Solo aparece a quien le falta la cedula o la fecha. Va a todo el
+   ancho y con el acento de la marca para que no se pase por alto:
+   sin estos datos no se puede comprar un plan.
+   ============================================================ */
+.ph-pendiente {
+  margin-bottom: 20px;
+  border-color: color-mix(in srgb, var(--lima) 45%, var(--line));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--lima) 18%, transparent),
+              0 12px 32px -18px var(--lima);
+}
+.ph-pendiente .ph-identidad-cab svg { color: var(--lima); }
+.ph-pendiente .ph-identidad-titulo { font-size: 1.1rem; }
+.ph-pendiente-campos {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 14px;
+  align-items: end;
+}
+.ph-pendiente-campos .ph-field { margin-bottom: 0; }
+.ph-pendiente-campos .ph-btn { width: auto; margin-top: 0; padding: 13px 34px; }
+@media (max-width: 820px) {
+  .ph-pendiente-campos { grid-template-columns: 1fr; }
+  .ph-pendiente-campos .ph-btn { width: 100%; }
+}
+/* El icono del calendario salia negro sobre fondo negro: casi invisible */
+.ph-input[type="date"] { color-scheme: dark; }
