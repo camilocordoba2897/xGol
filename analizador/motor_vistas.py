@@ -38,9 +38,9 @@ def _pesos_y_calibracion(liga):
     #fabrica: el motor funciona desde el primer dia, solo que sin afinar.
     fila=PesosMotor.objects.filter(liga=liga).first()
     if not fila:
-        return dict(combinacion.PESOS_POR_DEFECTO),1.0,None
+        return dict(combinacion.PESOS_POR_DEFECTO),1.0,1.0,None
     return (fila.pesos or dict(combinacion.PESOS_POR_DEFECTO),
-            fila.temperatura or 1.0,fila)
+            fila.temperatura or 1.0,fila.temperatura_sin_mercado or 1.0,fila)
 
 
 def _guardar_prediccion(liga,id_partido,fecha,local,visitante,resultado,casas):
@@ -98,13 +98,14 @@ def motor_pronostico(request):
     visitante=motor_datos.nombre_de_equipo(bruto_visitante,mapa)
 
     casas,error_cuotas=motor_datos.casas_desde_api(liga,local,visitante)
-    pesos,temperatura,fila_pesos=_pesos_y_calibracion(liga)
+    pesos,temperatura,temperatura_sm,fila_pesos=_pesos_y_calibracion(liga)
 
     try:
         resultado=nucleo.pronosticar(
             local,visitante,
             ajuste_liga=ajuste,tabla_elo=tabla,casas=casas or None,
             pesos=pesos,temperatura=temperatura,cancha_neutral=neutral,
+            temperatura_sin_mercado=temperatura_sm,
         )
     except ValueError as e:
         return JsonResponse({"error":str(e)},status=503)
@@ -131,7 +132,6 @@ def motor_pronostico(request):
     salida["liga"]=liga
     salida["local"]=local
     salida["visitante"]=visitante
-    salida["apuestas_con_valor"]=nucleo.apuestas_con_valor(resultado,casas)
     if error_cuotas:
         salida["diagnostico"]["avisos"].append(f"sin cuotas ({error_cuotas})")
 

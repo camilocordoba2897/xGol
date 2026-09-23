@@ -167,21 +167,30 @@ def lambdas_desde_mercado(p_local, p_empate, p_visitante, rho=-0.13,
             e += 2.0 * (total_goles(m, 2.5)["mas"] - prob_mas_25) ** 2
         return e
 
-    #busqueda por coordenadas: alterno supremacia y total, refinando el paso
+    #Busqueda por patrones: el paso SOLO se achica cuando ya no hay mejora en
+    #ninguna direccion. La version anterior lo achicaba en cada intento aunque
+    #estuviera mejorando, y no pasaba de ~2.2 goles de supremacia: con un
+    #favorito claro (88/8/4) reconstruia 88/12/0.4, diez veces menos victoria
+    #visitante que el mercado, y con el mercado como fuente de mas peso.
     total = float(total_inicial)
     supremacia = 0.0
-    paso_t, paso_s = 0.8, 0.8
-    for _ in range(9):
-        for _ in range(6):
-            candidatos = [supremacia - paso_s, supremacia, supremacia + paso_s]
-            supremacia = min(candidatos, key=lambda s: error(total, s))
-            paso_s *= 0.6
-        for _ in range(6):
-            candidatos = [max(0.4, total - paso_t), total, total + paso_t]
-            total = min(candidatos, key=lambda t: error(t, supremacia))
-            paso_t *= 0.6
-        paso_s = max(0.01, paso_s)
-        paso_t = max(0.01, paso_t)
+    actual = error(total, supremacia)
+    paso_t, paso_s = 0.5, 0.5
+    for _ in range(400):
+        if paso_t < 1e-4 and paso_s < 1e-4:
+            break
+        mejoro = False
+        for ds, dt in ((paso_s, 0), (-paso_s, 0), (0, paso_t), (0, -paso_t)):
+            s_nuevo = min(6.0, max(-6.0, supremacia + ds))
+            t_nuevo = min(8.0, max(0.4, total + dt))
+            e = error(t_nuevo, s_nuevo)
+            if e < actual - 1e-15:
+                supremacia, total, actual = s_nuevo, t_nuevo, e
+                mejoro = True
+                break
+        if not mejoro:
+            paso_s *= 0.5
+            paso_t *= 0.5
 
     lam1 = max(0.05, (total + supremacia) / 2.0)
     lam2 = max(0.05, (total - supremacia) / 2.0)

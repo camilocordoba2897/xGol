@@ -65,6 +65,37 @@ class MercadoYCombinacionTests(SimpleTestCase):
         with self.assertRaises(ValueError):
             mercado.margen([1.0, 3.0, 4.0])
 
+    def test_el_mercado_se_reproduce_tambien_con_favoritos_claros(self):
+        #La busqueda vieja no pasaba de ~2.2 goles de supremacia: 88/8/4 salia
+        #como 88/12/0.4, diez veces menos victoria visitante que el mercado
+        for objetivo in ((0.45, 0.28, 0.27), (0.75, 0.16, 0.09),
+                         (0.88, 0.08, 0.04), (0.06, 0.14, 0.80)):
+            lam1, lam2, _ = mercado.lambdas_desde_mercado(*objetivo)
+            r = pr.resultado_1x2(pr.matriz_marcadores(lam1, lam2, -0.13))
+            for k, esperado in zip(("local", "empate", "visitante"), objetivo):
+                self.assertAlmostEqual(r[k], esperado, delta=0.003, msg=f"{objetivo} {k}")
+
+    def test_sin_cuotas_usa_su_propia_temperatura(self):
+        #La temperatura aprendida con el mercado en la mezcla no se aplica a
+        #un pronostico que salio sin cuotas: ese usa la suya
+        from analizador.motor import nucleo, tasas
+        partidos = [{"local": a, "visitante": b, "goles_local": (i * 7) % 4,
+                     "goles_visitante": (i * 3) % 3, "dias_atras": i}
+                    for i, (a, b) in enumerate([("A", "B"), ("B", "C"), ("C", "A"),
+                                                ("B", "A"), ("C", "B"), ("A", "C")] * 5)]
+        ajuste = tasas.ajustar(partidos, iteraciones=40)
+        def uno_x_dos(**kw):
+            return nucleo.pronosticar("A", "B", ajuste_liga=ajuste, **kw).mercados["1x2"]
+        base = uno_x_dos()
+        self.assertEqual(uno_x_dos(temperatura=0.6), base)                 #sin cuotas: no aplica
+        self.assertEqual(uno_x_dos(temperatura=0.6, temperatura_sin_mercado=1.0), base)
+        self.assertNotEqual(uno_x_dos(temperatura=1.0, temperatura_sin_mercado=0.6), base)
+        casas = [{"casa": "x", "local": 2.0, "empate": 3.4, "visitante": 3.8}]
+        con = nucleo.pronosticar("A", "B", ajuste_liga=ajuste, casas=casas).mercados["1x2"]
+        con_t = nucleo.pronosticar("A", "B", ajuste_liga=ajuste, casas=casas, temperatura=0.6,
+                                   temperatura_sin_mercado=1.0).mercados["1x2"]
+        self.assertNotEqual(con, con_t)                                    #con cuotas: si aplica
+
     def test_pesos_normalizados(self):
         self.assertAlmostEqual(sum(combinacion.normalizar({"a": 2, "b": 6}).values()), 1.0)
         self.assertEqual(combinacion.normalizar({"a": 0, "b": 0}), {"a": 0.5, "b": 0.5})
@@ -268,8 +299,12 @@ class MantenimientoMotorTests(TestCase):
     def test_con_datos_el_ajuste_solo_corre_de_madrugada_y_una_vez(self):
         from analizador import middleware
         from analizador.models import AjusteMotor, PesosMotor
+        from django.core.cache import cache
+        from analizador.management.commands.calibrar_con_historico import (
+            CLAVE_VERSION, VERSION_CALIBRACION)
         AjusteMotor.objects.create(liga="PL", parametros={"xi": 0.003})
         PesosMotor.objects.create(liga="PL", pesos={}, partidos_evaluados=760)
+        cache.set(CLAVE_VERSION, VERSION_CALIBRACION, None)
         self.assertEqual(self.visitar(hora=14), [])
         self.assertEqual(self.visitar(hora=4), [middleware._mantenimiento_nocturno])
         self.assertEqual(self.visitar(hora=5), [])   #ya corrio hoy
@@ -280,12 +315,27 @@ class MantenimientoMotorTests(TestCase):
         from django.core.cache import cache
         from analizador import middleware
         from analizador.models import AjusteMotor, PesosMotor
+        from analizador.management.commands.calibrar_con_historico import (
+            CLAVE_VERSION, VERSION_CALIBRACION)
         AjusteMotor.objects.create(liga="PL", parametros={"xi": 0.003})
         PesosMotor.objects.create(liga="PL", pesos={}, partidos_evaluados=760)
         PesosMotor.objects.create(liga="BSA", pesos={}, partidos_evaluados=12, temperatura=1.0)
+        cache.set(CLAVE_VERSION, VERSION_CALIBRACION, None)
         self.assertEqual(self.visitar(hora=14), [middleware._calibrar])
         cache.delete("motor_calibrado_revisado")
         self.assertEqual(self.visitar(hora=14), [])   #ya se lanzo esta semana
+
+    def test_recalibra_una_vez_si_la_calibracion_es_de_otra_version(self):
+        #Pesos y temperatura aprendidos para un motor que ya cambio (por
+        #ejemplo, con la lectura vieja de las cuotas) no sirven para el nuevo
+        from django.core.cache import cache
+        from analizador import middleware
+        from analizador.models import AjusteMotor, PesosMotor
+        AjusteMotor.objects.create(liga="PL", parametros={"xi": 0.003})
+        PesosMotor.objects.create(liga="PL", pesos={}, partidos_evaluados=760)
+        self.assertEqual(self.visitar(hora=14), [middleware._calibrar])
+        cache.delete("motor_calibrado_revisado")
+        self.assertEqual(self.visitar(hora=14), [])   #ya esta calibrando
 
     def test_afina_una_vez_al_mes_y_no_todas_las_noches(self):
         #Una liga que se quedo con los parametros de fabrica (porque afinar no
@@ -297,6 +347,18 @@ class MantenimientoMotorTests(TestCase):
         self.assertTrue(middleware._toca_afinar())          #nunca se afino
         cache.set("motor_afinado_reciente", 1, 60)
         self.assertFalse(middleware._toca_afinar())
+
+    def test_tras_afinar_se_recalibra(self):
+        #Los pesos y la temperatura se aprenden para la memoria de Dixon-Coles
+        #de cada liga: si afinar la cambia, hay que volver a aprenderlos
+        from unittest import mock
+        from analizador import middleware
+        with mock.patch.object(middleware, "_correr") as correr, \
+             mock.patch.object(middleware.connections, "close_all"):
+            middleware._mantenimiento_nocturno()
+        self.assertEqual([c.args for c in correr.call_args_list],
+                         [("ajustar_motor", "--afinar"), ("calibrar_con_historico",),
+                          ("evaluar_motor",)])
 
     def test_el_primer_ajuste_es_el_rapido(self):
         from unittest import mock

@@ -211,9 +211,9 @@
     if (!c || !c.h2h) return '';
 
     var filas = [
-      { k: 'local',     etiqueta: names.team1, prob: model.pH },
-      { k: 'empate',    etiqueta: 'Empate',    prob: model.pD },
-      { k: 'visitante', etiqueta: names.team2, prob: model.pA }
+      { k: 'local',     etiqueta: names.team1 },
+      { k: 'empate',    etiqueta: 'Empate' },
+      { k: 'visitante', etiqueta: names.team2 }
     ];
 
     var celdas = filas.map(function(f) {
@@ -222,15 +222,12 @@
         return '<div class="cu-col"><div class="cu-eq">' + escapar(f.etiqueta) + '</div>' +
                '<div class="cu-cuota cu-nd">—</div></div>';
       }
-      // Valor esperado: cuota x probabilidad del modelo. >1 = el modelo
-      // ve mas probable el resultado de lo que paga la casa.
-      var ev = o.cuota * f.prob;
-      var clase = ev > 1.05 ? ' cu-valor' : '';
-      return '<div class="cu-col' + clase + '">' +
+      // Ya no se marca "valor": medido en temporadas no vistas, apostar
+      // donde el modelo veia valor sobre la cuota perdio dinero (ver motor.js)
+      return '<div class="cu-col">' +
         '<div class="cu-eq">' + escapar(f.etiqueta) + '</div>' +
         '<div class="cu-cuota">' + o.cuota.toFixed(2) + '</div>' +
         '<div class="cu-casa">' + escapar(o.casa) + '</div>' +
-        (ev > 1.05 ? '<div class="cu-ev">valor +' + Math.round((ev - 1) * 100) + '%</div>' : '') +
       '</div>';
     }).join('');
 
@@ -239,8 +236,7 @@
       '<div class="cu-fila">' + celdas + '</div>' +
       '<div class="cu-nota">Mejor cuota disponible por resultado' +
         (c.actualizado ? ' &middot; actualizado ' + escapar(c.actualizado) : '') +
-        '. "Valor" marca donde el modelo da más probabilidad que la casa; ' +
-        'no es una recomendación de apuesta.</div>' +
+        '. No es una recomendación de apuesta.</div>' +
     '</div>';
   }
 

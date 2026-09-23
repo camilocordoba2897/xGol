@@ -18,6 +18,7 @@
   var RUTAS = window.XGOL_AUTO || {};
   var CLAVE = 'xgol-pendientes';
   var MAX_PENDIENTES = 40;
+  var MERCADOS_DEL_MOTOR = { '1X2': true, 'Goles': true, 'BTTS': true };
 
   // ------------------------------------------------------------
   //  ALMACEN DE PENDIENTES (navegador)
@@ -48,12 +49,23 @@
     if (typeof state === 'undefined' || !state.team1 || !state.team2) return null;
     try {
       var s1 = computeStats(state.team1), s2 = computeStats(state.team2);
-      var specs = buildBetSpecs(s1, s2, buildModel(s1, s2));
+      var modelo = buildModel(s1, s2);
+      var specs = buildBetSpecs(s1, s2, modelo);
       var probs = {};
       for (var i = 0; i < specs.length; i++) {
+        // Solo lo que sale de la matriz del motor. Corners, tiros, tarjetas
+        // y mitades los calcula otra cosa (promedios de 15 partidos o un
+        // reparto fijo) y ni siquiera se muestran en el pronostico.
+        if (!MERCADOS_DEL_MOTOR[specs[i].market]) continue;
         if (typeof specs[i].prob === 'number') probs[specs[i].label] = specs[i].prob;
       }
-      return { filas1: state.team1, filas2: state.team2, probs: probs };
+      var foto = { filas1: state.team1, filas2: state.team2, probs: probs };
+      // La matriz solo cuando es la del motor de verdad (con fuentes). Con
+      // ella se evalua despues, y las lineas de goles salen identicas.
+      if (modelo && modelo.motorFuentes && modelo.motorFuentes.length && modelo.mat) {
+        foto.mat = modelo.mat;
+      }
+      return foto;
     } catch (e) { return null; }
   }
 
@@ -82,6 +94,28 @@
     pintarAviso();
   };
 
+  // auto.js apunta el pendiente justo despues del primer pintado, cuando el
+  // motor todavia no ha respondido: en ese instante buildModel es el calculo
+  // local de 15 partidos, NO lo que el usuario ve un segundo despues. Sin
+  // esto el seguimiento media un modelo que no se muestra en pantalla.
+  // motor.js llama aqui en cuanto repinta con los numeros del motor.
+  window.actualizarFotoPendiente = function(id) {
+    if (!id) return;
+    var lista = leerPendientes();
+    for (var i = 0; i < lista.length; i++) {
+      if (lista[i].id !== id) continue;
+      var saque = lista[i].utc ? new Date(lista[i].utc).getTime() : NaN;
+      if (!isNaN(saque) && saque <= Date.now()) return;   // ya no es previo
+      var foto = fotoDelPronostico();
+      if (!foto) return;
+      if (!foto.mat) return;   // el motor no dio matriz: se queda la anterior
+      foto.motor = true;
+      lista[i].foto = foto;
+      guardarPendientes(lista);
+      return;
+    }
+  };
+
   function quitarPendiente(id) {
     var lista = leerPendientes().filter(function(p) { return p.id !== id; });
     guardarPendientes(lista);
@@ -106,6 +140,10 @@
     //Pendientes viejos, guardados sin foto: no hay forma de saber que se
     //pronostico antes del partido, asi que no entran al registro.
     if (!pendiente.foto || !pendiente.foto.probs) { quitarPendiente(pendiente.id); return 0; }
+    //Fotos tomadas antes de que respondiera el motor (todas las anteriores a
+    //esta correccion, y las de "modo limitado"): son del calculo local, no
+    //del motor que se mide aqui. Tampoco entran.
+    if (!pendiente.foto.motor) { quitarPendiente(pendiente.id); return 0; }
 
     var fecha = (resultado.utc || '').slice(0, 10) || new Date().toISOString().slice(0, 10);
     if (yaRegistrado(pendiente.local, pendiente.visitante, fecha)) { quitarPendiente(pendiente.id); return 0; }
@@ -119,7 +157,13 @@
       names.team2 = pendiente.visitante;
       var s1 = computeStats(pendiente.foto.filas1);
       var s2 = computeStats(pendiente.foto.filas2);
-      specs = buildBetSpecs(s1, s2, buildModel(s1, s2));
+      // Con la matriz que se mostro antes del saque: las lineas de goles
+      // ("Mas de 2.5", "Mas de 3.5"...) dependen de ella. Con otro modelo
+      // saldrian otras lineas y las de la foto se perderian sin evaluar.
+      var modelo = (pendiente.foto.mat && typeof window.modeloDesdeMatriz === 'function')
+        ? window.modeloDesdeMatriz(pendiente.foto.mat)
+        : buildModel(s1, s2);
+      specs = buildBetSpecs(s1, s2, modelo);
     } catch (e) {
       specs = [];
     } finally {
@@ -172,8 +216,15 @@
   // ------------------------------------------------------------
   var revisando = false;
 
+  var esperas = 0;
   function revisar(manual) {
     if (revisando || !RUTAS.resultados) return;
+    // Sin el registro cargado no se evalua: lo evaluado no se podria guardar
+    // y el pendiente se perderia. Se reintenta un rato (conexion lenta).
+    if (!window.XGOL_BETLOG_LISTO) {
+      if (esperas++ < 10) setTimeout(function() { revisar(manual); }, 3000);
+      return;
+    }
     var lista = leerPendientes();
     if (!lista.length) { if (manual) avisar('No hay partidos pendientes de resultado.'); return; }
 

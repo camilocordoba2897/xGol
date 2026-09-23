@@ -134,6 +134,11 @@ class PesosMotor(models.Model):
   liga=models.CharField(max_length=10,unique=True)
   pesos=models.JSONField(default=dict)
   temperatura=models.FloatField(default=1.0)
+  #Sin cuotas (the-odds-api solo publica los partidos cercanos) el motor
+  #pronostica con Dixon-Coles y Elo solos. La temperatura de arriba se
+  #aprendio con el mercado en la mezcla: aplicarla a otra mezcla distinta
+  #no tiene fundamento. Esta se aprende y se valida con esa mezcla.
+  temperatura_sin_mercado=models.FloatField(default=1.0)
   tramos=models.JSONField(default=dict)
   partidos_evaluados=models.IntegerField(default=0)
   log_perdida=models.FloatField(null=True,blank=True)
