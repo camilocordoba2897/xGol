@@ -1,8 +1,7 @@
 /* ============================================================
    xGol — Registro
    Diseno de tarjeta flotante (halo, insignia, anillo de foco,
-   boton ancho con brillo). Usa las variables de base.css, asi
-   que respeta el tema de color guardado en 'xgol-tema'.
+   boton ancho con brillo). Usa las variables de base.css.
    ============================================================ */
 
 .reg-escena {

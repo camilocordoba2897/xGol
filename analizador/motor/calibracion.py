@@ -5,25 +5,13 @@
 #exactamente lo que hace que un analizador "no se sienta real". El olfato y la
 #sinceridad del numero son dos cosas distintas y se arreglan por separado.
 #
-#Aqui se arregla la sinceridad con dos herramientas:
-#
-#  1. TEMPERATURA. Un solo parametro T que estira o encoge la confianza:
-#     p_nueva ∝ p^(1/T). T>1 = el modelo era demasiado atrevido y se le baja el
-#     humo; T<1 = era demasiado tibio. Un solo parametro es la unica opcion
-#     segura cuando tienes 100 partidos: con muchos parametros lo unico que
-#     aprendes es el ruido de tu propio historial.
-#
-#  2. CORRECCION POR TRAMOS con pseudo-conteo. Para mercados de si/no
-#     (ambos marcan, mas de 2.5...) se mira que paso de verdad en cada tramo de
-#     probabilidad, pero cada tramo arranca con partidos ficticios que dicen
-#     "el modelo tenia razon". Asi un tramo con 4 partidos casi no mueve nada, y
-#     uno con 200 manda. El ajuste ademas esta topado a +-12 puntos: la
-#     calibracion corrige, no reinventa.
+#Aqui se arregla la sinceridad con la TEMPERATURA: un solo parametro T que
+#estira o encoge la confianza, p_nueva ∝ p^(1/T). T>1 = el modelo era
+#demasiado atrevido y se le baja el humo; T<1 = era demasiado tibio. Un solo
+#parametro es la unica opcion segura: con muchos parametros lo unico que se
+#aprende es el ruido del propio historial.
 import math
 
-PSEUDO_CONTEO = 25.0
-AJUSTE_MAXIMO = 0.12
-TRAMOS = [0.0, 0.15, 0.30, 0.45, 0.60, 0.75, 0.90, 1.0]
 
 
 # ============================================================
@@ -207,75 +195,3 @@ def ajustar_temperatura(historial, minimo=MINIMO_TEMPERATURA, pliegues=5, margen
         "mejora": perdida_sin - perdida_con,
         "aplicada": True,
     }
-
-
-# ============================================================
-#  TRAMOS (para mercados de si/no)
-# ============================================================
-def _indice_tramo(p):
-    for i in range(len(TRAMOS) - 1):
-        if TRAMOS[i] <= p < TRAMOS[i + 1]:
-            return i
-    return len(TRAMOS) - 2
-
-
-def construir_tramos(historial):
-    #historial: lista de {"probabilidad": float, "acierto": bool}
-    #Devuelve, por tramo, el desvio observado ya suavizado.
-    cubos = {}
-    for c in historial:
-        try:
-            p = float(c["probabilidad"])
-            acierto = bool(c["acierto"])
-        except (KeyError, TypeError, ValueError):
-            continue
-        if not (0.0 <= p <= 1.0):
-            continue
-        i = _indice_tramo(p)
-        cubo = cubos.setdefault(i, {"n": 0, "suma_prob": 0.0, "aciertos": 0})
-        cubo["n"] += 1
-        cubo["suma_prob"] += p
-        cubo["aciertos"] += 1 if acierto else 0
-
-    salida = {}
-    for i, cubo in cubos.items():
-        n = cubo["n"]
-        media_prevista = cubo["suma_prob"] / n
-        #pseudo-conteo: el tramo arranca creyendo al modelo
-        observado = (cubo["aciertos"] + PSEUDO_CONTEO * media_prevista) / (n + PSEUDO_CONTEO)
-        desvio = observado - media_prevista
-        desvio = max(-AJUSTE_MAXIMO, min(AJUSTE_MAXIMO, desvio))
-        salida[str(i)] = {
-            "n": n,
-            "prevista": media_prevista,
-            "observada": cubo["aciertos"] / n,
-            "desvio": desvio,
-        }
-    return salida
-
-
-def aplicar_tramos(probabilidad, tramos):
-    if not tramos:
-        return probabilidad
-    dato = tramos.get(str(_indice_tramo(probabilidad)))
-    if not dato:
-        return probabilidad
-    return max(0.01, min(0.99, probabilidad + dato["desvio"]))
-
-
-def curva_fiabilidad(historial):
-    #Lo que hay que enseñar cuando alguien pregunte "y esto que tan bueno es".
-    #Por tramo: cuantas veces dijiste X% y cuantas paso de verdad.
-    tramos = construir_tramos(historial)
-    filas = []
-    for i in sorted(tramos, key=int):
-        d = tramos[i]
-        idx = int(i)
-        filas.append({
-            "rango": f"{int(TRAMOS[idx]*100)}-{int(TRAMOS[idx+1]*100)}%",
-            "partidos": d["n"],
-            "previsto": d["prevista"],
-            "real": d["observada"],
-            "diferencia": d["observada"] - d["prevista"],
-        })
-    return filas

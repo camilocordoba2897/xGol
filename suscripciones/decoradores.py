@@ -1,5 +1,6 @@
 from django.shortcuts import redirect
 from suscripciones.models import Suscripcion
+from usuarios.roles import es_administrador
 
 def suscripcion_requerida(vista):
     def revisar(request,*args,**kwargs):
@@ -7,9 +8,8 @@ def suscripcion_requerida(vista):
         if not request.user.is_authenticated:
             return redirect("Ingresar")
 
-        perfil=getattr(request.user,"perfil",None)
-        es_admin=request.user.is_superuser or (perfil is not None and perfil.rol is not None and perfil.rol.nombre=="administrador")
-        if es_admin:
+        #El administrador entra siempre: no compra planes
+        if es_administrador(request.user):
             return vista(request,*args,**kwargs)
 
         suscripcion,creada=Suscripcion.objects.get_or_create(usuario=request.user)

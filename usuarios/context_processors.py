@@ -1,11 +1,18 @@
-from usuarios.models import Perfil
-
-def rol_actual(request):
-    if request.user.is_authenticated:
-        perfil=Perfil.objects.filter(usuario=request.user).first()
-        if perfil is not None and perfil.rol is not None:
-            return {"rol_actual": perfil.rol.nombre}
-    return {"rol_actual": None}
+def acceso(request):
+    #es_admin: la cuenta es de administracion (no compra planes ni los ve).
+    #tiene_acceso: puede ver el pronostico completo (admin o plan vigente).
+    #Perezosos: solo consultan la base en las plantillas que los usan, y una
+    #sola vez por pagina aunque la plantilla los pregunte varias veces.
+    from usuarios.roles import es_administrador, tiene_acceso
+    memo = {}
+    def recordar(clave, calculo):
+        if clave not in memo:
+            memo[clave] = calculo(request.user)
+        return memo[clave]
+    return {
+        "es_admin": lambda: recordar("admin", es_administrador),
+        "tiene_acceso": lambda: recordar("acceso", tiene_acceso),
+    }
 
 
 def google_disponible(request):

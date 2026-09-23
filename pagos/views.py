@@ -17,6 +17,7 @@ from pagos.models import Pago,EventoPasarela
 from pagos import pasarela,servicios
 from usuarios.models import Perfil,falta_identidad
 from usuarios.validaciones import completar_identidad
+from usuarios.roles import es_administrador
 
 #Tope de intentos de checkout por usuario y minuto. Un bot que abra el
 #checkout mil veces no llena la tabla de pagos ni gasta cupo de la pasarela.
@@ -59,6 +60,10 @@ def _url_publica(request,nombre_url):
 @login_required(login_url="Ingresar")
 @require_POST
 def procesar_pago(request,clave_plan):
+    #Un administrador no paga planes (ver suscripciones/views.py)
+    if es_administrador(request.user):
+        return redirect("Analizador")
+
     plan=obtener_plan(clave_plan)
     if plan is None:
         messages.error(request,"Ese plan no existe")

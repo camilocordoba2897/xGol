@@ -10,9 +10,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/analizador.css' %}?v=33">
-<link rel="stylesheet" href="{% static 'css/calendario.css' %}?v=3">
-<link rel="stylesheet" href="{% static 'css/analisis.css' %}?v=19">
+<link rel="stylesheet" href="{% static 'css/analizador.css' %}?v=34">
+<link rel="stylesheet" href="{% static 'css/calendario.css' %}?v=4">
+<link rel="stylesheet" href="{% static 'css/analisis.css' %}?v=20">
 <link rel="stylesheet" href="{% static 'css/boton_inicio.css' %}?v=2">
 <script>
   // Aplicamos el modo guardado ANTES de pintar para que no parpadee
@@ -48,15 +48,13 @@ reconoce y la imprime tal cual encima de la pagina.
   Inicio
 </a>
 
-{% if user.is_superuser or rol_actual == "administrador" %}
+{% if es_admin %}
 <a class="panel-admin" href="{% url 'PanelAdmin' %}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6 4.6 5.8v5.4c0 4.6 3.1 8.8 7.4 10.2 4.3-1.4 7.4-5.6 7.4-10.2V5.8z"/><path d="M9.2 12.1 11.3 14.2 15 10.4"/></svg><span class="pa-texto">Panel admin</span></a>
 {% endif %}
 
 {% csrf_token %}
 <script>
   window.XGOL_API = {
-    cargarBiblioteca: "{% url 'CargarBiblioteca' %}",
-    guardarBiblioteca: "{% url 'GuardarBiblioteca' %}",
     cargarApuestas: "{% url 'CargarApuestas' %}",
     guardarApuestas: "{% url 'GuardarApuestas' %}"
   };
@@ -127,7 +125,7 @@ reconoce y la imprime tal cual encima de la pagina.
     </div>
 
 
-    <p class="lab-nota">Probabilidades estimadas con modelo de Poisson sobre el historial reciente. No garantizan resultados. Apuesta responsablemente.</p>
+    <p class="lab-nota">Probabilidades del motor xGol: cuotas del mercado, modelo de liga y Elo, calibrados con miles de partidos. No garantizan resultados. Apuesta responsablemente.</p>
   </div>
 
   <!-- ============================================================
@@ -160,21 +158,8 @@ reconoce y la imprime tal cual encima de la pagina.
   </div>
 </div>
 
-<!-- MODAL: conflicto de equipo ya existente en biblioteca -->
-<div class="lib-modal-bg" id="lib-modal-bg">
-  <div class="lib-modal">
-    <h4>📚 Equipo ya guardado</h4>
-    <p>Ya existe <strong id="lib-modal-name">—</strong> en tu biblioteca. ¿Qué quieres hacer con el CSV que acabas de cargar?</p>
-    <div class="lib-modal-btns">
-      <button class="lib-mb-overwrite" onclick="resolveLibConflict('overwrite')">Sobrescribir el guardado</button>
-      <button class="lib-mb-copy" onclick="resolveLibConflict('copy')">Guardar como copia nueva</button>
-      <button class="lib-mb-cancel" onclick="resolveLibConflict('cancel')">No guardar (solo usar ahora)</button>
-    </div>
-  </div>
-</div>
-
-<script src="{% static 'js/analizador.js' %}?v=14"></script>
-<script src="{% static 'js/vista.js' %}?v=5"></script>
+<script src="{% static 'js/analizador.js' %}?v=15"></script>
+<script src="{% static 'js/vista.js' %}?v=6"></script>
 <script>
   window.XGOL_AUTO = {
     partidos: "{% url 'AutoPartidos' %}",
@@ -185,7 +170,7 @@ reconoce y la imprime tal cual encima de la pagina.
   };
 </script>
 <script src="{% static 'js/auto.js' %}?v=21"></script>
-<script src="{% static 'js/seguimiento.js' %}?v=5"></script>
+<script src="{% static 'js/seguimiento.js' %}?v=6"></script>
 <script src="{% static 'js/motor.js' %}?v=7"></script>
 <script>
   // Puente fichas -> <select>: escribe el valor y lanza 'change'.

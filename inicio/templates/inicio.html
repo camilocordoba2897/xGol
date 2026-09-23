@@ -11,14 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/home.css' %}?v=35">
-<script>
-  // Aplicamos el tema guardado ANTES de pintar para que no parpadee
-  (function() {
-    var t = localStorage.getItem('xgol-tema');
-    if (t) { document.documentElement.setAttribute('data-tema', t); }
-  })();
-</script>
+<link rel="stylesheet" href="{% static 'css/home.css' %}?v=36">
 </head>
 <body class="home">
 
@@ -62,10 +55,10 @@
 
           <div class="hd-menu" id="accountMenu">
             <a href="{% url 'EditarPerfil' %}" class="hd-menu-item"><svg class="hd-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Administrar cuenta</span></a>
-            {% if not user.is_superuser and rol_actual != "administrador" %}
+            {% if not es_admin %}
               <a href="{% url 'Suscripcion' %}" class="hd-menu-item"><svg class="hd-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span>{% if suscripcion_activa %}Mejorar plan{% else %}Mis planes{% endif %}</span></a>
             {% endif %}
-            {% if user.is_superuser or rol_actual == "administrador" %}
+            {% if es_admin %}
               <a href="{% url 'PanelAdmin' %}" class="hd-menu-item"><svg class="hd-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg><span>Panel de administración</span></a>
             {% endif %}
             <a href="{% url 'Salir' %}" class="hd-menu-item hd-menu-exit"><svg class="hd-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Cerrar sesión</span></a>
@@ -114,7 +107,8 @@
            no hay conexion: por eso NO lleva ningun porcentaje inventado. -->
       <div class="pred-card" id="predCard"
            data-url="{% url 'PrediccionesDestacadas' %}"
-           data-planes="{% if user.is_authenticated %}{% url 'Suscripcion' %}{% else %}#planes{% endif %}">
+           data-destino="{% if tiene_acceso %}{% url 'Analizador' %}{% elif user.is_authenticated %}{% url 'Suscripcion' %}{% else %}#planes{% endif %}"
+           data-acceso="{% if tiene_acceso %}1{% else %}0{% endif %}">
         <div class="pc-head">
           <span class="pc-tag">Próximo análisis</span>
           <span class="pc-live">IA en vivo</span>
@@ -136,11 +130,17 @@
         <div class="pc-resultado">
           <div class="pc-contexto">Cargando próximo análisis&hellip;</div>
         </div>
-        <a class="pc-candado" href="{% if user.is_authenticated %}{% url 'Suscripcion' %}{% else %}#planes{% endif %}">
+        {% comment %}
+          A donde lleva depende de quien mira: el administrador y quien ya
+          tiene plan van al analizador (antes los mandaba a comprar un plan,
+          tambien al administrador); sin plan, a los planes; sin cuenta, a la
+          seccion de planes de esta misma pagina.
+        {% endcomment %}
+        <a class="pc-candado" href="{% if tiene_acceso %}{% url 'Analizador' %}{% elif user.is_authenticated %}{% url 'Suscripcion' %}{% else %}#planes{% endif %}">
           <div class="pc-borroso"><span></span><span></span><span></span></div>
           <div class="pc-candado-txt">
-            <div class="pc-candado-t">🔒 Pronóstico completo</div>
-            <div class="pc-candado-s">Ganador · goles · marcador · valor</div>
+            <div class="pc-candado-t">{% if tiene_acceso %}Ver pronóstico completo{% else %}🔒 Pronóstico completo{% endif %}</div>
+            <div class="pc-candado-s">Ganador · goles · marcador</div>
           </div>
         </a>
         <div class="pc-metricas">
@@ -242,22 +242,22 @@
   <p class="sec-sub">Los primeros de la Premier League ahora mismo. Datos de la tabla oficial, no ejemplos.</p>
   <div class="carousel">
     <div class="car-track" id="carTrack">
-      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/uyhbfe1612467038.png/medium" alt="Arsenal"></div><div><div class="tc-name">Arsenal</div><div class="tc-form">Forma <b>W W W D W</b></div></div></div>
-      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/yvwvtu1448813215.png/medium" alt="Chelsea"></div><div><div class="tc-name">Chelsea</div><div class="tc-form">Forma <b>W D W W L</b></div></div></div>
-      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/jykrpv1717309891.png/medium" alt="Aston Villa"></div><div><div class="tc-name">Aston Villa</div><div class="tc-form">Forma <b>W W D W W</b></div></div></div>
-      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/eqayrf1523184794.png/medium" alt="Everton"></div><div><div class="tc-name">Everton</div><div class="tc-form">Forma <b>W W W W D</b></div></div></div>
-      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/ywypts1448810904.png/medium" alt="Brighton"></div><div><div class="tc-name">Brighton</div><div class="tc-form">Forma <b>W L W W W</b></div></div></div>
-      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/ia6i3m1656014992.png/medium" alt="Crystal Palace"></div><div><div class="tc-name">C. Palace</div><div class="tc-form">Forma <b>D W W W W</b></div></div></div>
-      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/xwwvyt1448811086.png/medium" alt="Fulham"></div><div><div class="tc-name">Fulham</div><div class="tc-form">Forma <b>W D W L W</b></div></div></div>
-      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/grv1aw1546453779.png/medium" alt="Brentford"></div><div><div class="tc-name">Brentford</div><div class="tc-form">Forma <b>D D W W L</b></div></div></div>
-      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/y08nak1534071116.png/medium" alt="Bournemouth"></div><div><div class="tc-name">Bournemouth</div><div class="tc-form">Forma <b>W L W D W</b></div></div></div>
-      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/ql7nl31686893820.png/medium" alt="Burnley"></div><div><div class="tc-name">Burnley</div><div class="tc-form">Forma <b>L W D W W</b></div></div></div>
+      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/uyhbfe1612467038.png/medium" alt="Arsenal"></div><div><div class="tc-name">Arsenal</div></div></div>
+      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/yvwvtu1448813215.png/medium" alt="Chelsea"></div><div><div class="tc-name">Chelsea</div></div></div>
+      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/jykrpv1717309891.png/medium" alt="Aston Villa"></div><div><div class="tc-name">Aston Villa</div></div></div>
+      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/eqayrf1523184794.png/medium" alt="Everton"></div><div><div class="tc-name">Everton</div></div></div>
+      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/ywypts1448810904.png/medium" alt="Brighton"></div><div><div class="tc-name">Brighton</div></div></div>
+      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/ia6i3m1656014992.png/medium" alt="Crystal Palace"></div><div><div class="tc-name">C. Palace</div></div></div>
+      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/xwwvyt1448811086.png/medium" alt="Fulham"></div><div><div class="tc-name">Fulham</div></div></div>
+      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/grv1aw1546453779.png/medium" alt="Brentford"></div><div><div class="tc-name">Brentford</div></div></div>
+      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/y08nak1534071116.png/medium" alt="Bournemouth"></div><div><div class="tc-name">Bournemouth</div></div></div>
+      <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/ql7nl31686893820.png/medium" alt="Burnley"></div><div><div class="tc-name">Burnley</div></div></div>
     </div>
   </div>
 </section>
 
 <!-- PLANES -->
-{% if not suscripcion_activa and not user.is_superuser and rol_actual != "administrador" %}
+{% if not suscripcion_activa and not es_admin %}
 <section class="sec reveal" id="planes">
 
     <div class="sec-eyebrow">Planes y precios</div>
@@ -363,7 +363,7 @@
         <div class="cf-slide">
           <div class="cf-icon"><svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:none;stroke:var(--acc);stroke-width:1.9;" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
           <h3 class="cf-title">¿Qué beneficio obtengo?</h3>
-          <p class="cf-text">Decides con datos, no con corazonadas: predicciones de goles, mercados con valor y estadísticas claras, todo en un mismo lugar.</p>
+          <p class="cf-text">Decides con datos, no con corazonadas: predicciones de goles, probabilidades calibradas y estadísticas claras, todo en un mismo lugar.</p>
         </div>
 
         <!-- Pantalla 3 -->
@@ -593,21 +593,6 @@
   };
   window.pintarCarrusel();
 
-  // ===== Temas de color =====
-  function cambiarTema(color) {
-    document.documentElement.setAttribute('data-tema', color);
-    localStorage.setItem('xgol-tema', color);
-    marcarTemaActivo(color);
-  }
-  function marcarTemaActivo(color) {
-    document.querySelectorAll('.tema-opt').forEach(function(o) {
-      o.classList.toggle('activo', o.getAttribute('data-color') === color);
-    });
-  }
-  document.addEventListener('DOMContentLoaded', function() {
-    marcarTemaActivo(localStorage.getItem('xgol-tema') || 'lima');
-  });
-
   // ===== Pestañas del centro de partidos (Hoy / Próximos / En vivo / Tabla) =====
   function cambiarTabPartidos(nombre, btn) {
     document.querySelectorAll('.mtab').forEach(function(b) {
@@ -652,9 +637,7 @@
 
   // ===== Cerrar menús al hacer clic fuera =====
   document.addEventListener('click', function(e) {
-    var tm = document.getElementById('temaMenu');
     var am = document.getElementById('accountMenu');
-    if (tm && !e.target.closest('.tema-wrap')) tm.classList.remove('open');
     if (am && !e.target.closest('.hd-account')) am.classList.remove('open');
   });
 </script>
@@ -932,7 +915,7 @@
   document.addEventListener('DOMContentLoaded', function() { cargarTab('proximos'); cargarVivo(); cargarCarrusel(); });
 </script>
 
-<script src="{% static 'js/prediccion.js' %}?v=3"></script>
+<script src="{% static 'js/prediccion.js' %}?v=5"></script>
 
 <!-- BOTON SUBIR -->
 <button type="button" class="subir" id="btnSubir" onclick="irArriba()" title="Volver al inicio" aria-label="Volver al inicio de la página">

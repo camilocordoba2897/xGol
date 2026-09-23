@@ -28,9 +28,6 @@ class Perfil(models.Model):
   ciudad=models.CharField(max_length=60,null=True,blank=True)
   pais=models.CharField(max_length=60,null=True,blank=True)
   telefono=models.CharField(max_length=20,null=True,blank=True)
-  #Archivo viejo: ya no se escribe (ver foto). Se conserva para no perder
-  #las fotos que se subieron antes del cambio.
-  avatar=models.ImageField(upload_to='avatares',null=True,blank=True)
   #La foto va EN LA BASE DE DATOS, reducida a 256 px y en WebP (10-25 KB),
   #como data URI. En Railway el disco se borra en cada despliegue: guardada
   #como archivo, la foto de perfil desaparecia con cada actualizacion.
@@ -47,13 +44,11 @@ class Perfil(models.Model):
 
   @property
   def foto_url(self):
-    #Lo que se pone en el src de la imagen: la foto de la base o, si es de
-    #antes del cambio, el archivo viejo.
-    if self.foto:
-      return self.foto
-    if self.avatar:
-      return self.avatar.url
-    return ""
+    #Lo que se pone en el src de la imagen. Sin foto, la plantilla pinta la
+    #inicial. (El archivo viejo "avatar" ya no existe: la migracion 0005 paso
+    #las fotos a la base, y en Railway esos archivos se borraban en cada
+    #despliegue, asi que solo daban imagenes rotas.)
+    return self.foto or ""
 
   def identidad_completa(self):
     #Cedula y fecha de nacimiento: sin ellas no se puede comprar un plan.

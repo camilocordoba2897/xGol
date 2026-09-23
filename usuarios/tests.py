@@ -269,7 +269,7 @@ class PerfilTests(TestCase):
         falso = SimpleUploadedFile("foto.png", b"<script>alert(1)</script>", content_type="image/png")
         r = self.client.post(self.url, {"accion": "datos", "correo": "ana@correo.com", "avatar": falso},
                              follow=True)
-        self.assertFalse(Perfil.objects.get(usuario=self.usuario).avatar)
+        self.assertFalse(Perfil.objects.get(usuario=self.usuario).foto)
         self.assertTrue(any("imagen" in m for m in self.mensajes(r)))
 
     def test_telefono_invalido_no_tumba_el_guardado(self):
@@ -432,6 +432,70 @@ class RecuperarContrasenaTests(TestCase):
             self.assertEqual(self.client.get(reverse(nombre)).status_code, 200, nombre)
 
 
+class AdministradorSinPlanesTests(TestCase):
+    #El administrador no compra planes ni los ve. Antes "Pronostico completo"
+    #del inicio lo mandaba a la pagina de planes.
+
+    def setUp(self):
+        from unittest import mock
+        from usuarios.models import Rol
+        self.admin_rol = crear_cuenta("jefa", "jefa@correo.com", "1111111111")
+        self.admin_rol.perfil.rol = Rol.objects.create(nombre="administrador")
+        self.admin_rol.perfil.save()
+        self.superusuario = User.objects.create_superuser("root", password="Clave#123")
+        self.staff = User.objects.create_user("staff", password="Clave#123", is_staff=True)
+        self.cliente = crear_cuenta()
+        #El inicio pide partidos a la API externa: aqui no hace falta la red
+        parche = mock.patch("inicio.api_partidos.predicciones_destacadas", return_value={})
+        parche.start()
+        self.addCleanup(parche.stop)
+
+    def administradores(self):
+        return (self.admin_rol, self.superusuario, self.staff)
+
+    def test_nunca_ve_planes_checkout_ni_pago(self):
+        for admin in self.administradores():
+            self.client.force_login(admin)
+            for r in (self.client.get(reverse("Suscripcion")),
+                      self.client.get(reverse("Checkout", args=["mensual"])),
+                      self.client.post(reverse("ProcesarPago", args=["mensual"]))):
+                self.assertEqual(r.status_code, 302, admin.username)
+                self.assertEqual(r["Location"], reverse("Analizador"), admin.username)
+
+    def test_entra_al_analizador_sin_plan(self):
+        for admin in self.administradores():
+            self.client.force_login(admin)
+            self.assertEqual(self.client.get(reverse("Analizador")).status_code, 200, admin.username)
+
+    def _boton_del_inicio(self):
+        import re
+        texto = self.client.get(reverse("Inicio")).content.decode()
+        return re.search(r'<a class="pc-candado" href="([^"]*)"', texto).group(1), texto
+
+    def test_pronostico_completo_lleva_a_cada_uno_a_su_lugar(self):
+        from suscripciones.models import Suscripcion
+        for admin in self.administradores():
+            self.client.force_login(admin)
+            destino, texto = self._boton_del_inicio()
+            self.assertEqual(destino, reverse("Analizador"), admin.username)
+            self.assertIn("Ver pronóstico completo", texto)
+            self.assertNotIn('id="planes"', texto)
+        #Cliente sin plan: a los planes
+        self.client.force_login(self.cliente)
+        self.assertEqual(self._boton_del_inicio()[0], reverse("Suscripcion"))
+        #Cliente con plan vigente: al analizador, no a comprar otra vez
+        Suscripcion.objects.get_or_create(usuario=self.cliente)[0].activar("Mensual", 20000, 30)
+        self.assertEqual(self._boton_del_inicio()[0], reverse("Analizador"))
+        #Visitante: a la seccion de planes del inicio
+        self.client.logout()
+        self.assertEqual(self._boton_del_inicio()[0], "#planes")
+
+    def test_el_perfil_del_admin_no_le_pide_datos_para_comprar(self):
+        self.client.force_login(self.superusuario)
+        texto = self.client.get(reverse("EditarPerfil")).content.decode()
+        self.assertNotIn("Los necesitas para comprar un plan", texto)
+
+
 class SinAppDeGoogleTests(TestCase):
     #Si la app de Google faltara en la base, Ingresar y Registro no pueden
     #caerse: simplemente no muestran el boton.
@@ -460,7 +524,6 @@ class FotoEnLaBaseTests(TestCase):
                                                    "avatar": foto})
         perfil = Perfil.objects.get(usuario=usuario)
         self.assertTrue(perfil.foto_url.startswith("data:image/webp;base64,"))
-        self.assertFalse(perfil.avatar)
         import base64
         guardada = Image.open(io.BytesIO(base64.b64decode(perfil.foto.split(",", 1)[1])))
         self.assertLessEqual(max(guardada.size), 256)

@@ -154,7 +154,6 @@ class Command(BaseCommand):
         #--- avance temporada por temporada ---
         historial_fuentes = []
         casos_calibracion = []
-        historial_25 = []
         for temporada in examen:
             #El motor solo ve lo ANTERIOR a la temporada que va a pronosticar.
             entreno = [p for p in partidos if p["temporada"] < temporada]
@@ -190,13 +189,6 @@ class Command(BaseCommand):
                     "cuotas": p["cuotas"],
                     "temporada": temporada,
                 })
-                try:
-                    historial_25.append({
-                        "probabilidad": r.mercados["totales"]["2.5"]["mas"],
-                        "acierto": (gl + gv) > 2.5,
-                    })
-                except (KeyError, TypeError):
-                    pass
 
         if len(historial_fuentes) < MINIMO_PARA_APRENDER:
             self.stdout.write(self.style.WARNING(
@@ -233,7 +225,6 @@ class Command(BaseCommand):
         #es colar el futuro por la puerta de atras. Asi, ademas, calibrar dos
         #veces da el mismo resultado en vez de ir acumulandose.
         arranque = None
-        tramos = calibracion.construir_tramos(historial_25) if historial_25 else {}
 
         def _mezclados(casos, pesos_):
             #La temperatura se aprende sobre la mezcla con LOS PESOS QUE SE VAN
@@ -456,7 +447,6 @@ class Command(BaseCommand):
                     "pesos": pesos,
                     "temperatura": temperatura,
                     "temperatura_sin_mercado": temperatura_sm,
-                    "tramos": tramos,
                     #Las metricas son las del RECALIBRADO (pesos aprendidos +
                     #temperatura, cada temporada con lo aprendido de las
                     #anteriores), que es el procedimiento que se despliega.

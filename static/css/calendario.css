@@ -5,10 +5,6 @@
    significa "calibracion" en el resto del proyecto.
    ============================================================ */
 
-.auto-fecha{display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:14px;gap:12px}
-.auto-fecha-txt{font-family:var(--font-eyebrow);font-size:13px;font-weight:800;
-  text-transform:uppercase;letter-spacing:.08em;color:var(--text-0)}
 .auto-fecha-btn{background:var(--bg-3);border:1px solid var(--line);border-radius:9px;
   width:36px;height:36px;flex-shrink:0;font-size:16px;cursor:pointer;color:var(--text-1);
   transition:border-color .15s var(--ease-out)}

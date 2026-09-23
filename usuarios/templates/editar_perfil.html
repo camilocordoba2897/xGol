@@ -10,15 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/perfil.css' %}?v=13">
+<link rel="stylesheet" href="{% static 'css/perfil.css' %}?v=14">
 <link rel="stylesheet" href="{% static 'css/boton_inicio.css' %}?v=2">
-<script>
-  // Aplicamos el tema guardado ANTES de pintar para que no parpadee
-  (function() {
-    var t = localStorage.getItem('xgol-tema');
-    if (t) { document.documentElement.setAttribute('data-tema', t); }
-  })();
-</script>
 </head>
 <body class="perfil">
 
@@ -52,7 +45,7 @@
     panel, que no pasaron por el registro). Si hay que buscarlo bajando, no se
     llena, y sin estos datos no se puede comprar un plan.
   {% endcomment %}
-  {% if not perfil.documento or not perfil.fecha_nacimiento %}
+  {% if not es_admin %}{% if not perfil.documento or not perfil.fecha_nacimiento %}
   <section class="ph-card ph-pendiente" id="completar-identidad">
     <form action="{% url 'EditarPerfil' %}" method="post">
       {% csrf_token %}
@@ -83,7 +76,7 @@
       </div>
     </form>
   </section>
-  {% endif %}
+  {% endif %}{% endif %}
 
   <div class="ph-grid">
 

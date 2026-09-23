@@ -16,11 +16,6 @@
 }
 
 /* ====== TEMAS DE COLOR (mismos acentos que el Home) ====== */
-html[data-tema="azul"]    { --lima:#38bdf8; --lima-bright:#7dd3fc; }
-html[data-tema="morado"]  { --lima:#a78bfa; --lima-bright:#c4b5fd; }
-html[data-tema="naranja"] { --lima:#fb923c; --lima-bright:#fdba74; }
-html[data-tema="rosa"]    { --lima:#f472b6; --lima-bright:#f9a8d4; }
-
 * , *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body.perfil {
@@ -187,7 +182,6 @@ body.perfil {
 .ph-pass-ojo.mostrando .ojo-abierto { display: none; }
 .ph-pass-ojo.mostrando .ojo-cerrado { display: block; }
 .ph-disabled { opacity: 0.55; cursor: not-allowed; }
-.ph-hint { font-size: 0.78rem; color: var(--text-2); margin-top: 5px; display: block; }
 
 /* BOTÓN */
 .ph-btn {

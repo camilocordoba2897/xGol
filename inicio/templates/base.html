@@ -11,20 +11,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="{% static 'css/base.css' %}?v=18">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}?v=19">
   <link rel="stylesheet" href="{% static 'css/boton_inicio.css' %}?v=2">
 
   <!-- Hueco para el CSS propio de cada pagina (lo usa registro.html) -->
   {% block estilos %}{% endblock %}
-
-  <script>
-    // Aplicamos el tema guardado ANTES de pintar para que no parpadee
-    // (misma clave que usa el Home, para que el acento sea coherente)
-    (function() {
-      var t = localStorage.getItem('xgol-tema');
-      if (t) { document.documentElement.setAttribute('data-tema', t); }
-    })();
-  </script>
 </head>
 
 <body>
@@ -40,7 +31,7 @@
       </a>
     
       {% if request.resolver_match.url_name != 'TerminosCondiciones' and request.resolver_match.url_name != 'PoliticaPrivacidad' and request.resolver_match.url_name != 'AvisoLegal' and request.resolver_match.url_name != 'JuegoResponsable' %}
-      {% if rol_actual == "administrador" %}
+      {% if es_admin %}
       <a href="{% url 'PanelAdmin' %}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         Admin

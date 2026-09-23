@@ -1,24 +1,17 @@
-#Endpoints del motor de pronostico.
-#
-#Archivo NUEVO: no toca views.py ni el frontend actual. Se conecta solo con
-#tres lineas en urls.py.
+#Endpoint del motor de pronostico.
 #
 #   GET /analizador/motor/pronostico?liga=PD&local=Real Madrid&visitante=Barcelona
-#   GET /analizador/motor/fuerzas?liga=PD
-#   GET /analizador/motor/rendimiento?liga=PD
 #
-#El primero devuelve TODOS los mercados, la opinion de cada fuente por
-#separado, los pesos usados, el nivel de confianza y las apuestas con valor.
-#El frontend pinta lo que quiera de ahi.
-import math
-
+#Devuelve TODOS los mercados (de una sola matriz de marcadores), la opinion de
+#cada fuente por separado, los pesos usados y el nivel de confianza. Lo pinta
+#static/js/motor.js.
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 
 from suscripciones.decoradores import suscripcion_requerida
 from analizador import api_datos,motor_datos
 from analizador.models import AjusteMotor,PesosMotor,PrediccionMotor
-from analizador.motor import combinacion,elo as mod_elo,evaluacion,nucleo,tasas
+from analizador.motor import combinacion,elo as mod_elo,nucleo,tasas
 from analizador.motor.probabilidad import resumen_mercados
 
 
@@ -156,61 +149,3 @@ def motor_pronostico(request):
     #frontend lo dice en vez de dejar creer que esta tan probada como el resto
     salida["sin_medicion"]=fila_pesos is None
     return JsonResponse(salida)
-
-
-@login_required(login_url="Ingresar")
-@suscripcion_requerida
-def motor_fuerzas(request):
-    #Tabla de ataque y defensa de la liga.
-    #  ataque  1.30 = mete un 30% MAS de goles que el equipo promedio
-    #  defensa 0.70 = encaja un 30% MENOS que el promedio  (MENOR ES MEJOR)
-    #Es lo que hay que enseñar para que se entienda de donde sale el pronostico.
-    liga=(request.GET.get("liga") or "").strip()
-    if not liga:
-        return JsonResponse({"error":"faltan_parametros"},status=400)
-    if liga not in api_datos.LIGAS:
-        return JsonResponse({"error":"liga_no_cubierta"},status=400)
-    ajuste,tabla,mapa,error=_cargar_ajuste(liga)
-    if ajuste is None:
-        return JsonResponse({"error":error or "sin_datos"},status=503)
-    return JsonResponse({
-        "liga":liga,
-        "media_goles":math.exp(ajuste.mu),
-        "ventaja_local":math.exp(ajuste.ventaja_local),
-        "rho":ajuste.rho,
-        "partidos_usados":ajuste.partidos_usados,
-        "fuerzas":ajuste.tabla_fuerzas(),
-        "elo":tabla.clasificacion() if tabla else [],
-    })
-
-
-@login_required(login_url="Ingresar")
-@suscripcion_requerida
-def motor_rendimiento(request):
-    #Como le ha ido al motor de verdad, con los pronosticos que guardo ANTES
-    #de cada partido. Esta es la pantalla que convence a quien pregunte.
-    liga=(request.GET.get("liga") or "").strip()
-    consulta=PrediccionMotor.objects.filter(evaluado=True).exclude(resultado="")
-    if liga:
-        consulta=consulta.filter(liga=liga)
-    filas=list(consulta.order_by("creado")[:2000])
-    if not filas:
-        return JsonResponse({"partidos":0,"mensaje":"aun no hay partidos evaluados"})
-
-    casos=[{
-        "probabilidades":{"local":f.prob_local,"empate":f.prob_empate,
-                          "visitante":f.prob_visitante},
-        "real":f.resultado,
-        "cuotas":f.cuotas or {},
-    } for f in filas]
-
-    informe=evaluacion.informe(casos,liga or "todas las ligas")
-    informe["apuestas"]=evaluacion.rendimiento_apuestas(casos)
-    #Referencias reales para que el numero signifique algo
-    informe["referencia"]={
-        "sin_saber_nada":1.0986,
-        "solo_localia":1.0300,
-        "modelo_decente":0.9900,
-        "mercado_de_apuestas":0.9600,
-    }
-    return JsonResponse(informe)

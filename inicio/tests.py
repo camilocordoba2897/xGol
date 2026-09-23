@@ -144,8 +144,7 @@ class PaginasSinError500Tests(TestCase):
 
     PUBLICAS = ["Inicio", "TerminosCondiciones", "PoliticaPrivacidad", "AvisoLegal",
                 "JuegoResponsable", "Registro", "Ingresar"]
-    DE_USUARIO = ["Suscripcion", "EditarPerfil", "Analizador", "CargarBiblioteca",
-                  "CargarApuestas", "MotorRendimiento"]
+    DE_USUARIO = ["Suscripcion", "EditarPerfil", "Analizador", "CargarApuestas"]
     DE_ADMIN = ["PanelAdmin", "PanelFinanzas", "AdminCrearUsuario"]
 
     def setUp(self):

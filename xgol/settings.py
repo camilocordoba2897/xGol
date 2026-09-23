@@ -95,7 +95,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'usuarios.context_processors.rol_actual',
+                'usuarios.context_processors.acceso',
                 'usuarios.context_processors.google_disponible',
             ],
         },
@@ -168,10 +168,6 @@ STORAGES = {
     'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
     'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage'},
 }
-
-#albergar las imagenes del proyecto
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 #Ejecutar las configuraciones de smtp de gmail para la recuperacion de contraseña
 EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend"
