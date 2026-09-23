@@ -135,8 +135,20 @@ class Command(BaseCommand):
                     "real":f.resultado,
                     "cuotas":f.cuotas or {}} for f in filas]
 
-            temperatura,info_cal=calibracion.ajustar_temperatura(
+            t_vivo,info_cal=calibracion.ajustar_temperatura(
                 [{"probabilidades":c["probabilidades"],"real":c["real"]} for c in casos])
+            #Sin muestra suficiente (600 partidos) ajustar_temperatura devuelve
+            #1.0. Guardar ese 1.0 BORRABA la temperatura aprendida a ciegas
+            #con miles de partidos historicos, y los porcentajes que ve el
+            #usuario cambiaban por culpa de 10 partidos. Se conserva la previa.
+            #Y si si se aplica: lo guardado en PrediccionMotor ya salio con la
+            #temperatura previa, asi que la nueva se compone encima de ella
+            #(p^(1/T1))^(1/T2) = p^(1/(T1*T2)).
+            t_previa=(previos.temperatura if previos and previos.temperatura else 1.0)
+            if info_cal.get("aplicada"):
+                temperatura=max(0.25,min(4.0,t_previa*t_vivo))
+            else:
+                temperatura=t_previa
 
             #Tramos para mercados de si/no, usando "mas de 2.5 goles" como guia
             hist_25=[]
@@ -154,22 +166,33 @@ class Command(BaseCommand):
             informe=evaluacion.informe(casos,liga)
             apuestas=evaluacion.rendimiento_apuestas(casos)
 
-            PesosMotor.objects.update_or_create(
-                liga=liga,
-                defaults={
-                    "pesos":pesos,
-                    "temperatura":temperatura,
-                    "tramos":tramos,
-                    "partidos_evaluados":len(casos),
-                    "log_perdida":informe["log_perdida"],
-                    "rps":informe["rps"],
-                    "acierto":informe["acierto"],
-                    "ece":informe["ece"],
-                },
-            )
+            #Si con estos partidos reales no se aprendio nada (pocos datos
+            #para mover pesos o temperatura), la fila de la liga NO se toca:
+            #sigue describiendo el modelo aprendido a ciegas con miles de
+            #partidos, que es el que de verdad esta pronosticando. Antes se
+            #reescribia con las metricas de 10 partidos. Ademas, crear aqui la
+            #fila de una liga sin calibrar impedia que el mantenimiento
+            #automatico lanzara calibrar_con_historico.
+            aprendio=bool(info.get("movido")) or bool(info_cal.get("aplicada"))
+            if aprendio:
+                PesosMotor.objects.update_or_create(
+                    liga=liga,
+                    defaults={
+                        "pesos":pesos,
+                        "temperatura":temperatura,
+                        "tramos":tramos,
+                        "partidos_evaluados":len(casos),
+                        "log_perdida":informe["log_perdida"],
+                        "rps":informe["rps"],
+                        "acierto":informe["acierto"],
+                        "ece":informe["ece"],
+                    },
+                )
 
             self.stdout.write("")
             self.stdout.write(self.style.SUCCESS(f"  ===== {liga} ====="))
+            if not aprendio:
+                self.stdout.write("  (pocos partidos reales: se conserva la calibracion a ciegas)")
             self.stdout.write(f"  partidos evaluados  : {len(casos)}")
             self.stdout.write(f"  log-perdida         : {informe['log_perdida']:.4f}")
             self.stdout.write(f"      referencias -> 1.0986 no saber nada | 1.0300 solo localia")

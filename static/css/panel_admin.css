@@ -834,6 +834,11 @@ html[data-modo="claro"] .mini-pista { background: #DDE3E1; }
 }
 
 @media (max-width: 480px) {
+  /* En el celular la barrita empujaba la ultima columna (RPS, ROI) fuera de
+     la pantalla. El porcentaje ya dice lo mismo. */
+  .mini-pista { display: none; }
+  .mini-pista + .td-num { margin-left: 0 !important; }
+  table.tabla thead th, table.tabla tbody td { padding-left: 10px; padding-right: 10px; }
   .dlg { padding: 22px 18px 18px; }
   .dlg-botones { flex-direction: column-reverse; }
   .dlg-btn { width: 100%; }

@@ -253,6 +253,7 @@ def panel_admin(request):
         "usuarios": usuarios,
         "dinero": dinero,
         "modelo": modelo,
+        "motor": tablero.resumen_motor(),
         "calibracion": tablero.calibracion(),
         "mercados": tablero.por_mercado(),
         "grafica_ingresos": tablero.barras(tablero.serie_ingresos(12)),

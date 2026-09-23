@@ -200,6 +200,43 @@ class EvaluacionHonestaTests(TestCase):
         self.assertTrue(p.evaluado)
         self.assertEqual(p.resultado, "")
 
+    def _doce_evaluados(self, liga="BSA"):
+        from analizador.models import PrediccionMotor
+        for i in range(12):
+            PrediccionMotor.objects.create(
+                liga=liga, id_partido=str(i), equipo_local="A", equipo_visitante="B",
+                prob_local=.5, prob_empate=.3, prob_visitante=.2,
+                por_fuente={"mercado": {"local": .5, "empate": .3, "visitante": .2}},
+                goles_local=1, goles_visitante=0, resultado="local", evaluado=True)
+
+    def test_pocos_partidos_reales_no_borran_la_calibracion_a_ciegas(self):
+        #Con 12 partidos reales ajustar_temperatura devuelve 1.0 (pide 600).
+        #Antes eso se guardaba encima de la temperatura aprendida con miles de
+        #partidos, y los porcentajes que ve el usuario cambiaban.
+        from io import StringIO
+        from django.core.management import call_command
+        from analizador.models import PesosMotor
+        pesos = {"mercado": .5, "dixon_coles": .35, "elo": .15}
+        PesosMotor.objects.create(liga="BSA", pesos=pesos, temperatura=0.686,
+                                  partidos_evaluados=626, acierto=0.511, rps=0.2014)
+        self._doce_evaluados()
+        call_command("evaluar_motor", stdout=StringIO())
+        fila = PesosMotor.objects.get(liga="BSA")
+        self.assertAlmostEqual(fila.temperatura, 0.686)
+        self.assertEqual(fila.partidos_evaluados, 626)
+        self.assertAlmostEqual(fila.acierto, 0.511)
+        self.assertEqual(fila.pesos, pesos)
+
+    def test_no_crea_calibracion_de_una_liga_sin_calibrar(self):
+        #Crear la fila aqui bloqueaba al mantenimiento automatico, que solo
+        #lanza calibrar_con_historico cuando la tabla esta vacia
+        from io import StringIO
+        from django.core.management import call_command
+        from analizador.models import PesosMotor
+        self._doce_evaluados()
+        call_command("evaluar_motor", stdout=StringIO())
+        self.assertFalse(PesosMotor.objects.exists())
+
 
 class MantenimientoMotorTests(TestCase):
     #El motor se mantiene solo en produccion: sin cron y sin correr comandos a mano
@@ -232,10 +269,23 @@ class MantenimientoMotorTests(TestCase):
         from analizador import middleware
         from analizador.models import AjusteMotor, PesosMotor
         AjusteMotor.objects.create(liga="PL", parametros={"xi": 0.003})
-        PesosMotor.objects.create(liga="PL", pesos={})
+        PesosMotor.objects.create(liga="PL", pesos={}, partidos_evaluados=760)
         self.assertEqual(self.visitar(hora=14), [])
         self.assertEqual(self.visitar(hora=4), [middleware._mantenimiento_nocturno])
         self.assertEqual(self.visitar(hora=5), [])   #ya corrio hoy
+
+    def test_repara_una_liga_con_la_calibracion_danada(self):
+        #Una liga que el evaluar_motor viejo dejo con 12 partidos se recalibra
+        #con el historico, y una sola vez aunque lleguen muchas visitas
+        from django.core.cache import cache
+        from analizador import middleware
+        from analizador.models import AjusteMotor, PesosMotor
+        AjusteMotor.objects.create(liga="PL", parametros={"xi": 0.003})
+        PesosMotor.objects.create(liga="PL", pesos={}, partidos_evaluados=760)
+        PesosMotor.objects.create(liga="BSA", pesos={}, partidos_evaluados=12, temperatura=1.0)
+        self.assertEqual(self.visitar(hora=14), [middleware._calibrar])
+        cache.delete("motor_calibrado_revisado")
+        self.assertEqual(self.visitar(hora=14), [])   #ya se lanzo esta semana
 
     def test_afina_una_vez_al_mes_y_no_todas_las_noches(self):
         #Una liga que se quedo con los parametros de fabrica (porque afinar no
@@ -251,7 +301,9 @@ class MantenimientoMotorTests(TestCase):
     def test_el_primer_ajuste_es_el_rapido(self):
         from unittest import mock
         from analizador import middleware
-        with mock.patch.object(middleware, "_correr") as correr:
+        #close_all cierra la conexion de la prueba y rompe las que vengan detras
+        with mock.patch.object(middleware, "_correr") as correr, \
+             mock.patch.object(middleware.connections, "close_all"):
             middleware._primer_ajuste()
         self.assertEqual([c.args for c in correr.call_args_list],
                          [("ajustar_motor",), ("evaluar_motor",)])

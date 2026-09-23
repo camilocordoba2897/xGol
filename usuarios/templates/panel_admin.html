@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/panel_admin.css' %}?v=15">
+<link rel="stylesheet" href="{% static 'css/panel_admin.css' %}?v=16">
 <script>
   // Tema y modo aplicados ANTES de pintar para que no parpadee
   (function() {
@@ -132,7 +132,7 @@
             <div class="kpi-icono"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
             <div class="kpi-nombre">Usuarios</div>
           </div>
-          <div class="kpi-valor">{{ usuarios.total|intcomma }}</div>
+          <div class="kpi-valor">{{ usuarios.total|pesos }}</div>
           <div class="kpi-pie">
             {% if usuarios.variacion is not None %}
               <span class="delta {% if usuarios.variacion >= 0 %}delta-sube{% else %}delta-baja{% endif %}">{{ usuarios.variacion }}%</span>
@@ -164,17 +164,17 @@
           </div>
         </div>
 
-        <div class="kpi" style="--kpi-color: {% if modelo.comparado.nivel == 'malo' %}var(--bad){% else %}var(--ok){% endif %}">
+        <div class="kpi" style="--kpi-color: {% if motor.comparado.nivel == 'malo' %}var(--bad){% else %}var(--ok){% endif %}">
           <div class="kpi-cabeza">
             <div class="kpi-icono"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg></div>
             <div class="kpi-nombre">Acierto del modelo</div>
           </div>
-          {% if modelo.total %}
-          <div class="kpi-valor">{{ modelo.tasa|floatformat:1 }}<small>%</small></div>
-          <div class="kpi-pie"><span>{{ modelo.aciertos }} de {{ modelo.total }} apuestas</span></div>
+          {% if motor.acierto is not None %}
+          <div class="kpi-valor">{{ motor.acierto|floatformat:1 }}<small>%</small></div>
+          <div class="kpi-pie"><span>1X2 · {{ motor.partidos|pesos }} partidos medidos a ciegas</span></div>
           {% else %}
           <div class="kpi-valor">—</div>
-          <div class="kpi-pie"><span>Sin partidos evaluados todavía</span></div>
+          <div class="kpi-pie"><span>El motor aún se está calibrando</span></div>
           {% endif %}
         </div>
       </div>
@@ -209,12 +209,115 @@
         <p>Mide si el modelo acierta lo que promete, comparado con las referencias publicadas del sector.</p>
       </div>
 
+      <div class="seccion-cabeza"><div class="seccion-titulo">Motor de predicción</div></div>
+      {% if motor.ligas %}
+      <div class="kpis">
+        <div class="kpi kpi-mini" style="--kpi-color: var(--accent)">
+          <div class="kpi-cabeza"><div class="kpi-nombre">Acierto 1X2</div></div>
+          <div class="kpi-valor">{{ motor.acierto|floatformat:1 }}<small>%</small></div>
+          <div class="kpi-pie"><span class="delta {% if motor.comparado.nivel == 'malo' %}delta-baja{% elif motor.comparado.nivel == 'bueno' %}delta-sube{% else %}delta-neutro{% endif %}">{{ motor.comparado.texto }}</span></div>
+        </div>
+        <div class="kpi kpi-mini" style="--kpi-color: var(--cian)">
+          <div class="kpi-cabeza"><div class="kpi-nombre">RPS</div></div>
+          <div class="kpi-valor">{{ motor.rps|floatformat:3 }}</div>
+          <div class="kpi-pie"><span>0,19 a 0,21 es un buen modelo</span></div>
+        </div>
+        <div class="kpi kpi-mini" style="--kpi-color: var(--ok)">
+          <div class="kpi-cabeza"><div class="kpi-nombre">Log-pérdida</div></div>
+          <div class="kpi-valor">{{ motor.log_perdida|floatformat:3 }}</div>
+          <div class="kpi-pie"><span>1,099 es no saber nada</span></div>
+        </div>
+        <div class="kpi kpi-mini" style="--kpi-color: var(--warn)">
+          <div class="kpi-cabeza"><div class="kpi-nombre">Partidos medidos</div></div>
+          <div class="kpi-valor">{{ motor.partidos|pesos }}</div>
+          <div class="kpi-pie"><span>en {{ motor.ligas|length }} ligas, sin ver el resultado</span></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:14px">
+        <div class="panel-cabeza">
+          <div class="panel-titulo">Dónde caes frente a la referencia real</div>
+          <p class="panel-explica">Acierto 1X2 del motor contra los rangos documentados en estudios públicos de predicción de fútbol.</p>
+        </div>
+        <div class="panel-cuerpo">
+          <div class="regla">
+            <div class="regla-pista">
+              <span class="regla-zona mala"    style="left:0%; width:41%"></span>
+              <span class="regla-zona normal"  style="left:41%; width:14.9%"></span>
+              <span class="regla-zona buena"   style="left:55.9%; width:14.1%"></span>
+              <span class="regla-zona dudosa"  style="left:70%; width:30%"></span>
+            </div>
+            <span class="regla-marca" style="left: {{ motor.acierto|floatformat:0 }}%" data-valor="{{ motor.acierto|floatformat:1 }}%"></span>
+          </div>
+          <div class="regla-hitos">
+            <span>0%</span><span>41% suelo</span><span>55.9% tope 1X2</span><span>70% dudoso</span><span>100%</span>
+          </div>
+        </div>
+        <div class="panel-pie">
+          <b>41%</b> es acertar siempre al local · <b>55.9%</b> es el mejor 1X2 documentado · por encima de <b>70%</b> sostenido no hay modelo público creíble.
+        </div>
+      </div>
+
+      <div class="dos-columnas" style="margin-top:14px">
+        <div class="panel">
+          <div class="panel-cabeza">
+            <div class="panel-titulo">Por liga</div>
+            <p class="panel-explica">Cada temporada se pronosticó sin ver su futuro.</p>
+          </div>
+          <div class="tabla-marco">
+            <table class="tabla">
+              <thead><tr><th>Liga</th><th class="td-centro">Partidos</th><th>Acierto</th><th class="td-derecha">RPS</th></tr></thead>
+              <tbody>
+                {% for l in motor.ligas %}
+                <tr>
+                  <td><span style="font-weight:600">{{ l.nombre }}</span><div class="usuario-correo">{{ l.actualizado|date:"d/m/Y" }}</div></td>
+                  <td class="td-num td-centro">{{ l.partidos|pesos }}</td>
+                  <td>
+                    {% if l.acierto is not None %}
+                    <span class="mini-pista"><span class="mini-relleno {% if l.acierto < 41 %}baja{% elif l.acierto < 50 %}media{% endif %}" style="width: {{ l.acierto|floatformat:0 }}%"></span></span>
+                    <span class="td-num" style="margin-left:8px">{{ l.acierto|floatformat:1 }}%</span>
+                    {% else %}<span class="td-num">—</span>{% endif %}
+                  </td>
+                  <td class="td-derecha td-num">{% if l.rps is not None %}{{ l.rps|floatformat:3 }}{% else %}—{% endif %}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="panel-pie">En 1X2 lo normal está entre <b>50%</b> y <b>55%</b>: hay tres resultados posibles.</div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-cabeza">
+            <div class="panel-titulo">Pronósticos en vivo</div>
+            <p class="panel-explica">Guardados antes de cada partido y evaluados solos cuando termina.</p>
+          </div>
+          <div class="tabla-marco">
+            <table class="tabla">
+              <tbody>
+                <tr><td>Guardados</td><td class="td-derecha td-num">{{ motor.vivo.guardados|pesos }}</td></tr>
+                <tr><td>Esperando resultado</td><td class="td-derecha td-num">{{ motor.vivo.pendientes|pesos }}</td></tr>
+                <tr><td>Evaluados</td><td class="td-derecha td-num">{{ motor.vivo.evaluados|pesos }}</td></tr>
+                <tr><td>Acierto en vivo</td><td class="td-derecha td-num">{% if motor.vivo.acierto is not None %}{{ motor.vivo.acierto|floatformat:1 }}% ({{ motor.vivo.aciertos }} de {{ motor.vivo.evaluados }}){% else %}—{% endif %}</td></tr>
+                {% if motor.vivo.descartados %}<tr><td>Descartados</td><td class="td-derecha td-num">{{ motor.vivo.descartados|pesos }}</td></tr>{% endif %}
+              </tbody>
+            </table>
+          </div>
+          <div class="panel-pie">{% if motor.vivo.evaluados < 200 %}Con menos de <b>200</b> partidos en vivo el porcentaje todavía es ruido: manda la medición a ciegas.{% else %}Los descartados se pidieron después del saque y no cuentan.{% endif %}</div>
+        </div>
+      </div>
+      {% else %}
+        <div class="panel"><div class="vacio"><b>El motor aún se está calibrando</b>Se calibra solo con el histórico de cada liga; en unos minutos aparecen sus métricas.</div></div>
+      {% endif %}
+
+      <div class="seccion-cabeza" style="margin-top:28px"><div class="seccion-titulo">Seguimiento del analizador</div></div>
+      <div id="seguimiento-analizador">
       {% if modelo.total %}
       <div class="kpis">
         <div class="kpi kpi-mini" style="--kpi-color: var(--accent)">
           <div class="kpi-cabeza"><div class="kpi-nombre">Acierto real</div></div>
           <div class="kpi-valor">{{ modelo.tasa|floatformat:1 }}<small>%</small></div>
-          <div class="kpi-pie"><span class="delta {% if modelo.comparado.nivel == 'malo' %}delta-baja{% elif modelo.comparado.nivel == 'bueno' %}delta-sube{% else %}delta-neutro{% endif %}">{{ modelo.comparado.texto }}</span></div>
+          <div class="kpi-pie"><span>{{ modelo.aciertos }} de {{ modelo.total }} líneas</span></div>
         </div>
         <div class="kpi kpi-mini" style="--kpi-color: var(--cian)">
           <div class="kpi-cabeza"><div class="kpi-nombre">Sesgo</div></div>
@@ -228,32 +331,8 @@
         </div>
         <div class="kpi kpi-mini" style="--kpi-color: var(--warn)">
           <div class="kpi-cabeza"><div class="kpi-nombre">Muestra</div></div>
-          <div class="kpi-valor">{{ modelo.total|intcomma }}</div>
+          <div class="kpi-valor">{{ modelo.total|pesos }}</div>
           <div class="kpi-pie"><span>cuota media {{ modelo.cuota_media|floatformat:2 }}</span></div>
-        </div>
-      </div>
-
-      <div class="panel" style="margin-top:14px">
-        <div class="panel-cabeza">
-          <div class="panel-titulo">Dónde caes frente a la referencia real</div>
-          <p class="panel-explica">Rangos documentados en estudios públicos de predicción de fútbol.</p>
-        </div>
-        <div class="panel-cuerpo">
-          <div class="regla">
-            <div class="regla-pista">
-              <span class="regla-zona mala"    style="left:0%; width:41%"></span>
-              <span class="regla-zona normal"  style="left:41%; width:14.9%"></span>
-              <span class="regla-zona buena"   style="left:55.9%; width:14.1%"></span>
-              <span class="regla-zona dudosa"  style="left:70%; width:30%"></span>
-            </div>
-            <span class="regla-marca" style="left: {{ modelo.tasa|floatformat:0 }}%" data-valor="{{ modelo.tasa|floatformat:1 }}%"></span>
-          </div>
-          <div class="regla-hitos">
-            <span>0%</span><span>41% suelo</span><span>55.9% tope 1X2</span><span>70% dudoso</span><span>100%</span>
-          </div>
-        </div>
-        <div class="panel-pie">
-          <b>41%</b> es acertar siempre al local · <b>55.9%</b> es el mejor 1X2 documentado · <b>62.7%</b> en Más/Menos 2.5 · por encima de <b>70%</b> sostenido no hay modelo público creíble.
         </div>
       </div>
 
@@ -319,6 +398,7 @@
       {% else %}
         <div class="panel"><div class="vacio"><b>Sin datos todavía</b>Se llena solo cuando terminan los partidos que se pronosticaron en el analizador.</div></div>
       {% endif %}
+      </div>
     </section>
 
     <!-- ======================= DINERO ======================= -->
@@ -724,7 +804,7 @@
   })();
 </script>
 
-<script src="{% static 'js/tour_panel.js' %}?v=4"></script>
+<script src="{% static 'js/tour_panel.js' %}?v=5"></script>
 
 <!-- ============================================================
      CONFIRMAR CANCELACIÓN DE SUSCRIPCIÓN
