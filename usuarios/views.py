@@ -7,8 +7,19 @@ from django.contrib import messages
 from usuarios.models import Rol,Perfil,Bitacora
 from usuarios.validaciones import (validar_registro, validar_usuario,
                                     validar_correo, validar_nombre,
-                                    validar_contrasena)
+                                    validar_contrasena, validar_documento)
+from django.core.cache import cache
+from django.db import IntegrityError, transaction
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 from django.contrib.auth import update_session_auth_hash
+
+
+def _datos_escritos(request):
+    #Se devuelven los datos escritos para que el usuario no tenga que
+    #teclearlos otra vez. La contraseña NO se devuelve nunca.
+    return {campo:request.POST.get(campo,"") for campo in
+            ("nombre","apellidos","username","email","documento","fecha_nacimiento")}
 
 
 def registro(request):
@@ -22,45 +33,80 @@ def registro(request):
     if errores:
         for error in errores:
             messages.error(request,error)
-        #Se devuelven los datos escritos para que el usuario no tenga que
-        #teclearlos otra vez. La contraseña NO se devuelve nunca.
-        return render(request,"registro.html",{"datos":{
-            "nombre":request.POST.get("nombre",""),
-            "apellidos":request.POST.get("apellidos",""),
-            "username":request.POST.get("username",""),
-            "email":request.POST.get("email",""),
-            "documento":request.POST.get("documento",""),
-            "fecha_nacimiento":request.POST.get("fecha_nacimiento",""),
-        }})
+        return render(request,"registro.html",{"datos":_datos_escritos(request)})
 
-    usuario=User.objects.create_user(
-        username=limpios["username"],
-        email=limpios["email"],
-        password=limpios["password"]
-    )
-    usuario.first_name=limpios["nombre"]
-    usuario.last_name=limpios["apellidos"]
-    usuario.save()
+    #Dos personas pueden mandar el mismo usuario a la vez: las dos pasan la
+    #validacion y la segunda choca en la base. Todo va en una transaccion
+    #para que ese choque no deje un User creado sin su Perfil.
+    try:
+        with transaction.atomic():
+            usuario=User.objects.create_user(
+                username=limpios["username"],
+                email=limpios["email"],
+                password=limpios["password"]
+            )
+            usuario.first_name=limpios["nombre"]
+            usuario.last_name=limpios["apellidos"]
+            usuario.save()
 
-    rol=Rol.objects.filter(nombre="usuario").first()
-    Perfil.objects.create(
-        usuario=usuario,
-        rol=rol,
-        proveedor="local",
-        nombre=limpios["nombre"],
-        apellidos=limpios["apellidos"],
-        #Se guardan los valores YA validados y limpios: la cedula sin puntos
-        #y la fecha como objeto date, no lo que vino crudo del POST.
-        tipo_documento=request.POST.get("tipo_documento") or "CC",
-        documento=limpios["documento"],
-        fecha_nacimiento=limpios["fecha_nacimiento"],
-        ciudad=request.POST.get("ciudad"),
-        pais=request.POST.get("pais"),
-        telefono=request.POST.get("telefono")
-    )
+            rol=Rol.objects.filter(nombre="usuario").first()
+            Perfil.objects.create(
+                usuario=usuario,
+                rol=rol,
+                proveedor="local",
+                nombre=limpios["nombre"],
+                apellidos=limpios["apellidos"],
+                #Se guardan los valores YA validados y limpios: la cedula sin puntos
+                #y la fecha como objeto date, no lo que vino crudo del POST.
+                tipo_documento=request.POST.get("tipo_documento") or "CC",
+                documento=limpios["documento"],
+                fecha_nacimiento=limpios["fecha_nacimiento"],
+                ciudad=request.POST.get("ciudad"),
+                pais=request.POST.get("pais"),
+                telefono=request.POST.get("telefono")
+            )
+    except IntegrityError:
+        #Otro registro gano la carrera. Se valida de nuevo para decir QUE dato
+        #quedo tomado (usuario o cedula), no un error generico.
+        _,errores=validar_registro(request.POST)
+        for error in errores or ["Alguno de tus datos ya está registrado, revisa el formulario."]:
+            messages.error(request,error)
+        return render(request,"registro.html",{"datos":_datos_escritos(request)})
 
     messages.success(request,"Cuenta creada correctamente, ya puedes iniciar sesion")
     return redirect("Ingresar")
+
+
+# ============================================================
+#  DISPONIBILIDAD EN VIVO (registro)
+#  El formulario pregunta aqui, mientras la persona escribe, si el usuario,
+#  el correo o la cedula ya estan tomados. Usa las MISMAS funciones que el
+#  registro, asi que el mensaje es identico al que saldria al enviarlo.
+#
+#  Va por POST con CSRF y con tope por IP: responder "ese correo ya existe"
+#  sirve para averiguar quien tiene cuenta. El registro ya lo dice al
+#  enviar, pero sin tope esta ruta seria una forma comoda de probar miles.
+# ============================================================
+VALIDADORES_DISPONIBLES={
+    "username":validar_usuario,
+    "email":validar_correo,
+    "documento":validar_documento,
+}
+TOPE_CONSULTAS=40   #por IP y por minuto
+
+@require_POST
+def disponible(request):
+    llave=f"disponible_{obtener_ip(request)}"
+    consultas=cache.get(llave,0)
+    if consultas>=TOPE_CONSULTAS:
+        return JsonResponse({"error":"Demasiadas consultas, espera un momento."},status=429)
+    cache.set(llave,consultas+1,60)
+
+    validar=VALIDADORES_DISPONIBLES.get(request.POST.get("campo"))
+    if validar is None:
+        return JsonResponse({"error":"Campo no valido."},status=400)
+    _,error=validar(request.POST.get("valor"))
+    return JsonResponse({"disponible":error is None,"mensaje":error or ""})
 
 
 def obtener_ip(request):
