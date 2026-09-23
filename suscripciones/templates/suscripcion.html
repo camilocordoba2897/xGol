@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load humanize %}
+{% load formato %}
 
 {% block Titulo %}
   Suscripción
@@ -75,7 +76,7 @@
             {% else %}El equilibrio perfecto{% endif %}
           </div>
 
-          <div class="plan-precio"><span class="val">${{ plan.precio|intcomma:0 }}</span><span class="cur">COP</span></div>
+          <div class="plan-precio"><span class="val">${{ plan.precio|pesos }}</span><span class="cur">COP</span></div>
           <div class="plan-periodo">{{ plan.dias }} días de acceso</div>
 
           {% if plan.ahorro and plan.nivel >= nivel_actual %}

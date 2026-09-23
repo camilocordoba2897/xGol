@@ -1081,8 +1081,10 @@ input:focus,select:focus{box-shadow:0 0 0 3px var(--accent-glow)}
 .reglog-edit{background:none;border:none;color:var(--text-3);cursor:pointer;font-size:13px;padding:4px 6px}
 .reglog-edit:hover{color:var(--accent)}
 /* Botón "Volver al inicio" — mismo estilo que el de Ingresar (.barra-inicio) */
+/* absolute y no fixed: fijos, al bajar tapaban las pestanas de ligas, que
+   se quedan pegadas arriba (sticky). Asi se quedan arriba de la pagina. */
 .volver-inicio{
-  position:fixed; top:14px; left:14px; z-index:9999;
+  position:absolute; top:14px; left:14px; z-index:70;
   display:inline-flex; align-items:center; gap:7px;
   font-family:'Manrope',sans-serif; font-size:.82rem; font-weight:600;
   color:#A6AFBC; text-decoration:none;
@@ -1564,7 +1566,7 @@ html[data-modo="claro"] .guia-btn{background:#ffffff}
    Los valores van literales, igual que en boton_inicio.css, para que el
    verde sea exactamente el mismo en las dos pantallas. */
 .panel-admin{
-  position:fixed; top:14px; right:14px; z-index:9999;
+  position:absolute; top:14px; right:14px; z-index:70;
   display:inline-flex; align-items:center; gap:7px;
   font-family:'Manrope',sans-serif; font-size:.82rem; font-weight:600;
   color:#4ade80; text-decoration:none;
