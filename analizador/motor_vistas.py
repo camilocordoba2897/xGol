@@ -38,7 +38,10 @@ def _pesos_y_calibracion(liga):
     #fabrica: el motor funciona desde el primer dia, solo que sin afinar.
     fila=PesosMotor.objects.filter(liga=liga).first()
     if not fila:
-        return dict(combinacion.PESOS_POR_DEFECTO),1.0,1.0,None
+        #Sin calibracion propia (la Champions): los pesos que ganaron en las
+        #ligas medidas. Las temperaturas NO se trasladan: cambian mucho de una
+        #liga a otra y sin medir aqui no hay con que elegir una.
+        return motor_datos.pesos_de_referencia(),1.0,1.0,None
     return (fila.pesos or dict(combinacion.PESOS_POR_DEFECTO),
             fila.temperatura or 1.0,fila.temperatura_sin_mercado or 1.0,fila)
 
@@ -149,6 +152,9 @@ def motor_pronostico(request):
             "acierto":fila_pesos.acierto,
             "ece":fila_pesos.ece,
         }
+    #Sin fila propia no hay medicion a ciegas de esta competicion: el
+    #frontend lo dice en vez de dejar creer que esta tan probada como el resto
+    salida["sin_medicion"]=fila_pesos is None
     return JsonResponse(salida)
 
 
