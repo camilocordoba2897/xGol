@@ -240,6 +240,21 @@ class EvaluacionHonestaTests(TestCase):
                 por_fuente={"mercado": {"local": .5, "empate": .3, "visitante": .2}},
                 goles_local=1, goles_visitante=0, resultado="local", evaluado=True)
 
+    def test_la_champions_usa_los_pesos_de_las_ligas_medidas(self):
+        #Sin historico con cuotas no tiene calibracion propia: en vez de los
+        #de fabrica usa el promedio de lo aprendido, ponderado por partidos
+        from analizador import motor_datos
+        from analizador.models import PesosMotor
+        self.assertEqual(motor_datos.pesos_de_referencia(), combinacion.PESOS_POR_DEFECTO)
+        PesosMotor.objects.create(liga="PL", partidos_evaluados=600,
+                                  pesos={"mercado": 0.98, "dixon_coles": 0.01, "elo": 0.01})
+        PesosMotor.objects.create(liga="DED", partidos_evaluados=200,
+                                  pesos={"mercado": 0.86, "dixon_coles": 0.11, "elo": 0.03})
+        ref = motor_datos.pesos_de_referencia()
+        self.assertAlmostEqual(ref["mercado"], (0.98 * 600 + 0.86 * 200) / 800)
+        self.assertAlmostEqual(ref["dixon_coles"], (0.01 * 600 + 0.11 * 200) / 800)
+        self.assertAlmostEqual(sum(ref.values()), 1.0)
+
     def test_pocos_partidos_reales_no_borran_la_calibracion_a_ciegas(self):
         #Con 12 partidos reales ajustar_temperatura devuelve 1.0 (pide 600).
         #Antes eso se guardaba encima de la temperatura aprendida con miles de

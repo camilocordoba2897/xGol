@@ -282,6 +282,28 @@ def construir_ajuste(liga, temporadas=2, xi=None, ridge=None, afinar=False):
     return ajuste, tabla, mapa, None, info
 
 
+def pesos_de_referencia():
+    #Pesos para una competicion SIN calibracion propia (la Champions: no hay
+    #historico con cuotas de ella). Antes usaba los de fabrica 50/35/15, que
+    #en las ligas medidas a ciegas salieron peores que casi todo al mercado.
+    #Se toma el promedio de lo aprendido en las ligas que si se midieron,
+    #ponderado por cuantos partidos se midio cada una. No es una medicion de
+    #la Champions: es lo que mejor funciono en todas las demas.
+    from analizador.models import PesosMotor
+    from analizador.motor import combinacion
+    suma, total = {}, 0
+    for fila in PesosMotor.objects.all():
+        n = fila.partidos_evaluados or 0
+        if not fila.pesos or n <= 0:
+            continue
+        for fuente, peso in combinacion.normalizar(fila.pesos).items():
+            suma[fuente] = suma.get(fuente, 0.0) + peso * n
+        total += n
+    if not total:
+        return dict(combinacion.PESOS_POR_DEFECTO)
+    return combinacion.normalizar({k: v / total for k, v in suma.items()})
+
+
 def ajuste_en_cache(liga, temporadas=2, segundos=21600):
     #Version en cache para no reajustar en cada peticion web. El ajuste tarda
     #un par de segundos; con esto solo pasa una vez cada 6 horas.

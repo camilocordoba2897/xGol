@@ -21,6 +21,7 @@
 from datetime import datetime
 
 from django.core.management.base import BaseCommand
+from analizador import motor_datos
 from analizador.api_datos import resultado_partido
 from analizador.models import PesosMotor,PrediccionMotor
 from analizador.motor import calibracion,combinacion,evaluacion
@@ -123,7 +124,10 @@ class Command(BaseCommand):
             #optimizar_pesos devuelve el punto de partida cuando hay pocos
             #datos, y ese punto de partida debe ser lo mejor que ya sabemos.
             previos=PesosMotor.objects.filter(liga=liga).first()
-            arranque=(previos.pesos if previos and previos.pesos else None)
+            #Una competicion sin calibracion propia (la Champions) arranca de
+            #lo que gano en las ligas medidas, no de los pesos de fabrica.
+            arranque=(previos.pesos if previos and previos.pesos
+                      else motor_datos.pesos_de_referencia())
             if historial:
                 pesos,info=combinacion.optimizar_pesos(historial,pesos_iniciales=arranque)
             else:
