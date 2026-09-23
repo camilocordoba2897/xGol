@@ -9,13 +9,15 @@ from usuarios.validaciones import (validar_registro, validar_usuario,
                                     validar_correo, validar_nombre,
                                     validar_contrasena, validar_documento,
                                     validar_telefono, validar_avatar,
-                                    completar_identidad)
+                                    completar_identidad, foto_a_data_uri)
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
 from django.http import JsonResponse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView
+from usuarios.formularios import FormularioNuevaContrasena
 
 
 def _datos_escritos(request):
@@ -114,7 +116,7 @@ def disponible(request):
 
     validar=VALIDADORES_DISPONIBLES.get(request.POST.get("campo"))
     if validar is None:
-        return JsonResponse({"error":"Campo no valido."},status=400)
+        return JsonResponse({"error":"Campo no válido."},status=400)
     _,error=validar(request.POST.get("valor"))
     return JsonResponse({"disponible":error is None,"mensaje":error or ""})
 
@@ -158,7 +160,7 @@ def ingresar(request):
 
         llave_cuenta,llave_ip=_llaves_fallos(request,username)
         if cache.get(llave_cuenta,0)>=FALLOS_POR_CUENTA or cache.get(llave_ip,0)>=FALLOS_POR_IP:
-            messages.error(request,"Demasiados intentos fallidos. Espera 15 minutos e intentalo de nuevo.")
+            messages.error(request,"Demasiados intentos fallidos. Espera 15 minutos e inténtalo de nuevo.")
             return render(request,"ingresar.html",{"next":siguiente})
 
         usuario=authenticate(request,username=username,password=password)
@@ -172,7 +174,7 @@ def ingresar(request):
             #modo estricto rechazaba el guardado, tumbando el inicio de sesion.
             Bitacora.objects.create(
                 usuario=usuario,
-                accion="Inicio de sesion",
+                accion="Inicio de sesión",
                 ip=obtener_ip(request),
                 agente=(request.META.get("HTTP_USER_AGENT") or "")[:200]
             )
@@ -225,8 +227,12 @@ def panel_admin(request):
         "q":request.GET.get("q",""),
     }
     #Los pendientes son intentos de checkout abandonados, no transacciones:
-    #ensucian el historial y parecen un error del sistema. Se excluyen.
-    consulta=reportes.transacciones(filtros).exclude(estado="Pendiente")
+    #ensucian el historial y parecen un error del sistema. Se excluyen...
+    #salvo que se pidan a proposito con el filtro: es donde se busca el pago
+    #de un cliente que dice que pago y no le llego el acceso.
+    consulta=reportes.transacciones(filtros)
+    if filtros["estado"]!="Pendiente":
+        consulta=consulta.exclude(estado="Pendiente")
     paginas=Paginator(consulta,25)
     pagina=paginas.get_page(request.GET.get("pagina"))
 
@@ -327,7 +333,8 @@ def editar_perfil(request):
 
             perfil.telefono=telefono
             if avatar:
-                perfil.avatar=avatar
+                perfil.foto=foto_a_data_uri(avatar)
+                perfil.avatar=None
             perfil.save()
 
             messages.success(request,"Tus datos se actualizaron correctamente")
@@ -382,7 +389,7 @@ def admin_eliminar_usuario(request,id):
     #puede escribir a mano y sin esto quedaria abierta.
     from usuarios import tablero
     if tablero.es_administrador(usuario):
-        messages.error(request,"No se puede eliminar una cuenta de administracion")
+        messages.error(request,"No se puede eliminar una cuenta de administración")
         return redirect("PanelAdmin")
 
     #Borrar el usuario borra en cascada sus pagos y facturas, y esos registros
@@ -390,7 +397,7 @@ def admin_eliminar_usuario(request,id):
     #Solo cuentan los pagos de PRODUCCION: los del sandbox de Wompi (y las
     #activaciones manuales hechas en modo prueba) no movieron dinero real, y
     #sin esta distincion no habia forma de limpiar las cuentas de prueba.
-    if usuario.pagos.filter(estado__in=("Aprobado","Reembolsado"),ambiente="prod").exists():
+    if usuario.pagos.filter(estado="Aprobado",ambiente="prod").exists():
         messages.error(request,f"{usuario.username} tiene pagos registrados y sus facturas deben conservarse. "
                                "Bloquea la cuenta en lugar de eliminarla.")
         return redirect("PanelAdmin")
@@ -461,7 +468,7 @@ def admin_estado_usuario(request,id):
     #Ni bloquear a otro administrador: dejaria el panel sin quien lo maneje
     from usuarios import tablero
     if tablero.es_administrador(usuario):
-        messages.error(request,"No se puede bloquear una cuenta de administracion")
+        messages.error(request,"No se puede bloquear una cuenta de administración")
         return redirect("PanelAdmin")
 
     usuario.is_active=not usuario.is_active
@@ -503,3 +510,44 @@ def admin_crear_usuario(request):
         return redirect("PanelAdmin")
 
     return render(request,"admin_crear_usuario.html")
+
+# ============================================================
+#  RECUPERAR CONTRASEÑA
+#  Son las vistas de Django con tres arreglos encima.
+# ============================================================
+SOLICITUDES_POR_IP=5        #por hora
+SOLICITUDES_POR_CORREO=3    #por hora
+
+
+class PedirEnlaceContrasena(PasswordResetView):
+    #Con tope. Sin el, cualquiera podia pedir enlaces sin parar: llenaba de
+    #correos el buzon de otra persona y gastaba el cupo diario de envio de
+    #la cuenta de Gmail, dejando sin correo (y sin facturas) a todos.
+    #Pasado el tope se muestra la MISMA pantalla de "revisa tu correo" sin
+    #enviar nada: decir "demasiados intentos para ese correo" revelaria que
+    #el correo tiene cuenta.
+    def form_valid(self,form):
+        correo=(form.cleaned_data.get("email") or "").strip().lower()
+        llave_ip=f"reset_ip_{obtener_ip(self.request)}"
+        llave_correo=f"reset_correo_{correo[:200]}"
+        if cache.get(llave_ip,0)>=SOLICITUDES_POR_IP or cache.get(llave_correo,0)>=SOLICITUDES_POR_CORREO:
+            return redirect(self.get_success_url())
+        cache.set(llave_ip,cache.get(llave_ip,0)+1,3600)
+        cache.set(llave_correo,cache.get(llave_correo,0)+1,3600)
+        return super().form_valid(form)
+
+
+class RestablecerContrasena(PasswordResetConfirmView):
+    #Mismas reglas de clave que el registro (FormularioNuevaContrasena) y,
+    #al guardarla, la persona queda dentro: sin volver a teclearla.
+    form_class=FormularioNuevaContrasena
+    post_reset_login=True
+    post_reset_login_backend="django.contrib.auth.backends.ModelBackend"
+
+    def form_valid(self,form):
+        #Quien olvido la clave suele haber fallado varias veces al entrar y
+        #queda bloqueado 15 minutos. Si ya demostro que es el dueño del
+        #correo, ese bloqueo no tiene sentido: se levanta.
+        llave_cuenta,_=_llaves_fallos(self.request,form.user.username)
+        cache.delete(llave_cuenta)
+        return super().form_valid(form)

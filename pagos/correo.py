@@ -1,6 +1,7 @@
 from django.core.mail import EmailMessage
 from django.conf import settings
 from pagos.factura import generar_factura_pdf
+from pagos.templatetags.formato import pesos
 
 #Enviaremos la factura en PDF al correo del usuario que realizo el pago
 def enviar_factura_correo(pago):
@@ -15,13 +16,13 @@ def enviar_factura_correo(pago):
         #Armaremos el cuerpo del mensaje
         cuerpo=(
             f"Hola {nombre},\n\n"
-            f"Gracias por tu compra en xGol. Tu suscripcion al plan {pago.plan} ya esta activa.\n\n"
+            f"Gracias por tu compra en xGol. Tu suscripción al plan {pago.plan} ya está activa.\n\n"
             f"Adjuntamos tu factura {pago.numero_factura} en formato PDF.\n\n"
             f"Resumen:\n"
             f"- Plan: {pago.plan}\n"
-            f"- Total pagado: $ {pago.monto:,.0f} COP\n"
+            f"- Total pagado: $ {pesos(pago.monto)} COP\n"
             f"- Referencia: {pago.referencia}\n\n"
-            f"Disfruta del acceso completo al analizador de futbol.\n\n"
+            f"Disfruta del acceso completo al analizador de fútbol.\n\n"
             f"El equipo de xGol"
         )
 

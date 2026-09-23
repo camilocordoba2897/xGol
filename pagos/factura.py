@@ -4,6 +4,8 @@ from reportlab.lib import colors
 from reportlab.pdfgen import canvas
 from io import BytesIO
 
+from pagos.templatetags.formato import pesos
+
 #Definiremos los datos de la empresa en un solo lugar para cambiarlos facil despues
 EMPRESA = {
   "nombre": "xGol",
@@ -118,7 +120,7 @@ def generar_factura_pdf(pago):
         c.drawString(2.4*cm,y-0.5*cm,f"Vigencia: {pago.vigencia_inicio.strftime('%d/%m/%Y')} - {pago.vigencia_fin.strftime('%d/%m/%Y')}")
     c.setFillColor(texto)
     c.setFont("Helvetica",11)
-    c.drawRightString(ancho-2.4*cm,y,f"$ {pago.subtotal:,.0f}")
+    c.drawRightString(ancho-2.4*cm,y,f"$ {pesos(pago.subtotal)}")
 
     #Linea separadora
     y=y-1*cm
@@ -136,13 +138,13 @@ def generar_factura_pdf(pago):
     c.setFillColor(gris)
     c.drawString(x_etiqueta,y,"Subtotal")
     c.setFillColor(texto)
-    c.drawRightString(x_valor,y,f"$ {pago.subtotal:,.0f}")
+    c.drawRightString(x_valor,y,f"$ {pesos(pago.subtotal)}")
 
     y=y-0.6*cm
     c.setFillColor(gris)
     c.drawString(x_etiqueta,y,"IVA (19%)")
     c.setFillColor(texto)
-    c.drawRightString(x_valor,y,f"$ {pago.iva:,.0f}")
+    c.drawRightString(x_valor,y,f"$ {pesos(pago.iva)}")
 
     #Recuadro del total
     y=y-1.1*cm
@@ -153,7 +155,7 @@ def generar_factura_pdf(pago):
     c.drawString(12*cm,y-0.05*cm,"TOTAL")
     c.setFillColor(lima)
     c.setFont("Helvetica-Bold",14)
-    c.drawRightString(x_valor,y-0.08*cm,f"$ {pago.monto:,.0f}")
+    c.drawRightString(x_valor,y-0.08*cm,f"$ {pesos(pago.monto)}")
 
     #Nota COP
     c.setFillColor(gris_claro)

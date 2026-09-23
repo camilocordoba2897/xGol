@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -69,7 +70,15 @@ MIDDLEWARE = [
     #Impide que el navegador guarde las paginas HTML: sin esto, al cerrar
     #sesion y dar "atras" se veia otra vez la pagina con el usuario logueado.
     'usuarios.middleware.SinCacheEnPaginasPrivadas',
+    #Concilia los pagos una vez por hora sin necesidad de cron. Ver el motivo
+    #en pagos/middleware.py.
+    'pagos.middleware.ConciliacionAutomatica',
 ]
+
+#Apagada al correr las pruebas: un hilo aparte tocando la base en medio de
+#una prueba la volveria impredecible. Se puede apagar tambien desde .env.
+CONCILIACION_AUTOMATICA=(os.getenv('CONCILIACION_AUTOMATICA','True')=='True'
+                         and 'test' not in sys.argv)
 ROOT_URLCONF = 'xgol.urls'
 
 TEMPLATES = [
@@ -83,6 +92,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'usuarios.context_processors.rol_actual',
+                'usuarios.context_processors.google_disponible',
             ],
         },
     },

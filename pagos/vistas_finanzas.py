@@ -4,6 +4,7 @@
 from datetime import datetime
 from django.utils import timezone
 from django.shortcuts import render,redirect,get_object_or_404
+from django.urls import reverse
 from django.contrib import messages
 from django.http import HttpResponse
 from django.views.decorators.http import require_POST
@@ -12,7 +13,7 @@ from django.conf import settings
 
 from usuarios.decoradores import rol_requerido
 from suscripciones.planes import PLANES
-from pagos.models import Pago,Reembolso
+from pagos.models import Pago
 from pagos import pasarela,servicios,reportes,exportar,reporte_pdf
 
 
@@ -35,31 +36,18 @@ def _filtros(request):
     }
 
 
+#Las finanzas viven en la pestana "Dinero" del panel de administracion.
+#Antes habia ademas esta pagina aparte, con las mismas cifras: nada la
+#enlazaba, pero el boton Consultar devolvia aqui y sacaba al
+#administrador del panel. Queda solo como redireccion para los enlaces
+#guardados.
+def _volver_al_dinero():
+    return redirect(reverse("PanelAdmin")+"?tab=dinero")
+
+
 @rol_requerido("administrador")
 def panel_finanzas(request):
-    filtros=_filtros(request)
-    consulta=reportes.transacciones(filtros)
-    paginas=Paginator(consulta,30)
-    pagina=paginas.get_page(request.GET.get("pagina"))
-
-    return render(request,"panel_finanzas.html",{
-        "ingresos":reportes.resumen_ingresos(),
-        "suscripciones":reportes.resumen_suscripciones(),
-        "incidencias":reportes.resumen_incidencias(),
-        "barras":reportes.barras(reportes.serie_mensual(12)),
-        "por_plan":reportes.ventas_por_plan(),
-        "por_metodo":reportes.ventas_por_metodo(),
-        "pendientes":reportes.usuarios_pendientes(),
-        "renovaciones":reportes.proximas_renovaciones(),
-        "movimientos":reportes.movimientos(),
-        "reembolsos":Reembolso.objects.select_related("pago","pago__usuario")[:15],
-        "pagina":pagina,
-        "filtros":filtros,
-        "planes":PLANES,
-        "total_filtrado":consulta.count(),
-        "ambiente":settings.WOMPI_AMBIENTE,
-        "pasarela_lista":pasarela.configurada(),
-    })
+    return _volver_al_dinero()
 
 
 @rol_requerido("administrador")
@@ -121,29 +109,6 @@ def exportar_finanzas(request):
 
 @rol_requerido("administrador")
 @require_POST
-def admin_reembolso(request,id):
-    pago=get_object_or_404(Pago,id=id)
-    if pago.estado!="Aprobado":
-        messages.error(request,"Solo se puede reembolsar un pago aprobado")
-        return redirect("PanelFinanzas")
-
-    try:
-        monto=int(request.POST.get("monto") or pago.monto)
-    except (TypeError,ValueError):
-        monto=pago.monto
-    monto=max(0,min(monto,pago.monto))
-
-    servicios.registrar_reembolso(
-        pago,monto,request.POST.get("motivo",""),
-        actor=request.user,revoca_dias=request.POST.get("revoca_dias")=="si")
-    messages.success(request,
-        f"Reembolso de ${monto:,} registrado sobre {pago.referencia}. "
-        "Falta ejecutar la devolucion del dinero desde el panel de la pasarela.".replace(",","."))
-    return redirect("PanelFinanzas")
-
-
-@rol_requerido("administrador")
-@require_POST
 def admin_sincronizar_pago(request,id):
     #Vuelve a preguntarle a la pasarela por un pago concreto. Sirve cuando un
     #webhook se perdio y el usuario reclama que si pago.
@@ -155,15 +120,26 @@ def admin_sincronizar_pago(request,id):
     else:
         crudo,error=pasarela.buscar_por_referencia(pago.referencia)
     if error==pasarela.ERROR_NO_ENCONTRADA:
-        messages.error(request,"Ese intento nunca llego a la pasarela, no hay nada que consultar")
-        return redirect("PanelFinanzas")
+        messages.error(request,"Ese intento nunca llegó a la pasarela, no hay nada que consultar")
+        return _volver_al_dinero()
     if error or not crudo:
         messages.error(request,f"No se pudo consultar la pasarela ({error})")
-        return redirect("PanelFinanzas")
+        return _volver_al_dinero()
 
     pago_actualizado,resultado=servicios.aplicar_transaccion(
         pasarela.leer_transaccion(crudo),
         ambiente_evento=settings.WOMPI_AMBIENTE,
         actor=request.user)
-    messages.success(request,f"Pago {pago.referencia} sincronizado: {resultado}")
-    return redirect("PanelFinanzas")
+    messages.success(request,f"Pago {pago.referencia} consultado en la pasarela: {_RESULTADOS.get(resultado,resultado)}")
+    return _volver_al_dinero()
+
+
+#Lo que devuelve aplicar_transaccion, dicho para el administrador
+_RESULTADOS={
+    "aplicado":"estaba aprobado y ya se le dio el acceso al cliente",
+    "ya_aplicado":"ya estaba aplicado, no hubo que hacer nada",
+    "actualizado_sin_otorgar":"se actualizo el estado, la pasarela no lo reporta aprobado",
+    "monto_no_coincide":"el monto cobrado no coincide con el del plan, NO se dio acceso",
+    "moneda_no_coincide":"la moneda no coincide, NO se dio acceso",
+    "plan_desconocido":"el plan del pago ya no existe, revisarlo a mano",
+}

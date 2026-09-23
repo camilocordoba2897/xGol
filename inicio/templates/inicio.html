@@ -6,6 +6,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>xGol — Predicción de fútbol con Inteligencia Artificial</title>
+<link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
+<link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -50,8 +52,8 @@
         <a href="{% url 'Analizador' %}" class="btn btn-acc">Analizador</a>
 
         <div class="hd-account" onclick="document.getElementById('accountMenu').classList.toggle('open')">
-          {% if perfil.avatar %}
-            <img class="hd-avatar" src="{{ perfil.avatar.url }}" alt="avatar">
+          {% if perfil.foto_url %}
+            <img class="hd-avatar" src="{{ perfil.foto_url }}" alt="avatar">
           {% else %}
             <div class="hd-avatar-ph">{{ user.username|first|upper }}</div>
           {% endif %}

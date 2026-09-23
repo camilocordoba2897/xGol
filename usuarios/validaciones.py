@@ -184,26 +184,26 @@ def validar_documento(valor, excluir_id=None):
     limpio = re.sub(r"[.\s\-]", "", str(valor or "").strip())
 
     if not limpio:
-        return valor, "El numero de cedula no puede quedar vacio."
+        return valor, "El número de cédula no puede quedar vacío."
 
     if not limpio.isdigit():
-        return valor, "La cedula solo puede tener numeros, sin letras ni simbolos."
+        return valor, "La cédula solo puede tener números, sin letras ni símbolos."
 
     if limpio.startswith("0"):
-        return valor, "El numero de cedula no puede empezar por cero."
+        return valor, "El número de cédula no puede empezar por cero."
 
     if len(limpio) < DOCUMENTO_MIN:
-        return valor, "La cedula debe tener al menos %d digitos." % DOCUMENTO_MIN
+        return valor, "La cédula debe tener al menos %d dígitos." % DOCUMENTO_MIN
 
     if len(limpio) > DOCUMENTO_MAX:
-        return valor, "La cedula no puede pasar de %d digitos." % DOCUMENTO_MAX
+        return valor, "La cédula no puede pasar de %d dígitos." % DOCUMENTO_MAX
 
     #Solo se descarta el relleno evidente: 1111111, 2222222. No se
     #descartan secuencias como 1234567 porque ESE numero si le puede haber
     #tocado a alguien de verdad, y bloquear a una persona real es peor que
     #dejar pasar un numero inventado (que igual se puede inventar otro).
     if len(set(limpio)) == 1:
-        return valor, "Ese numero de cedula no es valido."
+        return valor, "Ese número de cédula no es válido."
 
     #Se guarda solo el numero, sin puntos, para que no queden dos formas
     #distintas del mismo documento en la base.
@@ -212,7 +212,7 @@ def validar_documento(valor, excluir_id=None):
     if excluir_id is not None:
         repetidos = repetidos.exclude(usuario_id=excluir_id)
     if repetidos.exists():
-        return valor, "Ya hay una cuenta registrada con esa cedula."
+        return valor, "Ya hay una cuenta registrada con esa cédula."
 
     return limpio, None
 
@@ -230,7 +230,7 @@ def validar_telefono(valor):
     if not limpio:
         return "", None
     if len(limpio) > 20 or not PATRON_TELEFONO.match(limpio) or len(re.sub(r"\D", "", limpio)) < 7:
-        return valor, "Escribe un telefono valido, solo numeros. Ej: 300 123 4567"
+        return valor, "Escribe un teléfono válido, solo números. Ej: 300 123 4567"
     return limpio, None
 
 
@@ -244,19 +244,39 @@ def validar_avatar(archivo):
     #.html que luego se servia desde /media/ en nuestro propio dominio.
     #Aqui se abre con Pillow para confirmar que de verdad es una imagen.
     if archivo.size > AVATAR_MAX_MB * 1024 * 1024:
-        return f"La foto no puede pesar mas de {AVATAR_MAX_MB} MB."
+        return f"La foto no puede pesar más de {AVATAR_MAX_MB} MB."
     try:
         from PIL import Image
         imagen = Image.open(archivo)
         formato = imagen.format
         imagen.verify()
     except Exception:
-        return "El archivo no es una imagen valida."
+        return "El archivo no es una imagen válida."
     finally:
         archivo.seek(0)
     if formato not in AVATAR_FORMATOS:
         return "La foto debe ser JPG, PNG, WEBP o GIF."
     return None
+
+
+FOTO_LADO = 256
+
+
+def foto_a_data_uri(archivo):
+    #Reduce la foto a 256 px, la gira segun su EXIF (las del celular vienen
+    #de lado) y la guarda como WebP en texto. Al volver a codificarla desde
+    #cero, nada de lo que traia el archivo original sobrevive.
+    import base64
+    import io
+    from PIL import Image, ImageOps
+
+    archivo.seek(0)
+    imagen = ImageOps.exif_transpose(Image.open(archivo))
+    imagen = imagen.convert("RGBA" if imagen.mode in ("RGBA", "LA", "P") else "RGB")
+    imagen.thumbnail((FOTO_LADO, FOTO_LADO))
+    salida = io.BytesIO()
+    imagen.save(salida, format="WEBP", quality=82, method=4)
+    return "data:image/webp;base64," + base64.b64encode(salida.getvalue()).decode("ascii")
 
 # ============================================================
 #  FECHA DE NACIMIENTO — solo mayores de edad
@@ -281,7 +301,7 @@ def validar_fecha_nacimiento(valor, hoy=None):
     crudo = str(valor or "").strip()
 
     if not crudo:
-        return valor, "La fecha de nacimiento no puede quedar vacia."
+        return valor, "La fecha de nacimiento no puede quedar vacía."
 
     #El input type=date manda AAAA-MM-DD. Se aceptan tambien las formas
     #que la gente escribe a mano cuando teclea la fecha.
@@ -294,7 +314,7 @@ def validar_fecha_nacimiento(valor, hoy=None):
             continue
 
     if fecha is None:
-        return valor, "Escribe una fecha de nacimiento valida."
+        return valor, "Escribe una fecha de nacimiento válida."
 
     if hoy is None:
         hoy = timezone.localdate()
@@ -308,7 +328,7 @@ def validar_fecha_nacimiento(valor, hoy=None):
         return valor, "Revisa la fecha de nacimiento, no parece correcta."
 
     if edad < EDAD_MINIMA:
-        return valor, ("Debes ser mayor de %d anos para crear una cuenta en xGol." % EDAD_MINIMA)
+        return valor, ("Debes ser mayor de %d años para crear una cuenta en xGol." % EDAD_MINIMA)
 
     #Se devuelve como objeto date: asi el modelo lo guarda sin depender
     #del formato con que venga escrito.
@@ -342,7 +362,7 @@ def completar_identidad(perfil, documento, fecha_nacimiento):
         try:
             perfil.save(update_fields=cambios)
         except IntegrityError:
-            return "Ya hay una cuenta registrada con esa cedula."
+            return "Ya hay una cuenta registrada con esa cédula."
     return None
 
 

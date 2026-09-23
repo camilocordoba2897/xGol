@@ -10,11 +10,10 @@ ESTADOS_PAGO=[
   ("Rechazado","Rechazado"),
   ("Anulado","Anulado"),
   ("Error","Error"),
-  ("Reembolsado","Reembolsado"),
 ]
 
 #Estados que la pasarela considera finales: ya no van a cambiar solos
-ESTADOS_FINALES=("Aprobado","Rechazado","Anulado","Error","Reembolsado")
+ESTADOS_FINALES=("Aprobado","Rechazado","Anulado","Error")
 
 
 class Consecutivo(models.Model):
@@ -142,29 +141,6 @@ class EventoPasarela(models.Model):
     return f"{self.tipo} {self.referencia} ({self.estado_reportado})"
 
 
-class Reembolso(models.Model):
-  ESTADOS=[("Solicitado","Solicitado"),("Aprobado","Aprobado"),("Rechazado","Rechazado")]
-
-  pago=models.ForeignKey(Pago,on_delete=models.PROTECT,related_name="reembolsos")
-  monto=models.IntegerField(default=0)
-  motivo=models.CharField(max_length=200,blank=True)
-  estado=models.CharField(max_length=20,default="Solicitado",choices=ESTADOS)
-  referencia_externa=models.CharField(max_length=60,blank=True)
-  #Si es True, al aprobarlo se le quitan a la suscripcion los dias que ese
-  #pago habia otorgado.
-  revoca_dias=models.BooleanField(default=True)
-  creado_por=models.ForeignKey(User,on_delete=models.SET_NULL,null=True,blank=True,related_name="reembolsos_creados")
-  creado=models.DateTimeField(auto_now_add=True)
-
-  class Meta:
-    verbose_name="Reembolso"
-    verbose_name_plural="Reembolsos"
-    ordering=["-creado"]
-
-  def __str__(self):
-    return f"Reembolso {self.pago.referencia} - ${self.monto}"
-
-
 class MovimientoSuscripcion(models.Model):
   #Historia de cada cambio de estado de una suscripcion. Sin esto no hay forma
   #de responder "por que este usuario tiene acceso hasta el 30 de septiembre".
@@ -173,7 +149,6 @@ class MovimientoSuscripcion(models.Model):
     ("Renovacion","Renovacion"),
     ("Cancelacion","Cancelacion"),
     ("Vencimiento","Vencimiento"),
-    ("Reembolso","Reembolso"),
     ("AjusteAdmin","AjusteAdmin"),
   ]
 

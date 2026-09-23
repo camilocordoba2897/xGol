@@ -49,7 +49,7 @@
     {
       vista: 'modelo', selector: '.dos-columnas > .panel:last-child',
       titulo: '6 · Mercados y ROI',
-      texto: 'Qué tipo de apuesta deja plata. Ojo: un mercado puede acertar mucho y aun así <strong>perder dinero</strong> si la cuota es baja. Por eso manda el ROI, no el porcentaje.'
+      texto: 'Qué tipo de apuesta deja plata. Ojo: un mercado puede acertar mucho y aún así <strong>perder dinero</strong> si la cuota es baja. Por eso manda el ROI, no el porcentaje.'
     },
     {
       vista: 'dinero', selector: '.kpis-6',
@@ -330,7 +330,14 @@
   // ============================================================
   //  ABRIR / CERRAR
   // ============================================================
+  // La guia pasea por las pestanas. Al cerrarla se vuelve a la que estaba
+  // abierta: si no, quien llego a "Dinero" desde un enlace terminaba en la
+  // ultima pestana que enseno la guia.
+  var vistaAntes = null;
+
   function abrir() {
+    var activa = document.querySelector('.vista.activa');
+    vistaAntes = activa ? activa.id.replace(/^v-/, '') : null;
     construir();
     indice = 0;
     abierto = true;
@@ -349,6 +356,7 @@
     window.removeEventListener('resize', reposicionar);
     window.removeEventListener('scroll', reposicionar, true);
     try { localStorage.setItem(CLAVE, 'visto'); } catch (e) {}
+    if (vistaAntes && typeof window.abrirVista === 'function') { window.abrirVista(vistaAntes); }
   }
 
   // Disponible para el boton "?" de la cabecera

@@ -10,7 +10,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.conf import settings
 
-from pagos.models import Pago,Consecutivo,MovimientoSuscripcion,Reembolso
+from pagos.models import Pago,Consecutivo,MovimientoSuscripcion
 from pagos import pasarela
 from suscripciones.models import Suscripcion
 from suscripciones.planes import obtener_plan,desglosar_precio,nivel_de_plan
@@ -247,36 +247,3 @@ def marcar_vencidas():
     )
     total=total+1
   return total
-
-
-# ============================================================
-#  REEMBOLSOS
-# ============================================================
-def registrar_reembolso(pago,monto,motivo,actor=None,revoca_dias=True):
-  #El reembolso del dinero se ejecuta desde el panel de Wompi. Aca se deja el
-  #registro contable y, si se pide, se le quitan a la suscripcion los dias que
-  #ese pago habia otorgado.
-  with transaction.atomic():
-    pago=Pago.objects.select_for_update().get(pk=pago.pk)
-    reembolso=Reembolso.objects.create(
-      pago=pago,monto=monto,motivo=motivo[:200],
-      estado="Aprobado",revoca_dias=revoca_dias,creado_por=actor,
-    )
-    pago.estado="Reembolsado"
-    pago.save(update_fields=["estado","actualizado"])
-
-    if revoca_dias and pago.dias_otorgados>0:
-      suscripcion=Suscripcion.objects.select_for_update().filter(usuario=pago.usuario).first()
-      if suscripcion is not None and suscripcion.vencimiento is not None:
-        anterior=suscripcion.vencimiento
-        suscripcion.vencimiento=anterior-timedelta(days=pago.dias_otorgados)
-        if suscripcion.vencimiento<timezone.localdate():
-          suscripcion.activa=False
-        suscripcion.save(update_fields=["vencimiento","activa"])
-        MovimientoSuscripcion.objects.create(
-          usuario=pago.usuario,tipo="Reembolso",plan=pago.plan,
-          dias=-pago.dias_otorgados,vencimiento_anterior=anterior,
-          vencimiento_nuevo=suscripcion.vencimiento,pago=pago,actor=actor,
-          nota=motivo[:200],
-        )
-  return reembolso

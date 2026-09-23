@@ -147,7 +147,7 @@ def admin_activar_suscripcion(request,id):
             nota="Activacion manual desde el panel",
         )
 
-    messages.success(request,f"Suscripcion de {usuario.username} activada hasta el {suscripcion.vencimiento:%d/%m/%Y}")
+    messages.success(request,f"Suscripción de {usuario.username} activada hasta el {suscripcion.vencimiento:%d/%m/%Y}")
     return redirect("PanelAdmin")
 
 
@@ -160,8 +160,7 @@ def admin_cancelar_suscripcion(request,id):
     suscripcion,creada=Suscripcion.objects.get_or_create(usuario=usuario)
     vencimiento_anterior=suscripcion.vencimiento
 
-    #Cancelar apaga el acceso y la renovacion. Si se quiere devolver el dinero,
-    #eso se hace aparte desde el panel financiero para que quede el reembolso.
+    #Cancelar apaga el acceso y la renovacion. No devuelve dinero.
     suscripcion.activa=False
     suscripcion.renovacion_automatica=False
     suscripcion.cancelada_en=timezone.localdate()
@@ -174,8 +173,8 @@ def admin_cancelar_suscripcion(request,id):
         vencimiento_anterior=vencimiento_anterior,
         vencimiento_nuevo=suscripcion.vencimiento,
         actor=request.user,
-        nota="Cancelada desde el panel de administracion",
+        nota="Cancelada desde el panel de administración",
     )
 
-    messages.success(request,f"Suscripcion de {usuario.username} cancelada")
+    messages.success(request,f"Suscripción de {usuario.username} cancelada")
     return redirect("PanelAdmin")

@@ -16,21 +16,27 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include, re_path
+from django.views.generic import RedirectView
+from django.templatetags.static import static as ruta_estatica
 from django.views.static import serve
 from django.conf import settings
 from django.conf.urls.static import static
-from django.contrib.auth.views import PasswordResetConfirmView
-from usuarios.formularios import FormularioNuevaContrasena
+from usuarios.views import PedirEnlaceContrasena, RestablecerContrasena
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    #Los navegadores piden /favicon.ico por su cuenta aunque la pagina declare
+    #otro icono: sin esto cada visita dejaba un 404 en el registro.
+    path('favicon.ico', RedirectView.as_view(url=ruta_estatica('img/favicon.ico'), permanent=True)),
     #Esta ruta va ANTES del include: sustituye la vista de Django por la
     #misma con nuestro formulario, para que el cambio de contraseña por
     #correo exija las mismas reglas que el registro. El name se conserva
     #para que el enlace del correo y los {% url %} sigan funcionando.
-    path('cuenta/reset/<uidb64>/<token>/',
-         PasswordResetConfirmView.as_view(form_class=FormularioNuevaContrasena),
+    path('cuenta/reset/<uidb64>/<token>/', RestablecerContrasena.as_view(),
          name='password_reset_confirm'),
+    #Con tope de solicitudes: ver PedirEnlaceContrasena
+    path('cuenta/password_reset/', PedirEnlaceContrasena.as_view(),
+         name='password_reset'),
     path('cuenta/', include("django.contrib.auth.urls")),
     path('social/', include("allauth.urls")),
     path('', include("inicio.urls")),
