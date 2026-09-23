@@ -280,9 +280,16 @@ class PanelAdminTests(TestCase):
         self.cliente.refresh_from_db()
         self.assertFalse(self.cliente.is_active)
 
-    def test_no_borra_a_quien_tiene_facturas(self):
+    def test_no_borra_a_quien_tiene_facturas_reales(self):
         from pagos.models import Pago
-        Pago.objects.create(usuario=self.cliente, referencia="R1", estado="Aprobado")
+        Pago.objects.create(usuario=self.cliente, referencia="R1", estado="Aprobado", ambiente="prod")
         self.client.post(reverse("AdminEliminarUsuario", args=[self.cliente.id]))
         self.assertTrue(User.objects.filter(pk=self.cliente.pk).exists())
         self.assertTrue(Pago.objects.filter(referencia="R1").exists())
+
+    def test_si_borra_cuentas_con_pagos_de_prueba(self):
+        #Pagos del sandbox de Wompi: no hubo dinero real, la cuenta se puede limpiar
+        from pagos.models import Pago
+        Pago.objects.create(usuario=self.cliente, referencia="R2", estado="Aprobado", ambiente="test")
+        self.client.post(reverse("AdminEliminarUsuario", args=[self.cliente.id]))
+        self.assertFalse(User.objects.filter(pk=self.cliente.pk).exists())
