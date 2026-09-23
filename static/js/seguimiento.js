@@ -34,9 +34,37 @@
     try { localStorage.setItem(CLAVE, JSON.stringify(lista.slice(-MAX_PENDIENTES))); } catch (e) {}
   }
 
+  // ------------------------------------------------------------
+  //  FOTO DEL PRONOSTICO ANTES DEL PARTIDO
+  //  Antes, al evaluar, las probabilidades se RECALCULABAN con el historial
+  //  cargado en ese momento. Pero para evaluar habia que volver a abrir el
+  //  partido despues de jugado, y el historial descargado entonces YA TRAIA
+  //  ese resultado: el modelo "acertaba" algo que ya sabia y el acierto del
+  //  panel se inflaba (58 % paso a 72 % sin que el motor mejorara).
+  //  Ahora se guarda aqui el historial de antes del saque y las
+  //  probabilidades exactas que se mostraron, y se evalua con eso.
+  // ------------------------------------------------------------
+  function fotoDelPronostico() {
+    if (typeof state === 'undefined' || !state.team1 || !state.team2) return null;
+    try {
+      var s1 = computeStats(state.team1), s2 = computeStats(state.team2);
+      var specs = buildBetSpecs(s1, s2, buildModel(s1, s2));
+      var probs = {};
+      for (var i = 0; i < specs.length; i++) {
+        if (typeof specs[i].prob === 'number') probs[specs[i].label] = specs[i].prob;
+      }
+      return { filas1: state.team1, filas2: state.team2, probs: probs };
+    } catch (e) { return null; }
+  }
+
   // Lo llama auto.js justo despues de cargar un enfrentamiento
   window.registrarPendiente = function(datos) {
     if (!datos || !datos.id) return;
+    // Un partido que ya empezo no se apunta: su pronostico ya no es previo
+    var saque = datos.utc ? new Date(datos.utc).getTime() : NaN;
+    if (!isNaN(saque) && saque <= Date.now()) return;
+    var foto = fotoDelPronostico();
+    if (!foto) return;
     var lista = leerPendientes();
     for (var i = 0; i < lista.length; i++) {
       if (lista[i].id === datos.id) return;   // ya estaba
@@ -47,7 +75,8 @@
       visitante: datos.visitante,
       liga: datos.liga || '',
       utc: datos.utc || '',
-      guardado: Date.now()
+      guardado: Date.now(),
+      foto: foto
     });
     guardarPendientes(lista);
     pintarAviso();
@@ -71,18 +100,32 @@
     return false;
   }
 
-  // Evalua un partido terminado usando el modelo del historial actual
+  // Evalua un partido terminado con la FOTO tomada antes del saque. Ya no
+  // hace falta volver a abrir el partido: se evalua solo.
   function evaluar(pendiente, resultado) {
-    if (typeof state === 'undefined' || !state.team1 || !state.team2) return 0;
-    if (names.team1 !== pendiente.local || names.team2 !== pendiente.visitante) return 0;
+    //Pendientes viejos, guardados sin foto: no hay forma de saber que se
+    //pronostico antes del partido, asi que no entran al registro.
+    if (!pendiente.foto || !pendiente.foto.probs) { quitarPendiente(pendiente.id); return 0; }
 
     var fecha = (resultado.utc || '').slice(0, 10) || new Date().toISOString().slice(0, 10);
     if (yaRegistrado(pendiente.local, pendiente.visitante, fecha)) { quitarPendiente(pendiente.id); return 0; }
 
-    var s1 = computeStats(state.team1);
-    var s2 = computeStats(state.team2);
-    var model = buildModel(s1, s2);
-    var specs = buildBetSpecs(s1, s2, model);
+    //Las etiquetas de las apuestas llevan el nombre de los equipos cargados
+    //("Gana Arsenal"): se ponen los del pendiente mientras se arman.
+    var antes = { team1: names.team1, team2: names.team2 };
+    var specs;
+    try {
+      names.team1 = pendiente.local;
+      names.team2 = pendiente.visitante;
+      var s1 = computeStats(pendiente.foto.filas1);
+      var s2 = computeStats(pendiente.foto.filas2);
+      specs = buildBetSpecs(s1, s2, buildModel(s1, s2));
+    } catch (e) {
+      specs = [];
+    } finally {
+      names.team1 = antes.team1;
+      names.team2 = antes.team2;
+    }
 
     // Los null se quedan null a proposito: el spec devuelve null y se salta
     var a = {
@@ -98,6 +141,10 @@
     var añadidas = 0, aciertos = 0;
     for (var i = 0; i < specs.length; i++) {
       var sp = specs[i];
+      //Solo cuentan las lineas que de verdad se mostraron antes del partido,
+      //y con la probabilidad que se mostro, no con una recalculada.
+      var prob = pendiente.foto.probs[sp.label];
+      if (typeof prob !== 'number') continue;
       var r;
       try { r = sp.resolve(a); } catch (e) { continue; }
       if (r === null || r === undefined) continue;
@@ -106,7 +153,7 @@
         team1: pendiente.local, team2: pendiente.visitante,
         league: pendiente.liga || resultado.liga || '',
         market: sp.market, icon: sp.icon, label: sp.label,
-        prob: sp.prob, hit: !!r, auto: true
+        prob: prob, hit: !!r, auto: true
       });
       añadidas++;
       if (r) aciertos++;
@@ -176,10 +223,10 @@
           avisar('✅ Evaluado automáticamente: ' + detalle, 'ok');
           if (typeof renderValidation === 'function') renderValidation();
         } else if (terminados) {
-          // Terminaron pero no eran el partido cargado: se necesita su modelo
+          // Terminaron pero no se pudieron evaluar (pendientes viejos sin foto)
           avisar('Hay ' + terminados + ' partido' + (terminados > 1 ? 's' : '') +
                  ' terminado' + (terminados > 1 ? 's' : '') +
-                 '. Cárgalo en Datos y vuelve aquí para que se evalúe.', 'aviso');
+                 ' que se guardaron sin su pronóstico previo: no se cuentan.', 'aviso');
         } else if (manual) {
           avisar('Los partidos pendientes todavía no han terminado.');
         }
