@@ -39,6 +39,17 @@ class Perfil(models.Model):
   def __str__(self):
     return self.usuario.username
 
+  def identidad_completa(self):
+    #Cedula y fecha de nacimiento: sin ellas no se puede comprar un plan.
+    #El registro normal las exige, pero las cuentas de Google y las que crea
+    #el administrador no pasan por ahi.
+    return bool(self.documento and self.fecha_nacimiento)
+
+
+def falta_identidad(usuario):
+  perfil=getattr(usuario,"perfil",None)
+  return perfil is None or not perfil.identidad_completa()
+
 
 class Bitacora(models.Model):
   usuario=models.ForeignKey(User,on_delete=models.CASCADE,blank=True,null=True)

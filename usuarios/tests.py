@@ -167,3 +167,122 @@ class DisponibleTests(TestCase):
         for _ in range(TOPE_CONSULTAS):
             self.assertEqual(self.consultar("username", "libre1").status_code, 200)
         self.assertEqual(self.consultar("username", "libre1").status_code, 429)
+
+
+
+class IngresoTests(TestCase):
+
+    def setUp(self):
+        cache.clear()
+        self.usuario = crear_cuenta()
+        #La pagina de ingreso pinta el boton de Google: en produccion la app
+        #de Google existe en la base, en la base de pruebas hay que crearla.
+        from allauth.socialaccount.models import SocialApp
+        from django.contrib.sites.models import Site
+        app = SocialApp.objects.create(provider="google", name="Google", client_id="x", secret="y")
+        app.sites.add(Site.objects.get_current())
+
+    def entrar(self, clave="Clave#123", **extra):
+        return self.client.post(reverse("Ingresar"), {"username": "juan", "password": clave}, **extra)
+
+    def test_navegador_con_agente_largo_puede_entrar(self):
+        #El navegador de Instagram manda mas de 200 caracteres: antes daba 500
+        r = self.entrar(HTTP_USER_AGENT="Mozilla/5.0 " + "Instagram " * 40)
+        self.assertEqual(r.status_code, 302)
+
+    def test_vuelve_a_la_pagina_que_pedia(self):
+        r = self.client.post(reverse("Ingresar"), {"username": "juan", "password": "Clave#123",
+                                                   "next": "/suscripcion"})
+        self.assertRedirects(r, "/suscripcion", fetch_redirect_response=False)
+
+    def test_no_redirige_a_otro_dominio(self):
+        r = self.client.post(reverse("Ingresar"), {"username": "juan", "password": "Clave#123",
+                                                   "next": "https://malicioso.com/"})
+        self.assertNotIn("malicioso", r["Location"])
+
+    def test_bloquea_tras_varios_fallos(self):
+        from usuarios.views import FALLOS_POR_CUENTA
+        for _ in range(FALLOS_POR_CUENTA):
+            self.entrar("mala")
+        #Ni con la clave correcta entra mientras dura el bloqueo
+        r = self.entrar()
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("Demasiados intentos", str(list(r.context["messages"])[0]))
+
+    def test_formulario_incompleto_no_da_500(self):
+        self.assertEqual(self.client.post(reverse("Ingresar"), {}).status_code, 200)
+
+
+class PerfilTests(TestCase):
+
+    def setUp(self):
+        self.usuario = User.objects.create_user(username="ana", email="ana@correo.com",
+                                                password="Clave#123")
+        Perfil.objects.create(usuario=self.usuario)
+        self.client.force_login(self.usuario)
+        self.url = reverse("EditarPerfil")
+
+    def mensajes(self, r):
+        return [str(m) for m in r.context["messages"]]
+
+    def test_completar_identidad_una_vez(self):
+        self.client.post(self.url, {"accion": "identidad", "documento": "1.234.567",
+                                    "fecha_nacimiento": "1990-05-10"})
+        perfil = Perfil.objects.get(usuario=self.usuario)
+        self.assertEqual((perfil.documento, str(perfil.fecha_nacimiento)), ("1234567", "1990-05-10"))
+        #Una segunda vez no la cambia
+        self.client.post(self.url, {"accion": "identidad", "documento": "7654321",
+                                    "fecha_nacimiento": "1980-01-01"})
+        self.assertEqual(Perfil.objects.get(usuario=self.usuario).documento, "1234567")
+
+    def test_menor_de_edad_no_completa_identidad(self):
+        r = self.client.post(self.url, {"accion": "identidad", "documento": "1234567",
+                                        "fecha_nacimiento": "2015-01-01"}, follow=True)
+        self.assertIsNone(Perfil.objects.get(usuario=self.usuario).fecha_nacimiento)
+        self.assertTrue(any("mayor de 18" in m for m in self.mensajes(r)))
+
+    def test_cedula_de_otro_no_se_puede_usar(self):
+        crear_cuenta(username="pepe", email="pepe@correo.com", documento="1234567")
+        self.client.post(self.url, {"accion": "identidad", "documento": "1234567",
+                                    "fecha_nacimiento": "1990-05-10"})
+        self.assertIsNone(Perfil.objects.get(usuario=self.usuario).documento)
+
+    def test_avatar_que_no_es_imagen_se_rechaza(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        falso = SimpleUploadedFile("foto.png", b"<script>alert(1)</script>", content_type="image/png")
+        r = self.client.post(self.url, {"accion": "datos", "correo": "ana@correo.com", "avatar": falso},
+                             follow=True)
+        self.assertFalse(Perfil.objects.get(usuario=self.usuario).avatar)
+        self.assertTrue(any("imagen" in m for m in self.mensajes(r)))
+
+    def test_telefono_invalido_no_tumba_el_guardado(self):
+        r = self.client.post(self.url, {"accion": "datos", "correo": "ana@correo.com",
+                                        "telefono": "3" * 40}, follow=True)
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(any("telefono" in m for m in self.mensajes(r)))
+
+    def test_cambio_de_clave_sin_campos_no_da_500(self):
+        r = self.client.post(self.url, {"accion": "clave", "clave_actual": "Clave#123"}, follow=True)
+        self.assertEqual(r.status_code, 200)
+
+
+class PanelAdminTests(TestCase):
+
+    def setUp(self):
+        self.admin = User.objects.create_superuser("jefe", password="Clave#123")
+        self.client.force_login(self.admin)
+        self.cliente = crear_cuenta()
+
+    def test_bloquear_solo_por_post(self):
+        url = reverse("AdminEstadoUsuario", args=[self.cliente.id])
+        self.assertEqual(self.client.get(url).status_code, 405)
+        self.client.post(url)
+        self.cliente.refresh_from_db()
+        self.assertFalse(self.cliente.is_active)
+
+    def test_no_borra_a_quien_tiene_facturas(self):
+        from pagos.models import Pago
+        Pago.objects.create(usuario=self.cliente, referencia="R1", estado="Aprobado")
+        self.client.post(reverse("AdminEliminarUsuario", args=[self.cliente.id]))
+        self.assertTrue(User.objects.filter(pk=self.cliente.pk).exists())
+        self.assertTrue(Pago.objects.filter(referencia="R1").exists())

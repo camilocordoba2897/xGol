@@ -195,12 +195,21 @@ def conciliar_pendientes(minutos=10,tope=50):
   #Le pregunta a la pasarela por los pagos que siguen pendientes. PSE es
   #asincrono y un webhook puede perderse: sin esto, un usuario que pago de
   #verdad se queda sin acceso.
+  #
+  #Tambien entran los que no tienen id de la pasarela: si el webhook se perdio
+  #y el usuario no volvio a la pagina de retorno, el id nunca llego. Antes se
+  #excluian, y a las 24 horas caducar_pendientes() los anulaba aunque el
+  #cliente SI hubiera pagado. Esos se buscan por referencia.
+  #Del mas viejo al mas nuevo: los primeros en caducar se revisan primero.
   limite=timezone.now()-timedelta(minutes=minutos)
-  pendientes=Pago.objects.filter(estado="Pendiente",creado__lte=limite).exclude(id_pasarela="")[:tope]
+  pendientes=Pago.objects.filter(estado="Pendiente",creado__lte=limite).order_by("creado")[:tope]
   revisados=0
   aplicados=0
   for pago in pendientes:
-    crudo,error=pasarela.consultar_transaccion(pago.id_pasarela)
+    if pago.id_pasarela:
+      crudo,error=pasarela.consultar_transaccion(pago.id_pasarela)
+    else:
+      crudo,error=pasarela.buscar_por_referencia(pago.referencia)
     revisados=revisados+1
     if error or not crudo:
       continue
@@ -222,7 +231,7 @@ def caducar_pendientes(horas=24):
 def marcar_vencidas():
   #Apaga la bandera activa de las suscripciones cuya fecha ya paso y deja
   #constancia del vencimiento.
-  hoy=timezone.now().date()
+  hoy=timezone.localdate()
   vencidas=Suscripcion.objects.filter(activa=True,vencimiento__lt=hoy)
   total=0
   for suscripcion in vencidas:
@@ -261,7 +270,7 @@ def registrar_reembolso(pago,monto,motivo,actor=None,revoca_dias=True):
       if suscripcion is not None and suscripcion.vencimiento is not None:
         anterior=suscripcion.vencimiento
         suscripcion.vencimiento=anterior-timedelta(days=pago.dias_otorgados)
-        if suscripcion.vencimiento<timezone.now().date():
+        if suscripcion.vencimiento<timezone.localdate():
           suscripcion.activa=False
         suscripcion.save(update_fields=["vencimiento","activa"])
         MovimientoSuscripcion.objects.create(

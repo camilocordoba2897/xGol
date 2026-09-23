@@ -16,7 +16,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 
 from suscripciones.decoradores import suscripcion_requerida
-from analizador import motor_datos
+from analizador import api_datos,motor_datos
 from analizador.models import AjusteMotor,PesosMotor,PrediccionMotor
 from analizador.motor import combinacion,elo as mod_elo,evaluacion,nucleo,tasas
 from analizador.motor.probabilidad import resumen_mercados
@@ -85,6 +85,10 @@ def motor_pronostico(request):
     neutral=request.GET.get("neutral") in ("1","true","si")
     if not liga or not bruto_local or not bruto_visitante:
         return JsonResponse({"error":"faltan_parametros"},status=400)
+    #Solo las ligas que cubre xGol: un codigo inventado disparaba el ajuste
+    #completo de una liga inexistente y gastaba cupo de la API en nada.
+    if liga not in api_datos.LIGAS:
+        return JsonResponse({"error":"liga_no_cubierta"},status=400)
 
     ajuste,tabla,mapa,error=_cargar_ajuste(liga)
     if ajuste is None:
@@ -158,6 +162,8 @@ def motor_fuerzas(request):
     liga=(request.GET.get("liga") or "").strip()
     if not liga:
         return JsonResponse({"error":"faltan_parametros"},status=400)
+    if liga not in api_datos.LIGAS:
+        return JsonResponse({"error":"liga_no_cubierta"},status=400)
     ajuste,tabla,mapa,error=_cargar_ajuste(liga)
     if ajuste is None:
         return JsonResponse({"error":error or "sin_datos"},status=503)

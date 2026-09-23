@@ -470,7 +470,9 @@
     lgEstado('cargando');
     lgTraer(cfg).then(function(lista) {
       lista = (lista || []).filter(function(e) { return e.nombre; });
-      lgCache[key] = lista;
+      // Una lista vacia es un fallo pasajero de la API: no se guarda, para
+      // que al volver a abrir la liga se pida de nuevo.
+      if (lista.length) lgCache[key] = lista;
       if (lgActual === key) lgPintar(lista);
     }).catch(function() {
       if (lgActual === key) lgEstado('error');

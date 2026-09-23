@@ -13,6 +13,10 @@ from django.urls import reverse
 from pagos import pasarela
 from pagos.models import Pago
 from pagos.views import _url_publica
+from usuarios.models import Perfil
+from datetime import date, timedelta
+from unittest import mock
+from django.utils import timezone
 
 LLAVES = dict(WOMPI_LLAVE_PUBLICA="pub_test_x", WOMPI_LLAVE_PRIVADA="prv_test_x",
               WOMPI_SECRETO_INTEGRIDAD="integridad", WOMPI_SECRETO_EVENTOS="eventos")
@@ -75,6 +79,8 @@ class CheckoutTests(TestCase):
         cache.clear()
         self.usuario = User.objects.create_user(username="pagador", email="p@correo.com",
                                                 password="Clave#123")
+        Perfil.objects.create(usuario=self.usuario, documento="1234567",
+                              fecha_nacimiento=date(1990, 1, 1))
         self.client.force_login(self.usuario)
 
     def pagar(self, plan="mensual"):
@@ -102,3 +108,79 @@ class CheckoutTests(TestCase):
         r = self.client.get(reverse("ProcesarPago", args=["mensual"]),
                             HTTP_HOST="xgol.example.com", secure=True)
         self.assertEqual(r.status_code, 405)
+
+
+    def test_sin_cedula_ni_fecha_no_deja_pagar(self):
+        self.usuario.perfil.documento = None
+        self.usuario.perfil.save()
+        r = self.pagar()
+        self.assertRedirects(r, reverse("EditarPerfil"), fetch_redirect_response=False)
+        self.assertFalse(Pago.objects.exists())
+
+
+@override_settings(**LLAVES)
+class ConciliacionTests(TestCase):
+    #Un pago cuyo webhook se perdio y cuyo usuario no volvio nunca recibe el
+    #id de la pasarela. Antes se quedaba sin revisar y a las 24 h se anulaba
+    #aunque el cliente SI hubiera pagado.
+
+    def setUp(self):
+        from pagos import servicios
+        self.servicios = servicios
+        self.usuario = User.objects.create_user(username="cliente", password="Clave#123")
+        self.pago, _ = servicios.crear_pago_pendiente(self.usuario, "mensual")
+        Pago.objects.filter(pk=self.pago.pk).update(creado=timezone.now() - timedelta(hours=2))
+
+    def transaccion(self, estado="APPROVED"):
+        return {"id": "tx-1", "reference": self.pago.referencia, "status": estado,
+                "amount_in_cents": self.pago.monto_centavos, "currency": "COP",
+                "payment_method_type": "PSE"}
+
+    def test_pago_sin_id_se_busca_por_referencia_y_se_aplica(self):
+        with mock.patch.object(pasarela, "buscar_por_referencia",
+                               return_value=(self.transaccion(), None)) as buscar:
+            revisados, aplicados = self.servicios.conciliar_pendientes()
+        buscar.assert_called_once_with(self.pago.referencia)
+        self.assertEqual((revisados, aplicados), (1, 1))
+        self.pago.refresh_from_db()
+        self.assertTrue(self.pago.aplicado)
+        self.assertEqual(self.pago.id_pasarela, "tx-1")
+        self.assertTrue(self.usuario.suscripcion.esta_vigente())
+
+    def test_no_otorga_dos_veces(self):
+        with mock.patch.object(pasarela, "buscar_por_referencia",
+                               return_value=(self.transaccion(), None)):
+            self.servicios.conciliar_pendientes()
+        with mock.patch.object(pasarela, "consultar_transaccion",
+                               return_value=(self.transaccion(), None)):
+            _, resultado = self.servicios.aplicar_transaccion(
+                pasarela.leer_transaccion(self.transaccion()))
+        self.assertEqual(resultado, "ya_aplicado")
+
+    def test_monto_distinto_no_otorga(self):
+        tx = dict(self.transaccion(), amount_in_cents=100)
+        with mock.patch.object(pasarela, "buscar_por_referencia", return_value=(tx, None)):
+            self.servicios.conciliar_pendientes()
+        self.pago.refresh_from_db()
+        self.assertFalse(self.pago.aplicado)
+        self.assertEqual(self.pago.estado, "Error")
+
+    def test_buscar_por_referencia_prefiere_la_aprobada(self):
+        respuesta = mock.Mock(status_code=200)
+        respuesta.json.return_value = {"data": [
+            self.transaccion("DECLINED"), self.transaccion("APPROVED"),
+            dict(self.transaccion(), reference="OTRA")]}
+        with mock.patch.object(pasarela.requests, "get", return_value=respuesta):
+            datos, error = pasarela.buscar_por_referencia(self.pago.referencia)
+        self.assertIsNone(error)
+        self.assertEqual(datos["status"], "APPROVED")
+
+
+class FacturaTests(TestCase):
+
+    def test_la_factura_usa_la_vigencia_del_pago_y_no_se_cae_sin_suscripcion(self):
+        from pagos.factura import generar_factura_pdf
+        usuario = User.objects.create_user(username="f", password="Clave#123")
+        pago = Pago.objects.create(usuario=usuario, referencia="R1", estado="Aprobado",
+                                   monto=20000, subtotal=16807, iva=3193, monto_centavos=2000000)
+        self.assertTrue(generar_factura_pdf(pago).getvalue().startswith(b"%PDF"))

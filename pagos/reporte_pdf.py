@@ -6,6 +6,7 @@
 #no se agrega ninguna libreria nueva.
 from io import BytesIO
 from datetime import datetime
+from django.utils import timezone
 
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.units import cm
@@ -109,7 +110,7 @@ def _cabecera_pagina(c, filtros, totales, pagina):
   c.setFillColor(colors.white)
   c.setFont("Helvetica", 8)
   c.drawRightString(ANCHO - MARGEN, ALTO - 1.4 * cm,
-                    "Emitido: " + datetime.now().strftime("%d/%m/%Y %H:%M"))
+                    "Emitido: " + timezone.localtime().strftime("%d/%m/%Y %H:%M"))
   c.setFillColor(GRIS_CLARO)
   c.drawRightString(ANCHO - MARGEN, ALTO - 1.85 * cm, "Página %d" % pagina)
   c.drawRightString(ANCHO - MARGEN, ALTO - 2.3 * cm,

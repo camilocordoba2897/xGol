@@ -15,6 +15,8 @@
 import re
 from datetime import date, datetime
 
+from django.utils import timezone
+
 import unicodedata
 from django.contrib.auth.models import User
 
@@ -216,6 +218,47 @@ def validar_documento(valor, excluir_id=None):
 
 
 # ============================================================
+#  TELEFONO Y FOTO DE PERFIL
+# ============================================================
+PATRON_TELEFONO = re.compile(r"^\+?[0-9 ()\-]{7,20}$")
+
+
+def validar_telefono(valor):
+    #Opcional. Si viene, que sea un telefono y quepa en la columna (20): un
+    #texto mas largo hacia que MySQL rechazara el guardado del perfil entero.
+    limpio = " ".join(str(valor or "").split())
+    if not limpio:
+        return "", None
+    if len(limpio) > 20 or not PATRON_TELEFONO.match(limpio) or len(re.sub(r"\D", "", limpio)) < 7:
+        return valor, "Escribe un telefono valido, solo numeros. Ej: 300 123 4567"
+    return limpio, None
+
+
+AVATAR_MAX_MB = 2
+AVATAR_FORMATOS = {"JPEG", "PNG", "WEBP", "GIF"}
+
+
+def validar_avatar(archivo):
+    #Asignar el archivo directo al ImageField NO lo valida (eso solo lo hacen
+    #los formularios de Django): se podia subir cualquier cosa, incluso un
+    #.html que luego se servia desde /media/ en nuestro propio dominio.
+    #Aqui se abre con Pillow para confirmar que de verdad es una imagen.
+    if archivo.size > AVATAR_MAX_MB * 1024 * 1024:
+        return f"La foto no puede pesar mas de {AVATAR_MAX_MB} MB."
+    try:
+        from PIL import Image
+        imagen = Image.open(archivo)
+        formato = imagen.format
+        imagen.verify()
+    except Exception:
+        return "El archivo no es una imagen valida."
+    finally:
+        archivo.seek(0)
+    if formato not in AVATAR_FORMATOS:
+        return "La foto debe ser JPG, PNG, WEBP o GIF."
+    return None
+
+# ============================================================
 #  FECHA DE NACIMIENTO — solo mayores de edad
 # ============================================================
 EDAD_MINIMA = 18
@@ -227,7 +270,7 @@ def calcular_edad(fecha, hoy=None):
     #este ano, se resta uno. Sin esto, alguien que cumple 18 en diciembre
     #podria entrar desde enero.
     if hoy is None:
-        hoy = date.today()
+        hoy = timezone.localdate()
     anos = hoy.year - fecha.year
     if (hoy.month, hoy.day) < (fecha.month, fecha.day):
         anos -= 1
@@ -254,7 +297,7 @@ def validar_fecha_nacimiento(valor, hoy=None):
         return valor, "Escribe una fecha de nacimiento valida."
 
     if hoy is None:
-        hoy = date.today()
+        hoy = timezone.localdate()
 
     if fecha > hoy:
         return valor, "La fecha de nacimiento no puede ser futura."

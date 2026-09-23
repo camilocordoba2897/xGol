@@ -37,10 +37,22 @@ def partidos_vivo(request):
 def predicciones_destacadas(request):
     return JsonResponse({"predicciones": api_partidos.predicciones_destacadas()})
 
-def tabla_posiciones(request):
+#Estas dos rutas son publicas. Antes aceptaban cualquier codigo de liga, y
+#cada codigo inventado era una peticion a football-data: bastaba con pedir
+#codigos al azar para agotar el cupo de 10 por minuto y dejar el home sin
+#datos para todos. Solo se atienden las nueve ligas que cubre xGol.
+def _liga_pedida(request):
     liga = request.GET.get("liga", api_partidos.LIGAS["Premier League"])
+    return liga if liga in api_partidos.CODIGOS else None
+
+def tabla_posiciones(request):
+    liga = _liga_pedida(request)
+    if liga is None:
+        return JsonResponse({"tabla": [], "error": "liga_no_cubierta"}, status=400)
     return JsonResponse({"tabla": api_partidos.tabla_posiciones(liga)})
 
 def equipos_liga(request):
-    liga = request.GET.get("liga", api_partidos.LIGAS["Premier League"])
+    liga = _liga_pedida(request)
+    if liga is None:
+        return JsonResponse({"equipos": [], "error": "liga_no_cubierta"}, status=400)
     return JsonResponse({"equipos": api_partidos.equipos_liga(liga)})

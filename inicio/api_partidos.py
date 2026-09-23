@@ -5,6 +5,7 @@ from datetime import date, timedelta, datetime, timezone
 from zoneinfo import ZoneInfo
 from django.conf import settings
 from django.core.cache import cache
+from django.utils import timezone as hora_local
 
 BASE = "https://api.football-data.org/v4"
 ZONA = ZoneInfo("America/Bogota")
@@ -149,7 +150,7 @@ def _partidos_rango(desde, hasta):
 def partidos_hoy():
     datos = cache.get("partidos_hoy_v2")
     if datos is None:
-        hoy = date.today().isoformat()
+        hoy = hora_local.localdate().isoformat()
         datos = _partidos_rango(hoy, hoy)
         cache.set("partidos_hoy_v2", datos, 180)
     return datos
@@ -169,7 +170,7 @@ def partidos_proximos():
     #maximo que acepta football-data, y se para en el primero con partidos.
     datos = cache.get("partidos_proximos_v4")
     if datos is None:
-        hoy = date.today()
+        hoy = hora_local.localdate()
         hasta = hoy + timedelta(days=7)
         datos = _pendientes(_partidos_rango(hoy.isoformat(), hasta.isoformat()))
         desde = hasta + timedelta(days=1)
@@ -193,7 +194,7 @@ def partidos_vivo():
         #Ventana de 3 dias, no solo hoy: football-data fecha los partidos en UTC.
         #Un partido de las 22:30 UTC del domingo cae en lunes para un servidor
         #en UTC y en domingo para uno en Bogota; con un solo dia se perdian.
-        hoy = date.today()
+        hoy = hora_local.localdate()
         crudo = _pedir("matches", {
             "dateFrom": (hoy - timedelta(days=1)).isoformat(),
             "dateTo": (hoy + timedelta(days=1)).isoformat(),
@@ -204,11 +205,34 @@ def partidos_vivo():
         cache.set("partidos_vivo_v2", datos, 30)
     return datos
 
+#Cache de las tablas y los equipos.
+#
+#UNA RESPUESTA VACIA NO SE GUARDA COMO SI FUERA BUENA. Antes, si football-data
+#rechazaba la peticion (el plan gratuito solo deja 10 por minuto y una carga
+#del home ya gasta varias), la lista vacia quedaba en cache 24 horas: siete de
+#las nueve ligas del home se quedaron sin equipos un dia entero aunque la API
+#ya respondiera bien. Ahora un fallo se cachea solo un minuto y, mientras
+#tanto, se sirve la ultima copia buena que haya (los equipos de una liga no
+#cambian de un dia para otro).
+RESPALDO = 7 * 86400
+REINTENTO = 60
+
+def _cacheado(llave, segundos, obtener):
+    datos = cache.get(llave)
+    if datos is not None:
+        return datos
+    datos = obtener()
+    if datos:
+        cache.set(llave, datos, segundos)
+        cache.set(llave + "_respaldo", datos, RESPALDO)
+        return datos
+    datos = cache.get(llave + "_respaldo") or []
+    cache.set(llave, datos, REINTENTO)
+    return datos
+
 def tabla_posiciones(liga):
     #liga: codigo de competencia de football-data.org (por defecto Premier League)
-    llave = f"tabla_{liga}"
-    datos = cache.get(llave)
-    if datos is None:
+    def obtener():
         crudo = _pedir(f"competitions/{liga}/standings")
         datos = []
         for grupo in crudo.get("standings", []):
@@ -225,24 +249,21 @@ def tabla_posiciones(liga):
                         "forma": fila.get("form", ""),
                     })
                 break
-        cache.set(llave, datos, 900)
-    return datos
+        return datos
+    return _cacheado(f"tabla_v2_{liga}", 900, obtener)
+
 def equipos_liga(liga):
     #liga: codigo de competencia de football-data.org -> lista de equipos con escudo
-    llave = f"equipos_{liga}"
-    datos = cache.get(llave)
-    if datos is None:
+    def obtener():
         crudo = _pedir(f"competitions/{liga}/teams")
-        datos = []
-        for e in crudo.get("teams", []):
-            datos.append({
-                "nombre": e.get("name", ""),
-                "corto": e.get("shortName") or e.get("tla") or e.get("name", ""),
-                "escudo": e.get("crest", ""),
-            })
+        datos = [{
+            "nombre": e.get("name", ""),
+            "corto": e.get("shortName") or e.get("tla") or e.get("name", ""),
+            "escudo": e.get("crest", ""),
+        } for e in crudo.get("teams", [])]
         datos.sort(key=lambda x: (x["nombre"] or "").lower())
-        cache.set(llave, datos, 86400)
-    return datos
+        return datos
+    return _cacheado(f"equipos_v2_{liga}", 86400, obtener)
 
 
 # ============================================================
@@ -317,7 +338,7 @@ def _hace(fecha_txt):
         return ""
     try:
         a, m, d = (int(x) for x in str(fecha_txt)[:10].split("-"))
-        dias = (date.today() - date(a, m, d)).days
+        dias = (hora_local.localdate() - date(a, m, d)).days
     except (ValueError, TypeError):
         return ""
     if dias <= 0:

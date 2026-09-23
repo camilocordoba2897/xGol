@@ -57,7 +57,7 @@ def generar_factura_pdf(pago):
     c.drawRightString(ancho-2*cm,alto-1.9*cm,"FACTURA")
     c.setFillColor(lima)
     c.setFont("Helvetica-Bold",12)
-    c.drawRightString(ancho-2*cm,alto-2.5*cm,pago.numero_factura)
+    c.drawRightString(ancho-2*cm,alto-2.5*cm,pago.numero_factura or pago.referencia)
     c.setFillColor(gris_claro)
     c.setFont("Helvetica",8)
     c.drawRightString(ancho-2*cm,alto-3*cm,f"Emitida: {pago.creado.strftime('%d/%m/%Y')}")
@@ -111,7 +111,11 @@ def generar_factura_pdf(pago):
     c.drawString(2.4*cm,y,f"Suscripción {pago.plan}")
     c.setFont("Helvetica",9)
     c.setFillColor(gris)
-    c.drawString(2.4*cm,y-0.5*cm,f"Vigencia: {pago.usuario.suscripcion.inicio.strftime('%d/%m/%Y')} - {pago.usuario.suscripcion.vencimiento.strftime('%d/%m/%Y')}")
+    #La vigencia que compro ESTE pago, guardada al aplicarlo. Antes salia la
+    #de la suscripcion actual: una factura vieja mostraba fechas que no eran
+    #suyas, y si la suscripcion no tenia fecha la descarga se caia con 500.
+    if pago.vigencia_inicio and pago.vigencia_fin:
+        c.drawString(2.4*cm,y-0.5*cm,f"Vigencia: {pago.vigencia_inicio.strftime('%d/%m/%Y')} - {pago.vigencia_fin.strftime('%d/%m/%Y')}")
     c.setFillColor(texto)
     c.setFont("Helvetica",11)
     c.drawRightString(ancho-2.4*cm,y,f"$ {pago.subtotal:,.0f}")

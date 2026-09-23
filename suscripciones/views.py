@@ -8,6 +8,7 @@ from django.conf import settings
 from suscripciones.models import Suscripcion
 from suscripciones.planes import PLANES,obtener_plan,nivel_de_plan
 from usuarios.decoradores import rol_requerido
+from usuarios.models import falta_identidad
 
 @login_required(login_url="Ingresar")
 def suscripcion(request):
@@ -19,7 +20,7 @@ def suscripcion(request):
 
     dias_restantes=0
     if suscripcion.esta_vigente():
-        dias_restantes=(suscripcion.vencimiento-timezone.now().date()).days
+        dias_restantes=(suscripcion.vencimiento-timezone.localdate()).days
 
     nivel_actual=0
     if suscripcion.esta_vigente():
@@ -43,6 +44,10 @@ def checkout(request,clave_plan):
     plan=obtener_plan(clave_plan)
     if plan is None:
         return redirect("Suscripcion")
+
+    if falta_identidad(request.user):
+        messages.info(request,"Antes de comprar un plan completa tu cedula y tu fecha de nacimiento: xGol es solo para mayores de 18 años.")
+        return redirect("EditarPerfil")
 
     #Misma regla que en procesar_pago: no se muestra el checkout de un plan
     #que el usuario no puede comprar, aunque llegue por la URL directa.
@@ -88,7 +93,12 @@ def admin_activar_suscripcion(request,id):
         suscripcion,creada=Suscripcion.objects.select_for_update().get_or_create(usuario=usuario)
         vencimiento_anterior=suscripcion.vencimiento
         era_vigente=suscripcion.esta_vigente()
-        suscripcion.activar(plan["nombre"],plan["precio"],plan["dias"])
+        #Misma regla que servicios.aplicar_transaccion: los dias se suman,
+        #pero un mensual encima de un trimestral vigente no degrada el plan.
+        if era_vigente and nivel_de_plan(suscripcion.plan)>plan["nivel"]:
+            suscripcion.activar(suscripcion.plan,suscripcion.precio,plan["dias"])
+        else:
+            suscripcion.activar(plan["nombre"],plan["precio"],plan["dias"])
         suscripcion.origen="admin"
         suscripcion.save(update_fields=["origen"])
 
@@ -146,7 +156,7 @@ def admin_cancelar_suscripcion(request,id):
     #eso se hace aparte desde el panel financiero para que quede el reembolso.
     suscripcion.activa=False
     suscripcion.renovacion_automatica=False
-    suscripcion.cancelada_en=timezone.now().date()
+    suscripcion.cancelada_en=timezone.localdate()
     suscripcion.save(update_fields=["activa","renovacion_automatica","cancelada_en"])
 
     MovimientoSuscripcion.objects.create(

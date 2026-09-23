@@ -2,6 +2,7 @@
 #distintas: alli esta el flujo de pago del cliente, aqui la administracion del
 #dinero. Asi tampoco hay que volver a tocar views.py para agregar reportes.
 from datetime import datetime
+from django.utils import timezone
 from django.shortcuts import render,redirect,get_object_or_404
 from django.contrib import messages
 from django.http import HttpResponse
@@ -68,7 +69,7 @@ def exportar_finanzas(request):
     #para no romper un enlace guardado, pero ya no tiene boton propio.
     formato=(request.GET.get("formato") or "pdf").lower()
     tipo=(request.GET.get("tipo") or "transacciones").lower()
-    marca=datetime.now().strftime("%Y%m%d_%H%M")
+    marca=timezone.localtime().strftime("%Y%m%d_%H%M")
     filtros=_filtros(request)
 
     #El PDF de transacciones se arma con los objetos Pago, no con filas de
@@ -85,7 +86,7 @@ def exportar_finanzas(request):
         filas=list(exportar.filas_resumen(reportes.resumen_ingresos()))
         nombre=f"xgol_resumen_{marca}"
         titulo="Resumen financiero"
-        subtitulo="Acumulados por periodo · Generado el "+datetime.now().strftime("%d/%m/%Y %H:%M")
+        subtitulo="Acumulados por periodo · Generado el "+timezone.localtime().strftime("%d/%m/%Y %H:%M")
         moneda=exportar.MONEDA_RESUMEN
         totalizar=exportar.TOTALIZAR_RESUMEN
         columna_estado=None
@@ -96,7 +97,7 @@ def exportar_finanzas(request):
         nombre=f"xgol_transacciones_{marca}"
         titulo="Historial de transacciones"
         subtitulo=(reporte_pdf._linea_filtros(filtros)+" · Generado el "
-                   +datetime.now().strftime("%d/%m/%Y %H:%M"))
+                   +timezone.localtime().strftime("%d/%m/%Y %H:%M"))
         moneda=exportar.MONEDA_TRANSACCIONES
         totalizar=exportar.TOTALIZAR_TRANSACCIONES
         columna_estado=exportar.COLUMNA_ESTADO_TRANSACCIONES
@@ -146,12 +147,16 @@ def admin_reembolso(request,id):
 def admin_sincronizar_pago(request,id):
     #Vuelve a preguntarle a la pasarela por un pago concreto. Sirve cuando un
     #webhook se perdio y el usuario reclama que si pago.
+    #Sin id de la pasarela se busca por referencia: es justo el caso del
+    #cliente que pago, cerro el navegador y cuyo webhook no llego.
     pago=get_object_or_404(Pago,id=id)
-    if not pago.id_pasarela:
+    if pago.id_pasarela:
+        crudo,error=pasarela.consultar_transaccion(pago.id_pasarela)
+    else:
+        crudo,error=pasarela.buscar_por_referencia(pago.referencia)
+    if error==pasarela.ERROR_NO_ENCONTRADA:
         messages.error(request,"Ese intento nunca llego a la pasarela, no hay nada que consultar")
         return redirect("PanelFinanzas")
-
-    crudo,error=pasarela.consultar_transaccion(pago.id_pasarela)
     if error or not crudo:
         messages.error(request,f"No se pudo consultar la pasarela ({error})")
         return redirect("PanelFinanzas")

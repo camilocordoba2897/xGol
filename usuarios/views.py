@@ -7,10 +7,13 @@ from django.contrib import messages
 from usuarios.models import Rol,Perfil,Bitacora
 from usuarios.validaciones import (validar_registro, validar_usuario,
                                     validar_correo, validar_nombre,
-                                    validar_contrasena, validar_documento)
+                                    validar_contrasena, validar_documento,
+                                    validar_telefono, validar_avatar,
+                                    validar_fecha_nacimiento)
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
 from django.http import JsonResponse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from django.contrib.auth import update_session_auth_hash
 
@@ -110,37 +113,71 @@ def disponible(request):
 
 
 def obtener_ip(request):
+    #Recortada a 40, lo que mide la columna de la Bitacora.
     adelante=request.META.get("HTTP_X_FORWARDED_FOR")
     if adelante:
-        return adelante.split(",")[0]
-    return request.META.get("REMOTE_ADDR")
+        return adelante.split(",")[0].strip()[:40]
+    return (request.META.get("REMOTE_ADDR") or "")[:40]
+
+
+#Tope de intentos fallidos de inicio de sesion. Sin esto cualquiera podia
+#probar contrasenas sin limite contra una cuenta. Se cuenta por IP y usuario
+#(para no bloquear a toda una red por un vecino) y tambien por IP sola (para
+#que no se puedan barrer muchas cuentas desde el mismo equipo).
+FALLOS_POR_CUENTA=5
+FALLOS_POR_IP=20
+BLOQUEO_SEGUNDOS=15*60
+
+def _llaves_fallos(request,username):
+    ip=obtener_ip(request)
+    return f"login_fallos_{ip}_{username.lower()[:150]}",f"login_fallos_{ip}"
 
 def ingresar(request):
+    #A donde volver despues de entrar: login_required manda ?next=/ruta. Solo
+    #se aceptan rutas de este mismo sitio, nunca un dominio externo.
+    siguiente=request.POST.get("next") or request.GET.get("next") or ""
+    if not url_has_allowed_host_and_scheme(siguiente,allowed_hosts={request.get_host()},
+                                           require_https=request.is_secure()):
+        siguiente=""
+
     if request.method=="POST":
-        username=request.POST["username"]
-        password=request.POST["password"]
+        username=(request.POST.get("username") or "").strip()
+        password=request.POST.get("password") or ""
+
+        llave_cuenta,llave_ip=_llaves_fallos(request,username)
+        if cache.get(llave_cuenta,0)>=FALLOS_POR_CUENTA or cache.get(llave_ip,0)>=FALLOS_POR_IP:
+            messages.error(request,"Demasiados intentos fallidos. Espera 15 minutos e intentalo de nuevo.")
+            return render(request,"ingresar.html",{"next":siguiente})
 
         usuario=authenticate(request,username=username,password=password)
 
         if usuario is not None:
+            cache.delete(llave_cuenta)
             login(request,usuario)
 
+            #Recortados al tamano de sus columnas: el navegador de Instagram,
+            #por ejemplo, manda un agente de mas de 200 caracteres y MySQL en
+            #modo estricto rechazaba el guardado, tumbando el inicio de sesion.
             Bitacora.objects.create(
                 usuario=usuario,
                 accion="Inicio de sesion",
                 ip=obtener_ip(request),
-                agente=request.META.get("HTTP_USER_AGENT")
+                agente=(request.META.get("HTTP_USER_AGENT") or "")[:200]
             )
 
+            if siguiente:
+                return redirect(siguiente)
             perfil=getattr(usuario,"perfil",None)
             if usuario.is_superuser or (perfil is not None and perfil.rol is not None and perfil.rol.nombre=="administrador"):
                 return redirect("PanelAdmin")
             return redirect("Inicio")
 
+        cache.set(llave_cuenta,cache.get(llave_cuenta,0)+1,BLOQUEO_SEGUNDOS)
+        cache.set(llave_ip,cache.get(llave_ip,0)+1,BLOQUEO_SEGUNDOS)
         messages.error(request,"Usuario o contraseña incorrectos")
-        return render(request,"ingresar.html")
+        return render(request,"ingresar.html",{"next":siguiente})
 
-    return render(request,"ingresar.html")
+    return render(request,"ingresar.html",{"next":siguiente})
 
 
 def salir(request):
@@ -262,23 +299,61 @@ def editar_perfil(request):
                     return redirect("EditarPerfil")
                 request.user.email=correo
 
+            telefono,e_telefono=validar_telefono(request.POST.get("telefono"))
+            if e_telefono:
+                messages.error(request,e_telefono)
+                return redirect("EditarPerfil")
+            avatar=request.FILES.get("avatar")
+            if avatar:
+                e_avatar=validar_avatar(avatar)
+                if e_avatar:
+                    messages.error(request,e_avatar)
+                    return redirect("EditarPerfil")
+
             request.user.first_name=nombre
             request.user.save()
 
-            perfil.telefono=request.POST.get("telefono")
-            if request.FILES.get("avatar"):
-                perfil.avatar=request.FILES["avatar"]
+            perfil.telefono=telefono
+            if avatar:
+                perfil.avatar=avatar
             perfil.save()
 
             messages.success(request,"Tus datos se actualizaron correctamente")
             return redirect("EditarPerfil")
 
-        if accion=="clave":
-            import re
+        if accion=="identidad":
+            #Solo se llenan los que FALTAN: los que ya estan no se pueden
+            #cambiar desde aqui (cambiar el documento es la forma clasica de
+            #quedarse con una cuenta ajena).
+            cambios=[]
+            if not perfil.documento:
+                documento,error=validar_documento(request.POST.get("documento"),excluir_id=request.user.pk)
+                if error:
+                    messages.error(request,error)
+                    return redirect("EditarPerfil")
+                perfil.documento=documento
+                perfil.tipo_documento=perfil.tipo_documento or "CC"
+                cambios+=["documento","tipo_documento"]
+            if not perfil.fecha_nacimiento:
+                fecha,error=validar_fecha_nacimiento(request.POST.get("fecha_nacimiento"))
+                if error:
+                    messages.error(request,error)
+                    return redirect("EditarPerfil")
+                perfil.fecha_nacimiento=fecha
+                cambios.append("fecha_nacimiento")
+            if cambios:
+                try:
+                    perfil.save(update_fields=cambios)
+                except IntegrityError:
+                    messages.error(request,"Ya hay una cuenta registrada con esa cedula.")
+                    return redirect("EditarPerfil")
+                messages.success(request,"Tus datos de identidad quedaron registrados")
+            return redirect("EditarPerfil")
 
-            actual=request.POST.get("clave_actual")
-            nueva=request.POST.get("clave_nueva")
-            confirmar=request.POST.get("clave_confirmar")
+        if accion=="clave":
+            actual=request.POST.get("clave_actual") or ""
+            nueva=request.POST.get("clave_nueva") or ""
+            confirmar=request.POST.get("clave_confirmar") or ""
 
             if not request.user.check_password(actual):
                 messages.error(request,"La contraseña actual no es correcta")
@@ -288,24 +363,10 @@ def editar_perfil(request):
                 messages.error(request,"Las contraseñas nuevas no coinciden")
                 return redirect("EditarPerfil")
 
-            if len(nueva)<8 or len(nueva)>16:
-                messages.error(request,"La contraseña debe tener entre 8 y 16 caracteres")
-                return redirect("EditarPerfil")
-
-            if not re.search(r"[a-z]",nueva):
-                messages.error(request,"La contraseña debe tener al menos una letra minúscula")
-                return redirect("EditarPerfil")
-
-            if not re.search(r"[A-Z]",nueva):
-                messages.error(request,"La contraseña debe tener al menos una letra mayúscula")
-                return redirect("EditarPerfil")
-
-            if not re.search(r"[0-9]",nueva):
-                messages.error(request,"La contraseña debe tener al menos un número")
-                return redirect("EditarPerfil")
-
-            if not re.search(r"[^A-Za-z0-9]",nueva):
-                messages.error(request,"La contraseña debe tener al menos un carácter especial")
+            #Las mismas reglas del registro, desde el mismo sitio
+            _,error=validar_contrasena(nueva)
+            if error:
+                messages.error(request,error)
                 return redirect("EditarPerfil")
 
             request.user.set_password(nueva)
@@ -330,6 +391,13 @@ def admin_eliminar_usuario(request,id):
     from usuarios import tablero
     if tablero.es_administrador(usuario):
         messages.error(request,"No se puede eliminar una cuenta de administracion")
+        return redirect("PanelAdmin")
+
+    #Borrar el usuario borra en cascada sus pagos y facturas, y esos registros
+    #contables se tienen que conservar. Quien ya pago se bloquea, no se borra.
+    if usuario.pagos.filter(estado__in=("Aprobado","Reembolsado")).exists():
+        messages.error(request,f"{usuario.username} tiene pagos registrados y sus facturas deben conservarse. "
+                               "Bloquea la cuenta en lugar de eliminarla.")
         return redirect("PanelAdmin")
 
     if request.method=="POST":
@@ -358,8 +426,9 @@ def admin_editar_usuario(request,id):
 
         #El correo si es obligatorio: es donde llega la factura.
         correo,e_correo=validar_correo(request.POST.get("correo"),excluir_id=usuario.pk)
+        telefono,e_telefono=validar_telefono(request.POST.get("telefono"))
 
-        errores=[e for e in (e_nombre,e_correo) if e]
+        errores=[e for e in (e_nombre,e_correo,e_telefono) if e]
         if errores:
             for error in errores:
                 messages.error(request,error)
@@ -371,7 +440,7 @@ def admin_editar_usuario(request,id):
         usuario.email=correo
         usuario.save()
 
-        perfil.telefono=request.POST.get("telefono")
+        perfil.telefono=telefono
         perfil.save()
 
         messages.success(request,f"Los datos de {usuario.username} se actualizaron")
@@ -379,7 +448,10 @@ def admin_editar_usuario(request,id):
 
     return render(request,"admin_editar_usuario.html",{"usuario": usuario,"perfil": perfil})
 
+#Solo por POST: con un enlace GET, cualquier pagina que visitara el
+#administrador podia bloquear cuentas con una simple imagen apuntando aca.
 @rol_requerido("administrador")
+@require_POST
 def admin_estado_usuario(request,id):
     usuario=get_object_or_404(User,id=id)
 

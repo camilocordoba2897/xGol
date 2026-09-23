@@ -134,6 +134,35 @@ def consultar_transaccion(id_transaccion):
     return None,ERROR_RED
 
 
+def buscar_por_referencia(referencia):
+  #Devuelve (datos,error) como consultar_transaccion, pero buscando por
+  #NUESTRA referencia. Es lo que rescata un pago cuyo webhook se perdio y
+  #cuyo usuario cerro el navegador antes de volver: ese pago nunca recibio el
+  #id de Wompi, asi que consultar_transaccion no tiene con que preguntar.
+  #La busqueda exige la llave PRIVADA (la publica solo consulta por id).
+  if not settings.WOMPI_LLAVE_PRIVADA:
+    return None,ERROR_CONFIG
+  try:
+    r=requests.get(
+      f"{_api()}/transactions",
+      params={"reference":referencia},
+      headers={"Authorization":f"Bearer {settings.WOMPI_LLAVE_PRIVADA}"},
+      timeout=12,
+    )
+    if r.status_code in (401,403):
+      return None,ERROR_AUTH
+    if r.status_code!=200:
+      return None,ERROR_RED
+    transacciones=[t for t in ((r.json() or {}).get("data") or []) if t.get("reference")==referencia]
+  except Exception:
+    return None,ERROR_RED
+  if not transacciones:
+    return None,ERROR_NO_ENCONTRADA
+  #Si hubo varios intentos con la misma referencia, manda el aprobado.
+  aprobadas=[t for t in transacciones if str(t.get("status") or "").upper()=="APPROVED"]
+  return (aprobadas or transacciones)[0],None
+
+
 def verificar_evento(cuerpo,checksum_cabecera=""):
   #Valida la firma del webhook segun el procedimiento de Wompi:
   #concatena los valores apuntados por signature.properties, luego timestamp,

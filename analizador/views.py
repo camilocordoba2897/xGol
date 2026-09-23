@@ -37,7 +37,10 @@ def analizador(request):
 # ============================================================
 #  BIBLIOTECA DE EQUIPOS (antes: localStorage 'fba_team_library_v1')
 # ============================================================
+#Con suscripcion, igual que el analizador que la usa: son los datos que se
+#venden, y antes cualquier cuenta registrada sin pagar podia leerlos.
 @login_required(login_url="Ingresar")
+@suscripcion_requerida
 def cargar_biblioteca(request):
     biblioteca={}
     for equipo in BibliotecaEquipo.objects.filter(usuario=_usuario_biblioteca(request)):
@@ -113,8 +116,13 @@ def guardar_apuestas(request):
         cuerpo=json.loads(request.body)
     except Exception:
         return JsonResponse({"ok":False},status=400)
-    apuestas=cuerpo.get("betLog",[])
-    metadatos=cuerpo.get("betLogMeta",{})
+    apuestas=cuerpo.get("betLog",[]) if isinstance(cuerpo,dict) else None
+    metadatos=cuerpo.get("betLogMeta",{}) if isinstance(cuerpo,dict) else None
+    #Con otra forma, el .get() y el .items() de abajo tumbaban la vista con 500
+    if not isinstance(apuestas,list) or not isinstance(metadatos,dict):
+        return JsonResponse({"ok":False},status=400)
+    apuestas=[r for r in apuestas if isinstance(r,dict)]
+    metadatos={k:m for k,m in metadatos.items() if isinstance(m,dict)}
     with transaction.atomic():
         RegistroApuesta.objects.filter(usuario=request.user).delete()
         PartidoRegistrado.objects.filter(usuario=request.user).delete()
@@ -171,6 +179,8 @@ def guardar_apuestas(request):
 @suscripcion_requerida
 def auto_partidos(request):
     liga=request.GET.get("liga","BSA")
+    if liga not in api_datos.LIGAS:
+        return JsonResponse({"partidos":[],"error":"liga_no_cubierta"},status=400)
     partidos,error=api_datos.partidos_liga(liga)
     if error:
         return JsonResponse({"partidos":[],"error":error})

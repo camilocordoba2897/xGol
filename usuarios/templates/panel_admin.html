@@ -612,11 +612,14 @@
                       </form>
                     {% endif %}
                     <a href="{% url 'AdminEditarUsuario' i.usuario.id %}" class="accion">Editar</a>
-                    {% if i.usuario.is_active %}
-                      <a href="{% url 'AdminEstadoUsuario' i.usuario.id %}" class="accion accion-no">Bloquear</a>
-                    {% else %}
-                      <a href="{% url 'AdminEstadoUsuario' i.usuario.id %}" class="accion accion-si">Activar</a>
-                    {% endif %}
+                    <form action="{% url 'AdminEstadoUsuario' i.usuario.id %}" method="post" style="display:inline">
+                      {% csrf_token %}
+                      {% if i.usuario.is_active %}
+                        <button type="submit" class="accion accion-no">Bloquear</button>
+                      {% else %}
+                        <button type="submit" class="accion accion-si">Activar</button>
+                      {% endif %}
+                    </form>
                     <a href="{% url 'AdminEliminarUsuario' i.usuario.id %}" class="accion accion-mala">Eliminar</a>
                   </div>
                 </td>
