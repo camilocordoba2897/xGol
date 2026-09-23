@@ -145,7 +145,4 @@ def motor_pronostico(request):
             "acierto":fila_pesos.acierto,
             "ece":fila_pesos.ece,
         }
-    #Sin fila propia no hay medicion a ciegas de esta competicion: el
-    #frontend lo dice en vez de dejar creer que esta tan probada como el resto
-    salida["sin_medicion"]=fila_pesos is None
     return JsonResponse(salida)
