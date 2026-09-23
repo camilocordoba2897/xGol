@@ -3,6 +3,7 @@ from usuarios.models import Perfil
 from suscripciones.models import Suscripcion
 from django.http import JsonResponse
 from inicio import api_partidos
+from suscripciones.planes import PLANES
 
 def inicio(request):
     perfil=None
@@ -11,7 +12,11 @@ def inicio(request):
         perfil,creado=Perfil.objects.get_or_create(usuario=request.user)
         suscripcion,creada=Suscripcion.objects.get_or_create(usuario=request.user)
         suscripcion_activa=suscripcion.esta_vigente()
-    return render(request, 'inicio.html', {'perfil': perfil, 'suscripcion_activa': suscripcion_activa})
+    #Los precios salen de suscripciones/planes.py, igual que en el checkout:
+    #si estuvieran escritos a mano aqui, un cambio de precio dejaria el home
+    #anunciando uno y la pasarela cobrando otro.
+    return render(request, 'inicio.html', {'perfil': perfil, 'suscripcion_activa': suscripcion_activa,
+                                           'planes': PLANES})
 
 def terminos_condiciones(request):
     return render(request, 'terminos_condiciones.html')

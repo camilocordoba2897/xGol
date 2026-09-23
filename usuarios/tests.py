@@ -105,10 +105,18 @@ class RegistroVistaTests(TestCase):
 
     def setUp(self):
         Rol.objects.create(nombre="usuario")
+        #El registro pinta el boton "Continuar con Google"
+        from allauth.socialaccount.models import SocialApp
+        from django.contrib.sites.models import Site
+        app = SocialApp.objects.create(provider="google", name="Google", client_id="x", secret="y")
+        app.sites.add(Site.objects.get_current())
 
     def test_registro_correcto_guarda_datos_limpios(self):
+        #Entra solo y va a elegir plan: sin volver a teclear usuario y clave
         r = self.client.post(reverse("Registro"), self.DATOS)
-        self.assertRedirects(r, reverse("Ingresar"), fetch_redirect_response=False)
+        self.assertRedirects(r, reverse("Suscripcion"), fetch_redirect_response=False)
+        self.assertEqual(int(self.client.session["_auth_user_id"]),
+                         User.objects.get(username="camilo97").pk)
         usuario = User.objects.get(username="camilo97")
         self.assertEqual(usuario.email, "camilo@correo.com")
         self.assertEqual(usuario.first_name, "Camilo")
@@ -126,6 +134,15 @@ class RegistroVistaTests(TestCase):
         self.assertTrue(any("correo ya tiene una cuenta" in e for e in errores))
         self.assertTrue(any("registrada con esa cedula" in e for e in errores))
         self.assertEqual(User.objects.count(), 3)
+
+    def test_tras_registrarse_vuelve_al_plan_que_habia_elegido(self):
+        destino = reverse("Checkout", args=["trimestral"])
+        r = self.client.post(reverse("Registro"), dict(self.DATOS, next=destino))
+        self.assertRedirects(r, destino, fetch_redirect_response=False)
+
+    def test_el_destino_no_puede_ser_otro_sitio(self):
+        r = self.client.post(reverse("Registro"), dict(self.DATOS, next="https://malicioso.com/"))
+        self.assertNotIn("malicioso", r["Location"])
 
     def test_la_contrasena_nunca_se_devuelve_al_formulario(self):
         datos = dict(self.DATOS, documento="abc")

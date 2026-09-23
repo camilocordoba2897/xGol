@@ -793,3 +793,21 @@ body:has(.lib-modal-bg.show) .subir-btn{opacity:0;visibility:hidden}
    salen del calculo local. Tiene que verse: nunca se muestran numeros
    peores sin avisar. */
 .mx-degradado{border-left-color:rgba(230,150,60,.7)}
+/* ---- Resultados recientes: al final de la lista y plegados ---- */
+.lp-jugados{margin-top:30px}
+.lp-jugados>summary{list-style:none;cursor:pointer;border-radius:12px;padding:2px 34px 2px 0;position:relative}
+.lp-jugados>summary::-webkit-details-marker{display:none}
+.lp-jugados>summary .lp-seccion{margin:0 0 4px}
+.lp-jugados>summary::after{
+  content:"Ver";position:absolute;right:0;top:4px;
+  font-size:12px;font-weight:700;color:var(--accent);
+}
+.lp-jugados[open]>summary::after{content:"Ocultar"}
+.lp-jugados>summary:hover .lp-seccion-titulo{color:var(--accent)}
+.lp-jugados>summary:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+.lp-jugados[open]>summary{margin-bottom:12px}
+.lp-vacio{
+  margin:6px 0 4px;padding:16px 18px;border-radius:12px;
+  background:var(--bg-2);border:1px solid var(--line);
+  font-size:13.5px;line-height:1.55;color:var(--text-2);
+}

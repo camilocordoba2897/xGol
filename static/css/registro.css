@@ -304,3 +304,22 @@ html[data-modo="claro"] .reg-campo input[type="date"]::-webkit-calendar-picker-i
 
 /* Mientras no hay fecha elegida, el texto guia se ve mas tenue */
 .reg-campo input[type="date"]:invalid { color: #5c6672; }
+/* ============================================================
+   CONTINUAR CON GOOGLE — primero, porque es el camino mas corto
+   ============================================================ */
+.reg-google {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; box-sizing: border-box;
+  font-family: var(--ff-display); font-size: .9rem; font-weight: 600;
+  color: var(--text-0); text-decoration: none;
+  background: var(--bg-2);
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  padding: 13px 16px;
+  transition: border-color var(--t), background-color var(--t);
+}
+.reg-google svg { width: 18px; height: 18px; }
+.reg-google:hover { border-color: var(--text-3); background: var(--bg-3); }
+
+.reg-divisor { display: flex; align-items: center; gap: 12px; margin: 20px 0 18px; }
+.reg-divisor::before, .reg-divisor::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.reg-divisor span { font-size: .7rem; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }

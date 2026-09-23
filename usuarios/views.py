@@ -26,8 +26,9 @@ def _datos_escritos(request):
 
 
 def registro(request):
+    siguiente=_siguiente_seguro(request)
     if request.method!="POST":
-        return render(request,"registro.html")
+        return render(request,"registro.html",{"next":siguiente})
 
     #Se valida TODO en el servidor: los pattern del HTML son comodidad,
     #pero se saltan desde la consola del navegador o con curl.
@@ -36,7 +37,7 @@ def registro(request):
     if errores:
         for error in errores:
             messages.error(request,error)
-        return render(request,"registro.html",{"datos":_datos_escritos(request)})
+        return render(request,"registro.html",{"datos":_datos_escritos(request),"next":siguiente})
 
     #Dos personas pueden mandar el mismo usuario a la vez: las dos pasan la
     #validacion y la segunda choca en la base. Todo va en una transaccion
@@ -74,10 +75,16 @@ def registro(request):
         _,errores=validar_registro(request.POST)
         for error in errores or ["Alguno de tus datos ya está registrado, revisa el formulario."]:
             messages.error(request,error)
-        return render(request,"registro.html",{"datos":_datos_escritos(request)})
+        return render(request,"registro.html",{"datos":_datos_escritos(request),"next":siguiente})
 
-    messages.success(request,"Cuenta creada correctamente, ya puedes iniciar sesion")
-    return redirect("Ingresar")
+    #Se entra solo, sin volver a teclear usuario y contrasena: antes se le
+    #mandaba a "Ingresar" justo despues de registrarse, y cada paso de mas
+    #entre "quiero este plan" y "pagar" es un cliente que se pierde.
+    login(request,usuario,backend="django.contrib.auth.backends.ModelBackend")
+    if siguiente:
+        return redirect(siguiente)
+    messages.success(request,f"¡Bienvenido a xGol, {usuario.first_name}! Tu cuenta está lista: elige tu plan para empezar.")
+    return redirect("Suscripcion")
 
 
 # ============================================================
@@ -132,13 +139,18 @@ def _llaves_fallos(request,username):
     ip=obtener_ip(request)
     return f"login_fallos_{ip}_{username.lower()[:150]}",f"login_fallos_{ip}"
 
-def ingresar(request):
-    #A donde volver despues de entrar: login_required manda ?next=/ruta. Solo
-    #se aceptan rutas de este mismo sitio, nunca un dominio externo.
+def _siguiente_seguro(request):
+    #A donde volver despues de entrar o registrarse: login_required manda
+    #?next=/ruta. Solo se aceptan rutas de este mismo sitio, nunca un dominio
+    #externo (si no, el enlace serviria para mandar a la gente a otra web).
     siguiente=request.POST.get("next") or request.GET.get("next") or ""
     if not url_has_allowed_host_and_scheme(siguiente,allowed_hosts={request.get_host()},
                                            require_https=request.is_secure()):
-        siguiente=""
+        return ""
+    return siguiente
+
+def ingresar(request):
+    siguiente=_siguiente_seguro(request)
 
     if request.method=="POST":
         username=(request.POST.get("username") or "").strip()

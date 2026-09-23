@@ -51,7 +51,7 @@
   // ============================================================
   //  CAMBIO ENTRE PANTALLAS
   // ============================================================
-  function verPantalla(cual, irAPorJugar) {
+  function verPantalla(cual) {
     var lista = el('pantalla-lista');
     var pron = el('pantalla-pronostico');
     if (!lista || !pron) return;
@@ -64,21 +64,13 @@
     var inicio = el('btn-inicio');
     if (inicio) inicio.style.display = (cual === 'lista') ? '' : 'none';
 
-    // Al volver del pronostico NO se sube del todo: se cae en los partidos
-    // que si se pueden pronosticar, igual que al cambiar de liga. Arriba del
-    // todo estan los que ya se jugaron, que no sirven para nada aqui.
-    if (irAPorJugar) {
-      bajarEnLaProxima = true;
-      bajarAPorJugar();
-      return;
-    }
+    // Los partidos que se pueden pronosticar son lo primero de la lista, asi
+    // que volver arriba es volver a ellos.
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   window.volverALista = function() {
-    // Si esta liga no tiene partidos por jugar no hay a donde bajar, y en ese
-    // caso si se sube al principio para no dejar la pantalla a media altura.
-    verPantalla('lista', !!el('lp-por-jugar'));
+    verPantalla('lista');
   };
 
   // Lo usa el modo manual: tras cargar los CSV, saltar al pronostico
@@ -165,14 +157,7 @@
     }
   }
 
-  var ligaAnterior = null;
-
   function cargarPartidos(liga) {
-    // Cambio de liga: se marca para bajar a los pronosticables al pintar
-    if (liga !== ligaAnterior) {
-      bajarEnLaProxima = true;
-      ligaAnterior = liga;
-    }
     ligaActual = liga;
     marcarFicha(liga);
     mensaje('Buscando partidos…');
@@ -310,20 +295,33 @@
              '</div>';
     }
 
+    // PRIMERO lo que se puede pronosticar, que es a lo que viene el usuario.
+    // Antes iban arriba los ya jugados: en el Brasileirao eran 21 tarjetas,
+    // unos 2.500 px que habia que bajar antes de ver un partido util. Se
+    // compensaba bajando la pantalla sola, pero con la guia abierta no
+    // bajaba y ademas escondia la barra de ligas.
     var html = '';
-
-    if (jugados.length) {
-      html += encabezado('', 'Partidos que ya se jugaron',
-                         'Resultado final. Estos ya no se pueden pronosticar.',
-                         jugados.length);
-      html += grupo(jugados);
-    }
 
     if (porJugar.length) {
       html += encabezado('lp-por-jugar', 'Partidos que puedes pronosticar',
                          'Toca Pronóstico y xGol calcula las probabilidades del encuentro.',
                          porJugar.length);
       html += grupo(porJugar);
+    } else if (jugados.length) {
+      html += '<div class="lp-vacio">Esta liga no tiene partidos por jugar en este momento. ' +
+              'Prueba con otra liga arriba.</div>';
+    }
+
+    // Los ya jugados solo sirven de consulta: van al final y plegados.
+    if (jugados.length) {
+      html += '<details class="lp-jugados">' +
+                '<summary>' +
+                  encabezado('', 'Resultados recientes',
+                             'Partidos ya jugados. No se pueden pronosticar.',
+                             jugados.length) +
+                '</summary>' +
+                grupo(jugados) +
+              '</details>';
     }
 
     lista.innerHTML = html;
@@ -334,54 +332,6 @@
         abrirPronostico(partidos[+this.getAttribute('data-i')], this);
       });
     }
-
-    bajarAPorJugar();
-  }
-
-  // ============================================================
-  //  LLEVAR AL USUARIO A LOS PARTIDOS QUE SI PUEDE PRONOSTICAR
-  //  Baja al entrar y CADA VEZ QUE SE CAMBIA DE LIGA. Antes solo lo
-  //  hacia la primera vez, asi que al elegir otra liga la lista
-  //  arrancaba en los partidos ya jugados y tocaba bajar a mano.
-  //  Con el filtro de fecha NO baja: ahi el usuario acaba de tocar el
-  //  calendario, que esta arriba, y moverle la pantalla estorba.
-  // ============================================================
-  var bajarEnLaProxima = true;   // la primera carga si baja
-
-  function bajarAPorJugar() {
-    if (!bajarEnLaProxima) return;
-
-    // Se consume aunque no haya a donde ir: si esta liga no tiene partidos
-    // por jugar, no queda pendiente para el proximo repintado.
-    bajarEnLaProxima = false;
-
-    var destino = el('lp-por-jugar');
-    if (!destino) return;   // liga sin partidos por jugar: no hay a donde ir
-
-    // Si la guia paso a paso esta abierta, moverse le desordena el foco
-    var guia = document.querySelector('.tour-raiz.abierto');
-    if (guia) return;
-
-    // Un respiro corto para que la lista ya este pintada antes de moverse.
-    // Antes aca se esperaban 2,2s cuando estaba la pantalla de bienvenida;
-    // esa pantalla se quito, asi que ya no hay nada que esperar.
-    var espera = 260;
-    setTimeout(function() {
-      if (document.querySelector('.tour-raiz.abierto')) return;
-
-      // Se descuenta la altura de la barra de ligas, que queda fija arriba,
-      // para que el titulo no quede escondido debajo de ella.
-      var ligas = document.querySelector('.lab-ligas');
-      var alto = ligas ? ligas.getBoundingClientRect().height : 0;
-      var y = window.pageYOffset || document.documentElement.scrollTop || 0;
-      var arriba = destino.getBoundingClientRect().top + y - alto - 14;
-
-      try {
-        window.scrollTo({ top: Math.max(0, arriba), behavior: 'smooth' });
-      } catch (e) {
-        window.scrollTo(0, Math.max(0, arriba));
-      }
-    }, espera);
   }
 
   // ============================================================
