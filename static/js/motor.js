@@ -126,10 +126,23 @@
       try { local = buildOriginal(s1, s2); } catch (e) { local = null; }
       return sirve(local) ? local : modeloEspera();
     }
-    var m = datos.mercados || {};
-    var r = m['1x2'] || {};
-    var mat = datos.matriz;
+    var modelo = modeloDesdeMatriz(datos.matriz);
+    // Datos para el pie de pagina: que fuentes se usaron y sobre cuantos
+    // partidos. El texto que se ve en pantalla tiene que decir la verdad
+    // sobre de donde salen los numeros, no describir un modelo que ya no
+    // se esta usando.
+    modelo.motorFuentes = Object.keys(datos.fuentes || {});
+    modelo.motorPartidos = (datos.diagnostico || {}).partidos_ajuste || 0;
+    return modelo;
+  };
 
+  // ------------------------------------------------------------
+  //  DE LA MATRIZ DEL MOTOR AL MODELO QUE PINTA vista.js
+  //  Publica: seguimiento.js la usa para evaluar un partido con la
+  //  MISMA matriz que se mostro antes del saque (las lineas de goles
+  //  dependen de ella y, si no, no coincidirian con la foto).
+  // ------------------------------------------------------------
+  function modeloDesdeMatriz(mat) {
     // TODO se calcula desde 'mat', ni un solo numero se lee de otro sitio.
     // Es la unica forma de garantizar que dos tarjetas de la pantalla no
     // puedan decir cosas distintas sobre el mismo suceso.
@@ -166,15 +179,10 @@
       wXGF1: null, wXGA1: null, wXGF2: null, wXGA2: null,
       contextUsed1: esNeutral() ? 'neutral' : 'local',
       contextUsed2: esNeutral() ? 'neutral' : 'away',
-      // Datos para el pie de pagina: que fuentes se usaron y sobre cuantos
-      // partidos. El texto que se ve en pantalla tiene que decir la verdad
-      // sobre de donde salen los numeros, no describir un modelo que ya no
-      // se esta usando.
-      motor: true,
-      motorFuentes: Object.keys(datos.fuentes || {}),
-      motorPartidos: (datos.diagnostico || {}).partidos_ajuste || 0
+      motor: true, motorFuentes: [], motorPartidos: 0
     };
-  };
+  }
+  window.modeloDesdeMatriz = modeloDesdeMatriz;
 
   // ------------------------------------------------------------
   //  TARJETA DE DIAGNOSTICO
@@ -202,22 +210,19 @@
         filas + '</tbody></table>'
       : '';
 
-    var valor = (d.apuestas_con_valor || []).map(function(a) {
-      return '<li>' + escapar(a.mercado) + ': cuota justa <b>' + a.cuota_justa.toFixed(2) +
-        '</b>, la casa paga <b>' + a.cuota_ofrecida.toFixed(2) + '</b> (' +
-        escapar(a.casa) + ') &middot; valor <b>+' +
-        Math.round(a.valor_esperado * 100) + '%</b></li>';
-    }).join('');
-    var bloqueValor = valor
-      ? '<div class="mx-valor"><div class="mx-sub">Donde la casa paga de más</div><ul>' + valor + '</ul></div>'
-      : '<div class="mx-nota">Ninguna cuota paga de más en este partido. Es lo normal: ' +
-        'un motor que ve valor en todos los partidos no es bueno, está roto.</div>';
+    // Ya NO se marcan "apuestas con valor". Medido en temporadas que el
+    // motor no habia visto: apostar donde el motor veia valor sobre la cuota
+    // perdio entre un 21% y un 38% de lo apostado. Anunciar valor sin nada
+    // que lo respalde es inventar numeros, asi que se dice la verdad.
+    var bloqueValor = '<div class="mx-nota">xGol no marca apuestas "de valor": en ' +
+      'temporadas que el motor no había visto, apostar donde veía valor sobre la ' +
+      'cuota perdió dinero. El mercado de apuestas es muy difícil de batir.</div>';
 
     var rh = d.rendimiento_historico, bloqueRend = '';
     if (rh && rh.partidos > 0 && rh.log_perdida != null) {
       bloqueRend = '<div class="mx-nota">Historial del motor: <b>' + rh.partidos +
         '</b> partidos evaluados &middot; log-pérdida <b>' + rh.log_perdida.toFixed(4) +
-        '</b> (1.0986 = no saber nada &middot; 0.96 = el mercado)' +
+        '</b> (menos es mejor &middot; 1.0986 = no saber nada)' +
         (rh.acierto != null ? ' &middot; acierto <b>' + (rh.acierto * 100).toFixed(1) + '%</b>' : '') +
         '</div>';
     }
@@ -309,6 +314,11 @@
         datos = d;
         clave = k;
         window.renderAll();   // repinta TODO con los numeros del motor
+        // La foto del seguimiento se toma con estos numeros, que son los
+        // que se ven, y solo si el usuario sigue en este mismo partido
+        if (claveActual() === k && typeof window.actualizarFotoPendiente === 'function') {
+          window.actualizarFotoPendiente(p.id);
+        }
       })
       .catch(function() {
         pidiendo = false;

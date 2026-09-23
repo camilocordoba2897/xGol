@@ -39,6 +39,14 @@ from analizador.motor import calibracion, combinacion, elo, evaluacion, nucleo, 
 
 MINIMO_PARA_APRENDER = 200
 
+#Se sube cada vez que cambia algo que invalida una calibracion ya guardada
+#(como se forma una fuente, como se aprende la temperatura...). El
+#mantenimiento automatico ve que la marca no coincide y recalibra solo.
+#  2: cuotas de favoritos claros bien leidas, sin la linea de 2.5 que en vivo
+#     no existe, temperatura aprendida con los pesos que se usan.
+VERSION_CALIBRACION = 2
+CLAVE_VERSION = "motor_calibracion_version"
+
 
 class Command(BaseCommand):
     help = "Aprende pesos y calibracion con el historico, sin gastar cuota de API."
@@ -51,10 +59,10 @@ class Command(BaseCommand):
                  "medida mas fiable pero mas lento.")
         parser.add_argument("--simular", action="store_true",
             help="Calcula y muestra todo, pero NO guarda nada en la base de datos.")
-        parser.add_argument("--parametros-afinados", action="store_true",
-            help="Ajusta Dixon-Coles con la memoria afinada de cada liga (la de "
-                 "ajustar_motor --afinar) en vez de la de fabrica. Correr primero con "
-                 "--simular y comparar antes de dejarlo guardado.")
+        parser.add_argument("--parametros-fabrica", action="store_true",
+            help="Ajusta Dixon-Coles con la memoria de fabrica en vez de la afinada "
+                 "de cada liga. Solo para comparar con --simular: el motor en vivo "
+                 "usa la afinada.")
 
     def handle(self, *args, **opciones):
         descargadas = api_historico.ligas_descargadas()
@@ -75,9 +83,14 @@ class Command(BaseCommand):
         self.stdout.write("Esto no gasta cuota de API. Tarda alrededor de un minuto por liga.")
         self.stdout.write("")
 
-        self.afinados = opciones["parametros_afinados"]
+        self.afinados = not opciones["parametros_fabrica"]
         for liga in ligas:
             self._una_liga(liga, n_prueba, simular)
+
+        #La marca solo cuando se calibraron TODAS las ligas y de verdad
+        if not simular and not opciones["liga"]:
+            from django.core.cache import cache
+            cache.set(CLAVE_VERSION, VERSION_CALIBRACION, None)
 
         self.stdout.write("")
         self.stdout.write("Listo.")
@@ -123,10 +136,13 @@ class Command(BaseCommand):
             return
         examen = temporadas[-n_prueba:]
 
-        #Con --parametros-afinados el Dixon-Coles del examen usa la misma
-        #memoria que el motor en vivo (la afinada de esta liga). Por defecto
-        #sigue con la de fabrica, que es con la que se midieron los 5.353
-        #partidos, hasta comparar las dos con --simular.
+        #El Dixon-Coles del examen usa la MISMA memoria que el motor en vivo:
+        #la afinada de esta liga (ajustar_motor --afinar), o la de fabrica si
+        #afinar no la mejoro. Comparado a ciegas sobre 5.353 partidos: con
+        #cuotas da lo mismo (0.9669 contra 0.9668 de log-perdida) y sin
+        #cuotas, que es cuando Dixon-Coles pesa de verdad, mejora (1.0027
+        #contra 1.0064; RPS 0.2046 contra 0.2058). Y sobre todo: pesos y
+        #temperatura se aprenden para el Dixon-Coles que de verdad se usa.
         xi, ridge = tasas.XI_POR_DEFECTO, tasas.RIDGE_POR_DEFECTO
         if self.afinados:
             fila = AjusteMotor.objects.filter(liga=liga).first()
@@ -151,11 +167,14 @@ class Command(BaseCommand):
                 if p["temporada"] != temporada or not p.get("cuotas"):
                     continue
                 casas = [{"casa": "historico", **p["cuotas"]}]
+                #Sin la cuota de mas/menos 2.5 goles aunque el historico la
+                #traiga: en vivo solo se pide el 1X2 a the-odds-api (cada
+                #mercado extra gasta otro credito). Si aqui se usara, se
+                #mediria y se calibraria un motor distinto al que se despliega.
                 try:
                     r = nucleo.pronosticar(
                         p["local"], p["visitante"],
-                        ajuste_liga=ajuste, tabla_elo=tabla, casas=casas,
-                        prob_mercado_mas_25=p.get("prob_mas_25"))
+                        ajuste_liga=ajuste, tabla_elo=tabla, casas=casas)
                 except Exception:
                     continue
                 if not r.fuentes or "mercado" not in r.fuentes:
@@ -208,27 +227,53 @@ class Command(BaseCommand):
         #Con una sola temporada de examen no hay pasado con que aprender. Se
         #avisa en vez de callarlo: un numero medido sobre sus propios datos no
         #vale igual, y presentarlo como si valiera es peor que no tenerlo.
-        previos = PesosMotor.objects.filter(liga=liga).first()
-        arranque = (previos.pesos if previos and previos.pesos else None)
+        #Se arranca SIEMPRE de los pesos de fabrica. Antes se arrancaba de los
+        #guardados en la base, pero esos se aprendieron con estas mismas
+        #temporadas de examen: medir 2024 partiendo de pesos que ya vieron 2024
+        #es colar el futuro por la puerta de atras. Asi, ademas, calibrar dos
+        #veces da el mismo resultado en vez de ir acumulandose.
+        arranque = None
         tramos = calibracion.construir_tramos(historial_25) if historial_25 else {}
 
+        def _mezclados(casos, pesos_):
+            #La temperatura se aprende sobre la mezcla con LOS PESOS QUE SE VAN
+            #A USAR. Antes se aprendia sobre la mezcla de fabrica y luego se
+            #aplicaba sobre la de pesos aprendidos: otra cosa distinta.
+            return [{"probabilidades": combinacion.mezclar_probabilidades(c["fuentes"], pesos_),
+                     "real": c["real"]} for c in casos]
+
+        def _sin_mercado(casos):
+            #El mismo partido tal como lo veria el motor si no hubiera cuotas
+            #(the-odds-api solo publica los partidos cercanos): Dixon-Coles y Elo.
+            return [{"fuentes": {k: v for k, v in c["fuentes"].items() if k != "mercado"},
+                     "real": c["real"]} for c in casos]
+
         casos_base, casos_recal, fuentes_medidas, mezclas = [], [], [], []
+        #Sin cuotas: sin recalibrar / con la temperatura del mercado (lo que
+        #hacia el motor antes) / con su propia temperatura
+        sm_t1, sm_tmkt, sm_propia = [], [], []
         medidas = []
-        pesos, temperatura = None, 1.0
-        info, info_cal = {}, {}
+        pesos, temperatura, temperatura_sm = None, 1.0, 1.0
+        info, info_cal, info_cal_sm = {}, {}, {}
 
         for medir, aprender in pliegues:
             ap_f = [c for c in historial_fuentes if c["temporada"] in aprender]
-            ap_c = [c for c in casos_calibracion if c["temporada"] in aprender]
             me_f = [c for c in historial_fuentes if c["temporada"] == medir]
             me_c = [c for c in casos_calibracion if c["temporada"] == medir]
             if not ap_f or not me_f:
                 continue
 
             pesos, info = combinacion.optimizar_pesos(ap_f, pesos_iniciales=arranque)
-            temperatura, info_cal = calibracion.ajustar_temperatura(
-                [{"probabilidades": c["probabilidades"], "real": c["real"]}
-                 for c in ap_c])
+            temperatura, info_cal = calibracion.ajustar_temperatura(_mezclados(ap_f, pesos))
+            temperatura_sm, info_cal_sm = calibracion.ajustar_temperatura(
+                _mezclados(_sin_mercado(ap_f), pesos))
+
+            for c in _mezclados(_sin_mercado(me_f), pesos):
+                sm_t1.append(c)
+                sm_tmkt.append({"probabilidades": calibracion.aplicar_temperatura(
+                    c["probabilidades"], temperatura), "real": c["real"]})
+                sm_propia.append({"probabilidades": calibracion.aplicar_temperatura(
+                    c["probabilidades"], temperatura_sm), "real": c["real"]})
 
             for c_fuentes, c_base in zip(me_f, me_c):
                 mezclado = combinacion.mezclar_probabilidades(c_fuentes["fuentes"], pesos)
@@ -252,8 +297,14 @@ class Command(BaseCommand):
             pesos, info = combinacion.optimizar_pesos(historial_fuentes,
                                                       pesos_iniciales=arranque)
             temperatura, info_cal = calibracion.ajustar_temperatura(
-                [{"probabilidades": c["probabilidades"], "real": c["real"]}
-                 for c in casos_calibracion])
+                _mezclados(historial_fuentes, pesos))
+            temperatura_sm, info_cal_sm = calibracion.ajustar_temperatura(
+                _mezclados(_sin_mercado(historial_fuentes), pesos))
+            sm_t1 = _mezclados(_sin_mercado(historial_fuentes), pesos)
+            sm_tmkt = [{"probabilidades": calibracion.aplicar_temperatura(
+                c["probabilidades"], temperatura), "real": c["real"]} for c in sm_t1]
+            sm_propia = [{"probabilidades": calibracion.aplicar_temperatura(
+                c["probabilidades"], temperatura_sm), "real": c["real"]} for c in sm_t1]
             casos_base = casos_calibracion
             fuentes_medidas = historial_fuentes
             mezclas = [combinacion.mezclar_probabilidades(c["fuentes"], pesos)
@@ -264,6 +315,20 @@ class Command(BaseCommand):
             } for m, c in zip(mezclas, casos_calibracion)]
 
         informe = evaluacion.informe(casos_base, liga)
+
+        #--- lo que se DESPLIEGA ---
+        #Los pliegues de arriba estiman, sin ver el futuro, que tan bien sale
+        #el PROCEDIMIENTO (aprender pesos + temperatura con lo anterior). Para
+        #el motor en vivo se repite ese mismo procedimiento con TODAS las
+        #temporadas de examen: antes se desplegaba lo del ultimo pliegue, que
+        #nunca vio la temporada mas reciente.
+        if rodante:
+            pesos, info = combinacion.optimizar_pesos(historial_fuentes,
+                                                      pesos_iniciales=arranque)
+            temperatura, info_cal = calibracion.ajustar_temperatura(
+                _mezclados(historial_fuentes, pesos))
+            temperatura_sm, info_cal_sm = calibracion.ajustar_temperatura(
+                _mezclados(_sin_mercado(historial_fuentes), pesos))
 
         #--- comparar contra los pesos de fabrica, sobre los partidos medidos ---
         reales = [c["real"] for c in fuentes_medidas]
@@ -316,11 +381,41 @@ class Command(BaseCommand):
 
         self.stdout.write("")
         self.stdout.write("  MODELO BASE vs RECALIBRADO (solo partidos medidos en limpio):")
-        self.stdout.write("                        log-perdida   Brier     RPS      ECE")
+        self.stdout.write("                        log-perdida   Brier     RPS      ECE    acierto")
         for etiqueta, inf in (("base       ", informe), ("recalibrado", informe_recal)):
             self.stdout.write(
                 f"     {etiqueta}        {inf['log_perdida']:.4f}    "
-                f"{inf['brier']:.4f}   {inf['rps']:.4f}   {inf['ece']:.4f}")
+                f"{inf['brier']:.4f}   {inf['rps']:.4f}   {inf['ece']:.4f}   "
+                f"{inf['acierto']*100:.1f}%")
+        self.stdout.write("     (se guarda el recalibrado: es el que pronostica en vivo)")
+
+        #--- SIN CUOTAS: lo que ve el usuario cuando el partido aun no tiene
+        #    cuotas publicadas. Mismos partidos, sin la fuente mercado. ---
+        self.stdout.write("")
+        self.stdout.write("  SIN CUOTAS (solo Dixon-Coles + Elo, mismos partidos):")
+        self.stdout.write("                             log-perdida    RPS      ECE    anuncia  acierta")
+        for etiqueta, cs in (("sin recalibrar          ", sm_t1),
+                             ("temperatura del mercado ", sm_tmkt),
+                             ("temperatura propia      ", sm_propia)):
+            if not cs:
+                continue
+            inf = evaluacion.informe(cs)
+            a, o = self._brecha(cs)
+            self.stdout.write(
+                f"     {etiqueta}  {inf['log_perdida']:.4f}     {inf['rps']:.4f}   "
+                f"{inf['ece']:.4f}   {a*100:5.1f}%   {o*100:5.1f}%")
+        self.stdout.write(f"     se guarda la propia: {temperatura_sm:.3f} "
+                          f"({'aplicada' if info_cal_sm.get('aplicada') else 'NO aplicada'})")
+
+        #Apostar donde el motor ve valor sobre la cuota: se mide si eso gana o
+        #pierde plata en temporadas que el motor no habia visto. Por esta
+        #medida (ROI muy negativo) el sitio ya no marca "apuestas de valor".
+        valor = evaluacion.rendimiento_apuestas(casos_recal, cuota_minima=1.01,
+                                                cuota_maxima=1000.0)
+        if valor["apuestas"]:
+            self.stdout.write(
+                f"  apuestas con valor   : {valor['apuestas']} | ROI "
+                f"{valor['roi']*100:+.1f}% | acierto {valor['acierto']*100:.1f}%")
 
         #--- CALIBRACION: lo anunciado contra lo que de verdad pasa ---
         self.stdout.write("")
@@ -360,17 +455,19 @@ class Command(BaseCommand):
                 defaults={
                     "pesos": pesos,
                     "temperatura": temperatura,
+                    "temperatura_sin_mercado": temperatura_sm,
                     "tramos": tramos,
-                    #Se guarda el numero de partidos con los que de verdad se
-                    #midio, no el total procesado. Lo que queda guardado es
-                    #EXACTAMENTE el modelo que produjo los numeros de arriba:
-                    #mismos pesos, misma temperatura. Nada de medir una cosa y
-                    #desplegar otra.
-                    "partidos_evaluados": len(casos_base),
-                    "log_perdida": informe["log_perdida"],
-                    "rps": informe["rps"],
-                    "acierto": informe["acierto"],
-                    "ece": informe["ece"],
+                    #Las metricas son las del RECALIBRADO (pesos aprendidos +
+                    #temperatura, cada temporada con lo aprendido de las
+                    #anteriores), que es el procedimiento que se despliega.
+                    #Antes se guardaban las del modelo BASE (pesos de fabrica,
+                    #sin temperatura): el panel describia un motor que no era
+                    #el que estaba pronosticando.
+                    "partidos_evaluados": len(casos_recal),
+                    "log_perdida": informe_recal["log_perdida"],
+                    "rps": informe_recal["rps"],
+                    "acierto": informe_recal["acierto"],
+                    "ece": informe_recal["ece"],
                 },
             )
         self.stdout.write(f"  ({time.time() - inicio:.0f}s)")

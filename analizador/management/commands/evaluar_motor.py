@@ -135,8 +135,12 @@ class Command(BaseCommand):
                     "real":f.resultado,
                     "cuotas":f.cuotas or {}} for f in filas]
 
+            #Solo los pronosticos que salieron CON cuotas: la temperatura que
+            #se guarda aqui es la de la mezcla con mercado (la de sin cuotas
+            #es otra, temperatura_sin_mercado, y la aprende la calibracion).
             t_vivo,info_cal=calibracion.ajustar_temperatura(
-                [{"probabilidades":c["probabilidades"],"real":c["real"]} for c in casos])
+                [{"probabilidades":c["probabilidades"],"real":c["real"]}
+                 for c,f in zip(casos,filas) if "mercado" in (f.por_fuente or {})])
             #Sin muestra suficiente (600 partidos) ajustar_temperatura devuelve
             #1.0. Guardar ese 1.0 BORRABA la temperatura aprendida a ciegas
             #con miles de partidos historicos, y los porcentajes que ve el

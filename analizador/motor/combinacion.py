@@ -31,7 +31,12 @@ FUERZA_PRIOR = 200.0   #a cuantos partidos "equivale" el prior
 MINIMO_PARTIDOS = 200  #por debajo de esto NO se tocan los pesos (medido: por
                        #debajo de 200 el optimizador acierta la mejor fuente
                        #menos del 80% de las veces; a partir de 200, mas del 90%)
-PESO_MINIMO = 0.05
+#Suelo: ninguna fuente llega a 0, para que siga habiendo con que pronosticar
+#si falta otra (sin cuotas, por ejemplo, el motor se queda con Dixon-Coles y
+#Elo y los reparte en proporcion). Estaba en 0.05, y medido a ciegas ese 5%
+#obligado para cada fuente estadistica dejaba la mezcla peor que las cuotas
+#solas: con 0.01 la fuente sigue viva sin estorbar.
+PESO_MINIMO = 0.01
 
 
 def normalizar(pesos):
@@ -153,10 +158,26 @@ def optimizar_pesos(historial, pesos_iniciales=None, fuerza_prior=FUERZA_PRIOR,
     #--- validacion: aprender con el 70%, comprobar en el 30% ---
     corte = int(n * 0.70)
     entren, validacion = historial[:corte], historial[corte:]
-    candidatos = _descenso(entren, prior, fuentes)
-    v_prior, _ = _perdida_con_pesos(validacion, prior)
-    v_cand, _ = _perdida_con_pesos(validacion, candidatos)
-    if v_prior is None or v_cand is None or v_cand >= v_prior:
+    crudos = _descenso(entren, prior, fuentes)
+    #Se comparan en los partidos de validacion TAL COMO se usarian en vivo
+    #(con el suelo aplicado) tres opciones: quedarse con el prior, lo
+    #aprendido frenado hacia el prior, y lo aprendido sin freno. Antes el
+    #freno se aplicaba siempre, y cuando los datos pedian casi todo el peso
+    #para el mercado lo devolvia a la mitad del camino hacia 50/35/15: la
+    #mezcla quedaba PEOR que las cuotas solas en partidos no vistos.
+    w_entren = len(entren) / (len(entren) + fuerza_prior)
+    opciones = {
+        "prior": aplicar_suelo(prior),
+        "frenado": aplicar_suelo({f: (1.0 - w_entren) * prior[f] + w_entren * crudos[f]
+                                  for f in fuentes}),
+        "sin_freno": aplicar_suelo(crudos),
+    }
+    perdidas = {k: _perdida_con_pesos(validacion, v)[0] for k, v in opciones.items()}
+    if any(v is None for v in perdidas.values()):
+        eleccion = "prior"
+    else:
+        eleccion = min(perdidas, key=lambda k: (perdidas[k], k != "prior"))
+    if eleccion == "prior":
         return aplicar_suelo(prior), {
             "partidos": n, "movido": False,
             "log_perdida_prior": perdida_prior,
@@ -164,15 +185,17 @@ def optimizar_pesos(historial, pesos_iniciales=None, fuerza_prior=FUERZA_PRIOR,
             "motivo": "los pesos aprendidos no mejoraron en partidos no vistos",
         }
 
-    #--- pasa la validacion: se reaprende con todo y se aplica con freno ---
+    #--- pasa la validacion: se reaprende con todo, con o sin freno segun
+    #    lo que gano en validacion ---
     aprendidos = _descenso(historial, prior, fuentes)
-    peso_dato = n / (n + fuerza_prior)
+    peso_dato = n / (n + fuerza_prior) if eleccion == "frenado" else 1.0
     final = {f: (1.0 - peso_dato) * prior[f] + peso_dato * aprendidos[f] for f in fuentes}
     final = aplicar_suelo(final)
     perdida_final, _ = _perdida_con_pesos(historial, final)
 
     return final, {
         "partidos": n,
+        "freno": eleccion == "frenado",
         "peso_dato": peso_dato,
         "log_perdida_prior": perdida_prior,
         "log_perdida_final": perdida_final,

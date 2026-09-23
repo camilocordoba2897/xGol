@@ -194,9 +194,8 @@
     {
       donde: [porTitulo('cuotas')],
       titulo: 'Cuotas reales',
-      texto: 'La mejor cuota que paga cada resultado y en qué casa está. La etiqueta ' +
-             '<strong>valor</strong> aparece cuando el modelo ve el resultado más probable ' +
-             'de lo que paga la casa. Es información, no una recomendación de apuesta.'
+      texto: 'La mejor cuota que paga cada resultado y en qué casa está. Es información, ' +
+             'no una recomendación de apuesta.'
     },
     {
       donde: [porTitulo('cuantos goles')],

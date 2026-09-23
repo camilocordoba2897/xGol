@@ -3922,10 +3922,15 @@ async function loadBetLog() {
     const data = await resp.json();
     betLog = data.betLog || [];
     betLogMeta = data.betLogMeta || {};
+    // Solo con el registro YA cargado se puede guardar: saveBetLog reemplaza
+    // en el servidor TODO el registro del usuario por lo que haya aqui, y
+    // guardar sobre una lista vacia (carga lenta o fallida) lo borraba entero.
+    window.XGOL_BETLOG_LISTO = true;
   } catch (e) { betLog = []; betLogMeta = {}; }
 }
 function saveBetLog() {
   // Persiste el registro (apuestas + metadatos) en MySQL en segundo plano.
+  if (!window.XGOL_BETLOG_LISTO) return;   // ver loadBetLog
   try {
     fetch(API.guardarApuestas, {
       method:'POST',

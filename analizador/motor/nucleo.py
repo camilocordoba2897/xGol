@@ -110,7 +110,7 @@ def confianza_de(fuentes_1x2, partidos_ajuste=0):
 
 def pronosticar(local, visitante, ajuste_liga=None, tabla_elo=None, casas=None,
                 pesos=None, temperatura=1.0, cancha_neutral=False,
-                prob_mercado_mas_25=None):
+                prob_mercado_mas_25=None, temperatura_sin_mercado=None):
     #ajuste_liga: objeto AjusteLiga de tasas.ajustar()
     #tabla_elo:   objeto TablaElo de elo.calcular()
     #casas:       [{"casa": "Bet365", "local": 2.10, "empate": 3.40, "visitante": 3.30}, ...]
@@ -178,6 +178,13 @@ def pronosticar(local, visitante, ajuste_liga=None, tabla_elo=None, casas=None,
     diagnostico["desacuerdo"] = _desacuerdo(fuentes_1x2)
 
     # --- Calibracion del 1X2 y reajuste de la matriz ---
+    #Cada mezcla con su temperatura: la aprendida CON mercado no vale para
+    #una mezcla sin el (ver PesosMotor.temperatura_sin_mercado). Si no se
+    #paso ninguna para ese caso, se deja sin recalibrar.
+    if "mercado" not in matrices and temperatura_sin_mercado is not None:
+        temperatura = temperatura_sin_mercado
+    elif "mercado" not in matrices:
+        temperatura = 1.0
     r_crudo = probabilidad.resultado_1x2(matriz)
     r_cal = calibracion.aplicar_temperatura(r_crudo, temperatura)
     if temperatura and abs(temperatura - 1.0) > 1e-6:
@@ -203,35 +210,3 @@ def pronosticar(local, visitante, ajuste_liga=None, tabla_elo=None, casas=None,
 
     return ResultadoPronostico(matriz, mercados, fuentes_1x2, pesos_usados, diagnostico)
 
-
-def apuestas_con_valor(resultado, casas, umbral_ev=0.03, banca=100.0,
-                       fraccion_kelly=0.25):
-    #Cruza lo que dice el motor con lo que paga cada casa y saca SOLO las
-    #apuestas donde te estan pagando de mas. Una probabilidad alta no es una
-    #buena apuesta: 90% pagado a 1.05 es una perdida segura a largo plazo.
-    if not casas:
-        return []
-    mejor = mod_mercado.mejor_cuota(casas)
-    r = resultado.mercados["1x2"]
-    salida = []
-    for clave, etiqueta in (("local", "Gana local"), ("empate", "Empate"),
-                            ("visitante", "Gana visitante")):
-        dato = mejor.get(clave)
-        if not dato:
-            continue
-        p = r[clave]
-        ev = probabilidad.valor_esperado(p, dato["cuota"])
-        if ev is None or ev < umbral_ev:
-            continue
-        stake = probabilidad.kelly(p, dato["cuota"], fraccion_kelly)
-        salida.append({
-            "mercado": etiqueta,
-            "probabilidad": p,
-            "cuota_justa": probabilidad.cuota_justa(p),
-            "cuota_ofrecida": dato["cuota"],
-            "casa": dato["casa"],
-            "valor_esperado": ev,
-            "stake_sugerido": round(stake * banca, 2),
-        })
-    salida.sort(key=lambda a: a["valor_esperado"], reverse=True)
-    return salida

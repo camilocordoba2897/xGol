@@ -58,6 +58,16 @@ def _calibracion_danada():
     return PesosMotor.objects.filter(partidos_evaluados__lt=MINIMO_PARTIDOS).exists()
 
 
+def _calibracion_vieja():
+    #La calibracion guardada se hizo con una version anterior del motor (por
+    #ejemplo, antes de corregir como se leen las cuotas de un favorito claro).
+    #Sus pesos y su temperatura se aprendieron para OTRO motor: hay que
+    #rehacerla. calibrar_con_historico deja la marca al terminar.
+    from analizador.management.commands.calibrar_con_historico import (
+        CLAVE_VERSION, VERSION_CALIBRACION)
+    return cache.get(CLAVE_VERSION) != VERSION_CALIBRACION
+
+
 def _sin_ajustes():
     from analizador.models import AjusteMotor
     return not AjusteMotor.objects.exists()
@@ -86,6 +96,10 @@ def _mantenimiento_nocturno(permitir_afinar=True):
         if permitir_afinar and _toca_afinar():
             _correr("ajustar_motor", "--afinar")
             cache.set("motor_afinado_reciente", 1, AFINAR_CADA_DIAS * 86400)
+            #La calibracion aprende pesos y temperatura PARA la memoria de
+            #Dixon-Coles de cada liga. Si afinar la cambio, lo aprendido era
+            #para otra: se recalibra ya (no gasta API).
+            _correr("calibrar_con_historico")
         else:
             _correr("ajustar_motor")
         _correr("evaluar_motor")
@@ -124,7 +138,8 @@ class MantenimientoMotor:
         #proceso la lance dos veces a la vez.
         if cache.get("motor_calibrado_revisado") is None:
             cache.set("motor_calibrado_revisado", 1, 3600)
-            if _sin_calibracion() and cache.add("motor_calibrando", 1, 3 * 3600):
+            if (_sin_calibracion() or _calibracion_vieja()) and \
+                    cache.add("motor_calibrando", 1, 3 * 3600):
                 _lanzar(_calibrar)
             #Reparacion: como mucho una vez por semana, por si el historico de
             #alguna liga fuera tan corto que ni recalibrando llegara a 200.
