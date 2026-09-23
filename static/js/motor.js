@@ -225,14 +225,6 @@
         '</b> (menos es mejor &middot; 1.0986 = no saber nada)' +
         (rh.acierto != null ? ' &middot; acierto <b>' + (rh.acierto * 100).toFixed(1) + '%</b>' : '') +
         '</div>';
-    } else if (d.sin_medicion) {
-      // La Champions no tiene historico con cuotas: no hay examen a ciegas
-      // de esta competicion y hay que decirlo, no dejar que parezca igual de
-      // probada que las ligas medidas.
-      bloqueRend = '<div class="mx-aviso">Esta competición no tiene medición a ciegas: ' +
-        'no existe un histórico con cuotas para examinar el motor en ella. Usa los pesos ' +
-        'que mejor funcionaron en las 8 ligas medidas, pero su acierto aquí aún no está ' +
-        'comprobado. Se medirá sola con los partidos que se vayan jugando.</div>';
     }
 
     var avisos = (diag.avisos || []).map(function(a) {
