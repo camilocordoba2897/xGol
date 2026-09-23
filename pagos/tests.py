@@ -110,12 +110,32 @@ class CheckoutTests(TestCase):
         self.assertEqual(r.status_code, 405)
 
 
+    def sin_identidad(self):
+        Perfil.objects.filter(usuario=self.usuario).update(documento=None, fecha_nacimiento=None)
+
     def test_sin_cedula_ni_fecha_no_deja_pagar(self):
-        self.usuario.perfil.documento = None
-        self.usuario.perfil.save()
+        self.sin_identidad()
         r = self.pagar()
-        self.assertRedirects(r, reverse("EditarPerfil"), fetch_redirect_response=False)
+        self.assertRedirects(r, reverse("Checkout", args=["mensual"]), fetch_redirect_response=False)
         self.assertFalse(Pago.objects.exists())
+
+    def test_identidad_y_pago_en_un_solo_clic(self):
+        self.sin_identidad()
+        r = self.client.post(reverse("ProcesarPago", args=["mensual"]),
+                             {"documento": "1.234.567", "fecha_nacimiento": "1990-05-10"},
+                             HTTP_HOST="xgol.example.com", secure=True)
+        self.assertEqual(urlparse(r["Location"]).netloc, "checkout.wompi.co")
+        perfil = Perfil.objects.get(usuario=self.usuario)
+        self.assertEqual((perfil.documento, str(perfil.fecha_nacimiento)), ("1234567", "1990-05-10"))
+
+    def test_menor_de_edad_vuelve_al_checkout_con_lo_que_escribio(self):
+        self.sin_identidad()
+        r = self.client.post(reverse("ProcesarPago", args=["mensual"]),
+                             {"documento": "1234567", "fecha_nacimiento": "2015-01-01"},
+                             HTTP_HOST="xgol.example.com", secure=True, follow=True)
+        self.assertFalse(Pago.objects.exists())
+        self.assertContains(r, 'value="1234567"')
+        self.assertTrue(any("mayor de 18" in str(m) for m in r.context["messages"]))
 
 
 @override_settings(**LLAVES)

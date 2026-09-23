@@ -15,7 +15,8 @@ from suscripciones.models import Suscripcion
 from suscripciones.planes import obtener_plan,nivel_de_plan
 from pagos.models import Pago,EventoPasarela
 from pagos import pasarela,servicios
-from usuarios.models import falta_identidad
+from usuarios.models import Perfil,falta_identidad
+from usuarios.validaciones import completar_identidad
 
 #Tope de intentos de checkout por usuario y minuto. Un bot que abra el
 #checkout mil veces no llena la tabla de pagos ni gasta cupo de la pasarela.
@@ -67,11 +68,18 @@ def procesar_pago(request,clave_plan):
         messages.error(request,"Los pagos no estan disponibles en este momento. Intentalo mas tarde.")
         return redirect("Suscripcion")
 
-    #La plantilla ya manda al perfil, pero un POST hecho a mano no pasa por
-    #la plantilla: la regla de mayoria de edad se aplica aqui tambien.
+    #Mayoria de edad: si al usuario le faltan la cedula o la fecha, vienen en
+    #este mismo POST desde el checkout y se guardan aqui, en el mismo clic de
+    #"Ir a pagar". Un POST hecho a mano sin ellas tampoco pasa.
     if falta_identidad(request.user):
-        messages.info(request,"Antes de comprar un plan completa tu cedula y tu fecha de nacimiento: xGol es solo para mayores de 18 años.")
-        return redirect("EditarPerfil")
+        perfil,creado=Perfil.objects.get_or_create(usuario=request.user)
+        documento=request.POST.get("documento")
+        fecha=request.POST.get("fecha_nacimiento")
+        error=completar_identidad(perfil,documento,fecha)
+        if error:
+            messages.error(request,error)
+            request.session["identidad_borrador"]={"documento":documento or "","fecha_nacimiento":fecha or ""}
+            return redirect("Checkout",clave_plan=clave_plan)
 
     #No se puede comprar un plan de nivel igual o inferior al que ya esta
     #vigente. La plantilla oculta el boton, pero un boton oculto no impide un

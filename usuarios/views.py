@@ -9,7 +9,7 @@ from usuarios.validaciones import (validar_registro, validar_usuario,
                                     validar_correo, validar_nombre,
                                     validar_contrasena, validar_documento,
                                     validar_telefono, validar_avatar,
-                                    validar_fecha_nacimiento)
+                                    completar_identidad)
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
 from django.http import JsonResponse
@@ -322,31 +322,11 @@ def editar_perfil(request):
             return redirect("EditarPerfil")
 
         if accion=="identidad":
-            #Solo se llenan los que FALTAN: los que ya estan no se pueden
-            #cambiar desde aqui (cambiar el documento es la forma clasica de
-            #quedarse con una cuenta ajena).
-            cambios=[]
-            if not perfil.documento:
-                documento,error=validar_documento(request.POST.get("documento"),excluir_id=request.user.pk)
-                if error:
-                    messages.error(request,error)
-                    return redirect("EditarPerfil")
-                perfil.documento=documento
-                perfil.tipo_documento=perfil.tipo_documento or "CC"
-                cambios+=["documento","tipo_documento"]
-            if not perfil.fecha_nacimiento:
-                fecha,error=validar_fecha_nacimiento(request.POST.get("fecha_nacimiento"))
-                if error:
-                    messages.error(request,error)
-                    return redirect("EditarPerfil")
-                perfil.fecha_nacimiento=fecha
-                cambios.append("fecha_nacimiento")
-            if cambios:
-                try:
-                    perfil.save(update_fields=cambios)
-                except IntegrityError:
-                    messages.error(request,"Ya hay una cuenta registrada con esa cedula.")
-                    return redirect("EditarPerfil")
+            error=completar_identidad(perfil,request.POST.get("documento"),
+                                      request.POST.get("fecha_nacimiento"))
+            if error:
+                messages.error(request,error)
+            else:
                 messages.success(request,"Tus datos de identidad quedaron registrados")
             return redirect("EditarPerfil")
 
