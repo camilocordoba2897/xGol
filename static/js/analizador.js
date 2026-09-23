@@ -66,33 +66,10 @@ function restoreSession() {
     if (players.team1 || players.team2) renderPlayers();
     // Restaurar pestaña (si no es la de datos)
     if (p.currentTab && p.currentTab !== 'data') showTab(p.currentTab);
-    showSessionBanner(p.savedAt);
     return true;
   } catch (e) { return false; }
 }
 
-function showSessionBanner(savedAt) {
-  const el = document.getElementById('session-banner');
-  if (!el) return;
-  let when = '';
-  if (savedAt) {
-    try {
-      const d = new Date(savedAt);
-      when = ` · guardado ${d.toLocaleDateString('es', {day:'2-digit',month:'short'})} ${d.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'})}`;
-    } catch(_) {}
-  }
-  el.style.display = '';
-  el.innerHTML = `<div class="session-banner">
-    <span>♻️ Se recuperó tu último enfrentamiento: <strong>${names.team1}</strong> vs <strong>${names.team2}</strong>${when}</span>
-    <button onclick="clearSession()" title="Empezar de cero">Empezar de nuevo</button>
-  </div>`;
-}
-
-function clearSession() {
-  try { localStorage.removeItem(SESSION_KEY); } catch(e) {}
-  // Recargar limpio
-  location.reload();
-}
 
 // ---- Estado de VALIDACIÓN (backtest manual) ----
 // Partidos añadidos a mano para comprobar la calibración del modelo.

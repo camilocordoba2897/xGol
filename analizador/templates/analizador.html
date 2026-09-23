@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/analizador.css' %}?v=32">
+<link rel="stylesheet" href="{% static 'css/analizador.css' %}?v=33">
 <link rel="stylesheet" href="{% static 'css/calendario.css' %}?v=3">
 <link rel="stylesheet" href="{% static 'css/analisis.css' %}?v=19">
 <link rel="stylesheet" href="{% static 'css/boton_inicio.css' %}?v=2">
@@ -126,76 +126,6 @@ reconoce y la imprime tal cual encima de la pagina.
       <div class="lista-partidos" id="lista-partidos"></div>
     </div>
 
-    <div id="session-banner" style="display:none"></div>
-
-    {% if user.is_superuser or rol_actual == "administrador" %}
-    <!-- Modo manual: herramienta interna. Solo la ve un administrador;
-         para el usuario normal este bloque no llega ni al HTML. -->
-    <details class="modo-manual" id="modo-manual">
-      <summary>Modo manual · cargar CSV y biblioteca de equipos</summary>
-
-      <div class="info-box">
-        <p><strong>¿Cuándo usarlo?</strong> Para ligas o partidos que la API no cubre. Carga el historial de cada equipo en CSV y el pronóstico se calcula igual. Cuantos más partidos incluyas, más precisa será la predicción.</p>
-      </div>
-      <div style="margin-bottom:14px"><span class="download-sample" onclick="downloadSample()">⬇ Descargar CSV de ejemplo</span></div>
-
-      <!-- BIBLIOTECA DE EQUIPOS -->
-      <div class="library-box" id="library-box" style="display:none">
-        <div class="library-title">📚 Biblioteca de equipos guardados</div>
-        <div class="library-sub">Equipos guardados en este navegador. Elige el enfrentamiento sin volver a cargar archivos. Al cargar un CSV nuevo se ofrece guardarlo aquí.</div>
-        <div class="library-selectors">
-          <div class="lib-sel-field">
-            <label>🏠 Local</label>
-            <input id="lib-select-1" type="text" list="lib-list-1" placeholder="Escribe o elige…" autocomplete="off">
-            <datalist id="lib-list-1"></datalist>
-          </div>
-          <div class="lib-vs">VS</div>
-          <div class="lib-sel-field">
-            <label>✈️ Visitante</label>
-            <input id="lib-select-2" type="text" list="lib-list-2" placeholder="Escribe o elige…" autocomplete="off">
-            <datalist id="lib-list-2"></datalist>
-          </div>
-        </div>
-        <button class="lib-load-btn" id="lib-load-btn" onclick="loadMatchupFromLibrary()">⚡ Cargar enfrentamiento</button>
-        <div id="lib-saved-list" class="lib-saved-list"></div>
-        <div class="lib-actions">
-          <span class="lib-action-link" onclick="exportLibrary()">⬇ Exportar biblioteca (respaldo)</span>
-          <label class="lib-action-link" style="position:relative;overflow:hidden">⬆ Importar biblioteca
-            <input type="file" accept=".json" onchange="importLibrary(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer">
-          </label>
-          <span class="lib-divider"></span>
-          <span class="lib-action-link danger" onclick="clearLibrary()">🗑 Vaciar biblioteca</span>
-        </div>
-        <div id="lib-status" class="lib-status"></div>
-      </div>
-
-      <div class="teams-grid">
-        <div>
-          <label style="font-size:12px;color:var(--text-0);display:block;margin-bottom:8px">🏠 Equipo Local</label>
-          <div class="upload-area" id="drop1" ondragover="drag(event,1)" ondragleave="undrag(1)" ondrop="drop(event,1)">
-            <input type="file" accept=".csv" onchange="handleFile(event,1)">
-            <div style="font-size:32px;margin-bottom:10px">📂</div>
-            <strong id="file1-name">Seleccionar archivo CSV</strong>
-            <p>Arrastra o haz clic · últimos 15 partidos</p>
-          </div>
-        </div>
-        <div>
-          <label style="font-size:12px;color:var(--text-0);display:block;margin-bottom:8px">✈️ Equipo Visitante</label>
-          <div class="upload-area" id="drop2" ondragover="drag(event,2)" ondragleave="undrag(2)" ondrop="drop(event,2)">
-            <input type="file" accept=".csv" onchange="handleFile(event,2)">
-            <div style="font-size:32px;margin-bottom:10px">📂</div>
-            <strong id="file2-name">Seleccionar archivo CSV</strong>
-            <p>Arrastra o haz clic · últimos 15 partidos</p>
-          </div>
-        </div>
-      </div>
-
-      <div style="text-align:center;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-        <button class="btn" onclick="loadDemo()">🎮 Cargar demo: México vs Sudáfrica</button>
-        <button class="btn" onclick="verPronostico()">📊 Ver pronóstico</button>
-      </div>
-    </details>
-    {% endif %}
 
     <p class="lab-nota">Probabilidades estimadas con modelo de Poisson sobre el historial reciente. No garantizan resultados. Apuesta responsablemente.</p>
   </div>
@@ -243,7 +173,7 @@ reconoce y la imprime tal cual encima de la pagina.
   </div>
 </div>
 
-<script src="{% static 'js/analizador.js' %}?v=12"></script>
+<script src="{% static 'js/analizador.js' %}?v=13"></script>
 <script src="{% static 'js/vista.js' %}?v=4"></script>
 <script>
   window.XGOL_AUTO = {
@@ -279,7 +209,7 @@ reconoce y la imprime tal cual encima de la pagina.
     marcar();
   })();
 </script>
-<script src="{% static 'js/tour.js' %}?v=5"></script>
+<script src="{% static 'js/tour.js' %}?v=6"></script>
 <script src="{% static 'js/subir.js' %}?v=1"></script>
 </body>
 </html>
