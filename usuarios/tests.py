@@ -311,22 +311,50 @@ class PanelAdminTests(TestCase):
         self.client.post(reverse("AdminEliminarUsuario", args=[self.cliente.id]))
         self.assertFalse(User.objects.filter(pk=self.cliente.pk).exists())
 
-    def test_acierto_del_modelo_sin_datos_no_pinta_cero(self):
+    def test_acierto_del_modelo_sin_calibrar_no_pinta_cero(self):
         #Un 0,0 % se leeria como "el modelo falla todo" cuando en realidad
-        #todavia no hay ningun partido evaluado
+        #el motor todavia no se ha medido
         texto = self.client.get(reverse("PanelAdmin")).content.decode()
-        self.assertIn("Sin partidos evaluados todavía", texto)
-        self.assertNotIn("0 de 0 apuestas", texto)
+        self.assertIn("El motor aún se está calibrando", texto)
+        self.assertNotIn("partidos medidos a ciegas", texto)
 
-    def test_acierto_del_modelo_sale_del_registro(self):
+    def test_acierto_del_modelo_sale_del_motor(self):
+        #Es el 1X2 del motor medido a ciegas, ponderado por partidos de cada
+        #liga: 600 al 50 % y 400 al 55 % dan 52 %, no la media simple 52,5 %
+        from analizador.models import PesosMotor
+        PesosMotor.objects.create(liga="PL", pesos={}, partidos_evaluados=600, acierto=0.50, rps=0.20)
+        PesosMotor.objects.create(liga="PD", pesos={}, partidos_evaluados=400, acierto=0.55, rps=0.19)
+        modelo = self.client.get(reverse("PanelAdmin")).context["motor"]
+        self.assertAlmostEqual(modelo["acierto"], 52.0)
+        self.assertAlmostEqual(modelo["rps"], 0.196)
+        self.assertEqual(modelo["partidos"], 1000)
+        texto = self.client.get(reverse("PanelAdmin")).content.decode()
+        self.assertIn("partidos medidos a ciegas", texto)
+        self.assertIn("Premier League", texto)
+        self.assertIn("LaLiga", texto)
+
+    def test_pronosticos_en_vivo_sin_los_pedidos_despues_del_saque(self):
+        from analizador.models import PrediccionMotor
+        comun = dict(liga="PL", equipo_local="A", equipo_visitante="B",
+                     prob_local=.6, prob_empate=.25, prob_visitante=.15)
+        PrediccionMotor.objects.create(id_partido="1", resultado="local", evaluado=True, **comun)
+        PrediccionMotor.objects.create(id_partido="2", resultado="visitante", evaluado=True, **comun)
+        PrediccionMotor.objects.create(id_partido="3", resultado="", evaluado=True, **comun)
+        PrediccionMotor.objects.create(id_partido="4", **comun)
+        vivo = self.client.get(reverse("PanelAdmin")).context["motor"]["vivo"]
+        self.assertEqual((vivo["guardados"], vivo["pendientes"], vivo["evaluados"], vivo["descartados"]),
+                         (4, 1, 2, 1))
+        self.assertAlmostEqual(vivo["acierto"], 50.0)
+        self.assertEqual(vivo["aciertos"], 1)
+
+    def test_seguimiento_del_analizador_sale_del_registro(self):
         from analizador.models import RegistroApuesta
         for acierto in (True, True, True, False):
             RegistroApuesta.objects.create(usuario=self.cliente, referencia="1", equipo_local="A",
                                            equipo_visitante="B", mercado="1X2", etiqueta="Gana A",
                                            probabilidad=0.6, acierto=acierto)
         texto = self.client.get(reverse("PanelAdmin")).content.decode()
-        self.assertIn("3 de 4 apuestas", texto)
-        self.assertNotIn("Sin partidos evaluados todavía", texto)
+        self.assertIn("3 de 4 líneas", texto)
 
 
 

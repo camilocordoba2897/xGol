@@ -39,15 +39,15 @@
     {
       vista: 'modelo', selector: '.regla',
       titulo: '4 · Dónde cae el modelo',
-      texto: 'La marca blanca es tu acierto real. Rojo = por debajo de acertar siempre al local. Azul = rango normal. Verde = sobre el mejor 1X2 documentado. Ámbar = revisar la muestra.'
+      texto: 'La marca blanca es el acierto 1X2 del motor, medido en partidos que no había visto. Rojo = por debajo de acertar siempre al local. Azul = rango normal. Verde = sobre el mejor 1X2 documentado. Ámbar = revisar la muestra.'
     },
     {
-      vista: 'modelo', selector: '.cal-fila',
+      vista: 'modelo', selector: '#seguimiento-analizador .cal-fila',
       titulo: '5 · Calibración',
       texto: 'Si el modelo dijo 70%, debería acertar 7 de cada 10. La barra gris es lo que prometió y la verde lo que pasó. <strong>Optimista</strong> promete de más, <strong>Conservador</strong> se queda corto.'
     },
     {
-      vista: 'modelo', selector: '.dos-columnas > .panel:last-child',
+      vista: 'modelo', selector: '#seguimiento-analizador .dos-columnas > .panel:last-child',
       titulo: '6 · Mercados y ROI',
       texto: 'Qué tipo de apuesta deja plata. Ojo: un mercado puede acertar mucho y aún así <strong>perder dinero</strong> si la cuota es baja. Por eso manda el ROI, no el porcentaje.'
     },

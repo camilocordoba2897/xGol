@@ -47,6 +47,17 @@ def _sin_calibracion():
     return not PesosMotor.objects.exists()
 
 
+def _calibracion_danada():
+    #Hasta que se corrigio evaluar_motor, con solo 10 partidos reales de una
+    #liga reescribia su calibracion: temperatura 1.0 y metricas de 10
+    #partidos encima de lo aprendido con cientos. Hoy evaluar_motor solo
+    #escribe cuando aprende algo, y para eso pide al menos 200 partidos
+    #(combinacion.MINIMO_PARTIDOS). Una liga por debajo es una liga danada.
+    from analizador.models import PesosMotor
+    from analizador.motor.combinacion import MINIMO_PARTIDOS
+    return PesosMotor.objects.filter(partidos_evaluados__lt=MINIMO_PARTIDOS).exists()
+
+
 def _sin_ajustes():
     from analizador.models import AjusteMotor
     return not AjusteMotor.objects.exists()
@@ -114,6 +125,10 @@ class MantenimientoMotor:
         if cache.get("motor_calibrado_revisado") is None:
             cache.set("motor_calibrado_revisado", 1, 3600)
             if _sin_calibracion() and cache.add("motor_calibrando", 1, 3 * 3600):
+                _lanzar(_calibrar)
+            #Reparacion: como mucho una vez por semana, por si el historico de
+            #alguna liga fuera tan corto que ni recalibrando llegara a 200.
+            elif _calibracion_danada() and cache.add("motor_reparando", 1, 7 * 86400):
                 _lanzar(_calibrar)
             #Base sin ningun ajuste (sitio recien publicado): el primero corre
             #ya, sin esperar a la madrugada. Pasa una sola vez, y es el ajuste

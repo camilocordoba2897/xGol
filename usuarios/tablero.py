@@ -220,6 +220,71 @@ def resumen_dinero():
 
 
 # ============================================================
+#  MOTOR DE PREDICCION
+#  Lo que el motor MIDE de si mismo, sin depender de que alguien abra el
+#  analizador: la prueba a ciegas con miles de partidos historicos (cada
+#  temporada se pronostico sin ver su futuro) guardada en PesosMotor, y los
+#  pronosticos reales guardados ANTES de cada partido (PrediccionMotor).
+#  Es 1X2: la unica medida comparable con las referencias publicadas.
+# ============================================================
+def _ponderado(ligas,campo):
+  con_dato=[l for l in ligas if l[campo] is not None and l["partidos"]]
+  total=sum(l["partidos"] for l in con_dato)
+  if not total:
+    return None
+  return sum(l[campo]*l["partidos"] for l in con_dato)/total
+
+
+def resumen_motor():
+  from analizador.api_datos import LIGAS
+  from analizador.models import PesosMotor,PrediccionMotor
+  from analizador.motor import evaluacion
+
+  ligas=[]
+  for f in PesosMotor.objects.all().order_by("-partidos_evaluados","liga"):
+    ligas.append({
+      "codigo":f.liga,
+      "nombre":LIGAS.get(f.liga,f.liga),
+      "partidos":f.partidos_evaluados or 0,
+      "acierto":f.acierto*100 if f.acierto is not None else None,
+      "rps":f.rps,
+      "log_perdida":f.log_perdida,
+      "ece":f.ece,
+      "actualizado":f.actualizado,
+    })
+
+  acierto=_ponderado(ligas,"acierto")
+
+  #Pronosticos reales. Los descartados se guardaron despues del saque y no
+  #cuentan en ninguna metrica (ver evaluar_motor).
+  evaluadas=list(PrediccionMotor.objects.filter(evaluado=True).exclude(resultado="")
+                 .values("prob_local","prob_empate","prob_visitante","resultado"))
+  casos=[{"probabilidades":{"local":e["prob_local"],"empate":e["prob_empate"],
+                            "visitante":e["prob_visitante"]},
+          "real":e["resultado"]} for e in evaluadas]
+  vivo=evaluacion.informe(casos) if casos else None
+
+  return {
+    "ligas":ligas,
+    "partidos":sum(l["partidos"] for l in ligas),
+    "acierto":acierto,
+    "rps":_ponderado(ligas,"rps"),
+    "log_perdida":_ponderado(ligas,"log_perdida"),
+    "ece":_ponderado(ligas,"ece"),
+    "comparado":veredicto_global(acierto or 0),
+    "vivo":{
+      "guardados":PrediccionMotor.objects.count(),
+      "pendientes":PrediccionMotor.objects.filter(evaluado=False).count(),
+      "evaluados":len(casos),
+      "descartados":PrediccionMotor.objects.filter(evaluado=True,resultado="").count(),
+      "acierto":vivo["acierto"]*100 if vivo else None,
+      "aciertos":round(vivo["acierto"]*len(casos)) if vivo else 0,
+      "rps":vivo["rps"] if vivo else None,
+    },
+  }
+
+
+# ============================================================
 #  MODELO / CASA DE APUESTAS
 #  Sale de RegistroApuesta, que es lo que el analizador ya guarda cada vez
 #  que se registra un partido con su resultado real.
