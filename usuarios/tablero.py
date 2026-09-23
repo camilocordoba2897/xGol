@@ -254,12 +254,8 @@ def resumen_motor():
           "real":e["resultado"]} for e in evaluadas]
   vivo=evaluacion.informe(casos) if casos else None
 
-  medidas={l["codigo"] for l in ligas}
   return {
     "ligas":ligas,
-    #Las que cubre xGol pero no tienen examen a ciegas (la Champions: no hay
-    #historico con cuotas de ella). Se nombran para que no pase desapercibido.
-    "sin_medicion":[nombre for codigo,nombre in LIGAS.items() if codigo not in medidas],
     "partidos":sum(l["partidos"] for l in ligas),
     "acierto":acierto,
     "rps":_ponderado(ligas,"rps"),

@@ -332,10 +332,6 @@ class PanelAdminTests(TestCase):
         self.assertIn("partidos medidos a ciegas", texto)
         self.assertIn("Premier League", texto)
         self.assertIn("LaLiga", texto)
-        #Las que no tienen examen a ciegas se nombran, no se esconden
-        self.assertIn("Champions League", modelo["sin_medicion"])
-        self.assertNotIn("Premier League", modelo["sin_medicion"])
-        self.assertIn("Sin medición a ciegas", texto)
 
     def test_pronosticos_en_vivo_sin_los_pedidos_despues_del_saque(self):
         from analizador.models import PrediccionMotor
