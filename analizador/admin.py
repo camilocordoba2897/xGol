@@ -1,11 +1,5 @@
 from django.contrib import admin
-from analizador.models import BibliotecaEquipo,PartidoRegistrado,RegistroApuesta
-
-@admin.register(BibliotecaEquipo)
-class BibliotecaEquipoAdmin(admin.ModelAdmin):
-  list_display=("nombre","usuario","creado")
-  list_filter=("usuario",)
-  search_fields=("nombre","usuario__username")
+from analizador.models import PartidoRegistrado,RegistroApuesta
 
 @admin.register(PartidoRegistrado)
 class PartidoRegistradoAdmin(admin.ModelAdmin):

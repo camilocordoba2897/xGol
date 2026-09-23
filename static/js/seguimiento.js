@@ -91,7 +91,6 @@
       foto: foto
     });
     guardarPendientes(lista);
-    pintarAviso();
   };
 
   // auto.js apunta el pendiente justo despues del primer pintado, cuando el
@@ -213,38 +212,33 @@
 
   // ------------------------------------------------------------
   //  REVISION DE PENDIENTES
+  //  Silenciosa: corre sola al abrir el analizador. Lo evaluado va al
+  //  registro y de ahi al panel del administrador (Seguimiento del
+  //  analizador). La pestana "Rendimiento" donde antes se avisaba ya no
+  //  existe, asi que no hay barra ni mensajes que pintar.
   // ------------------------------------------------------------
   var revisando = false;
-
   var esperas = 0;
-  function revisar(manual) {
+
+  function revisar() {
     if (revisando || !RUTAS.resultados) return;
     // Sin el registro cargado no se evalua: lo evaluado no se podria guardar
     // y el pendiente se perderia. Se reintenta un rato (conexion lenta).
     if (!window.XGOL_BETLOG_LISTO) {
-      if (esperas++ < 10) setTimeout(function() { revisar(manual); }, 3000);
+      if (esperas++ < 10) setTimeout(revisar, 3000);
       return;
     }
-    var lista = leerPendientes();
-    if (!lista.length) { if (manual) avisar('No hay partidos pendientes de resultado.'); return; }
-
     // Solo tiene sentido preguntar por los que ya deberian haber terminado
     var ahora = Date.now();
-    var maduros = lista.filter(function(p) {
+    var maduros = leerPendientes().filter(function(p) {
       if (!p.utc) return true;
       var fin = new Date(p.utc).getTime();
       return isNaN(fin) ? true : ahora > fin + 2.5 * 3600 * 1000;
     });
-    if (!maduros.length) {
-      if (manual) avisar('Los ' + lista.length + ' partidos pendientes aún no se han jugado.');
-      pintarAviso();
-      return;
-    }
+    if (!maduros.length) return;
 
     revisando = true;
-    if (manual) avisar('Consultando resultados…');
     var ids = maduros.slice(0, 8).map(function(p) { return p.id; }).join(',');
-
     fetch(RUTAS.resultados + '?ids=' + ids, { headers: { 'X-Requested-With': 'fetch' } })
       .then(function(r) {
         if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -252,93 +246,18 @@
       })
       .then(function(d) {
         revisando = false;
-        if (d.error === 'cuota') { if (manual) avisar('Límite de consultas alcanzado. Prueba en un minuto.'); return; }
-        if (d.error) { if (manual) avisar('No se pudo consultar los resultados.'); return; }
-
+        if (!d || d.error) return;   // limite de la API o sin datos: otro dia
         var res = d.resultados || {};
-        var evaluados = 0, terminados = 0, detalle = '';
         for (var i = 0; i < maduros.length; i++) {
-          var p = maduros[i];
-          var r = res[String(p.id)];
-          if (!r || !r.terminado) continue;
-          terminados++;
-          var salida = evaluar(p, r);
-          if (salida) {
-            evaluados++;
-            detalle = p.local + ' ' + salida.gf + '–' + salida.gc + ' ' + p.visitante +
-                      ' · ' + salida.aciertos + '/' + salida.añadidas + ' acertadas';
-          }
+          var r = res[String(maduros[i].id)];
+          if (r && r.terminado) evaluar(maduros[i], r);
         }
-
-        if (evaluados) {
-          avisar('✅ Evaluado automáticamente: ' + detalle, 'ok');
-          if (typeof renderValidation === 'function') renderValidation();
-        } else if (terminados) {
-          // Terminaron pero no se pudieron evaluar (pendientes viejos sin foto)
-          avisar('Hay ' + terminados + ' partido' + (terminados > 1 ? 's' : '') +
-                 ' terminado' + (terminados > 1 ? 's' : '') +
-                 ' que se guardaron sin su pronóstico previo: no se cuentan.', 'aviso');
-        } else if (manual) {
-          avisar('Los partidos pendientes todavía no han terminado.');
-        }
-        pintarAviso();
       })
-      .catch(function() {
-        revisando = false;
-        if (manual) avisar('Falló la conexión al consultar resultados.');
-      });
+      .catch(function() { revisando = false; });
   }
 
-  // ------------------------------------------------------------
-  //  AVISO EN LA PESTAÑA RENDIMIENTO
-  // ------------------------------------------------------------
-  function avisar(texto, tipo) {
-    var caja = document.getElementById('seg-aviso');
-    if (!caja) return;
-    caja.className = 'seg-aviso ' + (tipo || '');
-    caja.innerHTML = texto;
-    caja.style.display = 'block';
-  }
-
-  function pintarAviso() {
-    var barra = document.getElementById('seg-barra');
-    if (!barra) return;
-    var lista = leerPendientes();
-    var txt = lista.length
-      ? '<strong>' + lista.length + '</strong> partido' + (lista.length > 1 ? 's' : '') + ' esperando resultado'
-      : 'Sin partidos pendientes';
-    barra.querySelector('.seg-cuenta').innerHTML = txt;
-  }
-
-  window.revisarResultadosAuto = function() { revisar(true); };
-
-  // Inserta la barra dentro de Rendimiento (se pinta cada vez que se re-renderiza)
-  function montarBarra() {
-    var seccion = document.getElementById('tab-validation');
-    if (!seccion || document.getElementById('seg-barra')) return;
-    var barra = document.createElement('div');
-    barra.id = 'seg-barra';
-    barra.className = 'seg-barra';
-    barra.innerHTML =
-      '<span class="seg-punto"></span>' +
-      '<span class="seg-cuenta"></span>' +
-      '<button class="seg-btn" onclick="revisarResultadosAuto()">Consultar resultados</button>';
-    seccion.insertBefore(barra, seccion.firstChild);
-    var aviso = document.createElement('div');
-    aviso.id = 'seg-aviso';
-    aviso.className = 'seg-aviso';
-    seccion.insertBefore(aviso, barra.nextSibling);
-    pintarAviso();
-  }
-
-  // ------------------------------------------------------------
-  //  ARRANQUE
-  // ------------------------------------------------------------
-  function iniciar() {
-    montarBarra();
-    // Revision silenciosa al entrar: si algo termino, ya queda evaluado
-    setTimeout(function() { revisar(false); }, 2500);
-  }
+  // Revision al entrar: si algo termino, queda evaluado
+  function iniciar() { setTimeout(revisar, 2500); }
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', iniciar);

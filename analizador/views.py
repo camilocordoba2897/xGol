@@ -1,13 +1,11 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.db import transaction
-from django.db.models import Q
 import json
 from suscripciones.decoradores import suscripcion_requerida
-from analizador.models import BibliotecaEquipo,PartidoRegistrado,RegistroApuesta
+from analizador.models import PartidoRegistrado,RegistroApuesta
 from analizador import api_datos
 from analizador import api_cuotas
 
@@ -22,56 +20,11 @@ def _referencia_a_ts(valor):
     texto=str(valor)
     return int(texto) if texto.isdigit() else texto
 
-def _usuario_biblioteca(request):
-    #Biblioteca de equipos compartida: todos leen/escriben la del admin (mismo criterio que suscripcion_requerida), no la propia
-    admin=User.objects.filter(Q(is_superuser=True)|Q(perfil__rol__nombre="administrador")).order_by("id").first()
-    return admin or request.user
-
 #Mostrar el analizador solo a los usuarios que iniciaron sesion
 @login_required(login_url="Ingresar")
 @suscripcion_requerida
 def analizador(request):
     return render(request,"analizador.html")
-
-
-# ============================================================
-#  BIBLIOTECA DE EQUIPOS (antes: localStorage 'fba_team_library_v1')
-# ============================================================
-#Con suscripcion, igual que el analizador que la usa: son los datos que se
-#venden, y antes cualquier cuenta registrada sin pagar podia leerlos.
-@login_required(login_url="Ingresar")
-@suscripcion_requerida
-def cargar_biblioteca(request):
-    biblioteca={}
-    for equipo in BibliotecaEquipo.objects.filter(usuario=_usuario_biblioteca(request)):
-        biblioteca[equipo.nombre]={"rows":equipo.partidos,"savedAt":equipo.guardado}
-    return JsonResponse({"teamLibrary":biblioteca})
-
-@login_required(login_url="Ingresar")
-@require_POST
-def guardar_biblioteca(request):
-    perfil=getattr(request.user,"perfil",None)
-    es_admin=request.user.is_superuser or (perfil is not None and perfil.rol is not None and perfil.rol.nombre=="administrador")
-    if not es_admin:
-        return JsonResponse({"ok":False},status=403)
-    try:
-        cuerpo=json.loads(request.body)
-    except Exception:
-        return JsonResponse({"ok":False},status=400)
-    biblioteca=cuerpo.get("teamLibrary",{})
-    usuario_bib=_usuario_biblioteca(request)
-    with transaction.atomic():
-        BibliotecaEquipo.objects.filter(usuario=usuario_bib).delete()
-        nuevos=[]
-        for nombre,info in biblioteca.items():
-            nuevos.append(BibliotecaEquipo(
-                usuario=usuario_bib,
-                nombre=str(nombre)[:80],
-                partidos=info.get("rows",[]),
-                guardado=str(info.get("savedAt",""))[:40]
-            ))
-        BibliotecaEquipo.objects.bulk_create(nuevos)
-    return JsonResponse({"ok":True})
 
 
 # ============================================================

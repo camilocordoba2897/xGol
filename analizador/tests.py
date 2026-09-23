@@ -127,7 +127,7 @@ class EloTests(SimpleTestCase):
 class AccesoAnalizadorTests(TestCase):
     #Cada ruta que entrega pronosticos o datos de pago exige suscripcion.
     RUTAS_DE_PAGO = ("Analizador", "AutoPartidos", "AutoEnfrentamiento", "AutoResultados",
-                     "AutoCuotas", "MotorPronostico", "MotorFuerzas", "MotorRendimiento")
+                     "AutoCuotas", "MotorPronostico")
 
     def setUp(self):
         self.usuario = User.objects.create_user(username="ana", password="Clave#123")
@@ -145,12 +145,6 @@ class AccesoAnalizadorTests(TestCase):
             r = self.client.get(reverse(nombre))
             self.assertEqual(r.status_code, 302, nombre)
             self.assertIn(reverse("Suscripcion"), r["Location"], nombre)
-
-    def test_solo_el_administrador_modifica_la_biblioteca(self):
-        self.client.force_login(self.usuario)
-        r = self.client.post(reverse("GuardarBiblioteca"), json.dumps({"teamLibrary": {}}),
-                             content_type="application/json")
-        self.assertEqual(r.status_code, 403)
 
 
 class ApuestasTests(TestCase):
@@ -187,16 +181,12 @@ class ApuestasTests(TestCase):
 
 
 
-class BibliotecaYLigasTests(TestCase):
+class ApuestasYLigasTests(TestCase):
 
     def setUp(self):
         self.usuario = User.objects.create_user(username="ana", password="Clave#123")
         Perfil.objects.create(usuario=self.usuario)
         self.client.force_login(self.usuario)
-
-    def test_la_biblioteca_compartida_exige_suscripcion(self):
-        r = self.client.get(reverse("CargarBiblioteca"))
-        self.assertIn(reverse("Suscripcion"), r["Location"])
 
     def test_apuestas_con_forma_rara_responden_400(self):
         for cuerpo in ([1, 2], {"betLog": "x"}, {"betLog": [], "betLogMeta": []}):

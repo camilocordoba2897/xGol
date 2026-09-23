@@ -45,11 +45,6 @@
 }
 
 /* ====== TEMAS DE COLOR (mismos acentos que el Home) ====== */
-html[data-tema="azul"]    { --accent:#38bdf8; --accent-dim:#7dd3fc; --accent-glow:rgba(56,189,248,.16); --accent-rgb:56,189,248; }
-html[data-tema="morado"]  { --accent:#a78bfa; --accent-dim:#c4b5fd; --accent-glow:rgba(167,139,250,.16); --accent-rgb:167,139,250; }
-html[data-tema="naranja"] { --accent:#fb923c; --accent-dim:#fdba74; --accent-glow:rgba(251,146,60,.16); --accent-rgb:251,146,60; }
-html[data-tema="rosa"]    { --accent:#f472b6; --accent-dim:#f9a8d4; --accent-glow:rgba(244,114,182,.16); --accent-rgb:244,114,182; }
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 
@@ -109,16 +104,6 @@ header h1 {
   line-height: 1;
   position: relative;
   z-index: 1;
-}
-header h1 .dot {
-  display: inline-block;
-  width: 9px; height: 9px;
-  background: var(--accent);
-  border-radius: 50%;
-  margin-left: 4px;
-  vertical-align: middle;
-  margin-bottom: 6px;
-  box-shadow: 0 0 12px var(--accent);
 }
 
 /* La x del logo xGol siempre en verde lima (identidad de marca) */
@@ -198,12 +183,6 @@ nav a.btn-inicio { border-radius: 999px; }
    pantalla flotaba (editar usuario, checkout, recuperar contrasena). */
 
 .card--static:hover { transform: none; border-color: var(--line); }
-
-.social-btn { transition: transform var(--t), border-color var(--t); }
-.social-btn:hover { transform: translateY(-2px); border-color: var(--accent-dim); }
-
-.link-lift { display: inline-block; transition: transform var(--t); }
-.link-lift:hover { transform: translateY(-2px); }
 
 .btn {
   display: inline-flex; align-items: center; gap: 8px;
@@ -306,32 +285,6 @@ footer p::before { content: ''; display: inline-block; width: 6px; height: 6px; 
 }
 
 /* Tarjetas de resumen del admin (mismo look que el número de precio de los planes) */
-.admin-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px;
-  margin-bottom: 32px;
-}
-.admin-stat {
-  background: var(--bg-1);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  text-align: center;
-  transition: transform var(--t), border-color var(--t);
-}
-.admin-stat:hover { transform: translateY(-4px); border-color: rgba(var(--accent-rgb),.5); }
-.admin-stat .stat-num {
-  font-family: var(--ff-display);
-  font-size: 2.3rem; font-weight: 800;
-  color: var(--text-0); line-height: 1;
-  letter-spacing: -.02em;
-}
-.admin-stat .stat-lbl {
-  font-size: 0.82rem; color: var(--text-3);
-  margin-top: 8px; text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
 
 /* Título de sección con línea */
 .admin-section-title {
@@ -342,60 +295,6 @@ footer p::before { content: ''; display: inline-block; width: 6px; height: 6px; 
   border-bottom: 2px solid var(--line);
   display: flex; align-items: center; gap: 8px;
 }
-
-/* ============================================================
-   BOTONES DE ACCIÓN (tablas admin) — estilo fantasma
-   Borde y texto del color de la acción, fondo casi transparente.
-   Orden de la fila:
-     [ Cancelar sub. (izquierda, ranura fija) ] [ Editar ] [ Bloquear/Activar ] ...... [ Eliminar (derecha) ]
-   ============================================================ */
-/* Grupo compacto, separación mínima (8px). Orden: Cancelar sub. -> Editar -> Bloquear -> Eliminar */
-.acc-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: nowrap;
-}
-/* Ranura fija para "Cancelar sub." a la izquierda. Aunque la fila no tenga
-   suscripcion, reserva el mismo espacio para que "Editar" quede siempre en la
-   misma columna y el encabezado "Acciones" caiga justo encima de Editar. */
-.acc-cancelar-slot {
-  flex: 0 0 124px;
-  display: flex;
-}
-.acc-cancelar-slot .act-btn {
-  width: 100%;
-}
-
-.act-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--ff-display);
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 6px 13px;
-  border-radius: 8px;
-  text-decoration: none;
-  white-space: nowrap;
-  background: transparent;
-  border: 1px solid currentColor;
-  transition: all var(--t);
-}
-.act-btn:hover { transform: translateY(-1px); }
-
-.act-editar   { color: var(--cian); }
-.act-bloquear { color: var(--text-3); }
-.act-activar  { color: var(--accent); }
-.act-cancelar { color: var(--warn); }
-.act-eliminar { color: var(--bad); }
-
-.act-editar:hover   { background: rgba(34,211,238,.12); }
-.act-bloquear:hover { background: rgba(255,255,255,.06); color: var(--text-1); }
-.act-activar:hover  { background: var(--accent-glow); }
-.act-cancelar:hover { background: var(--warn-bg); }
-.act-eliminar:hover { background: var(--bad-bg); }
 
 /* ============================================================
    PLANES (idéntico al Home) — alias de variables para reusar

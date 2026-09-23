@@ -8,9 +8,15 @@ from django.conf import settings
 from suscripciones.models import Suscripcion
 from suscripciones.planes import PLANES,obtener_plan,nivel_de_plan
 from usuarios.decoradores import rol_requerido
+from usuarios.roles import es_administrador
 
 @login_required(login_url="Ingresar")
 def suscripcion(request):
+    #Las cuentas de administracion no compran planes ni los ven: tienen
+    #acceso completo. Si llegan aqui (enlace viejo, URL escrita a mano) van
+    #al analizador, que es lo que buscaban.
+    if es_administrador(request.user):
+        return redirect("Analizador")
     suscripcion,creada=Suscripcion.objects.get_or_create(usuario=request.user)
 
     if suscripcion.activa and not suscripcion.esta_vigente():
@@ -39,6 +45,9 @@ def suscripcion(request):
 def checkout(request,clave_plan):
     from suscripciones.planes import desglosar_precio
     from pagos import pasarela
+
+    if es_administrador(request.user):
+        return redirect("Analizador")
 
     plan=obtener_plan(clave_plan)
     if plan is None:

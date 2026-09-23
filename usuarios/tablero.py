@@ -28,18 +28,8 @@ MESES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]
 #     - is_superuser = True
 #     - su perfil tiene el rol llamado "administrador"
 #  Se contemplan las dos para que no se cuele ninguno.
-ROL_ADMIN = "administrador"
-
-
-def es_administrador(usuario):
-    #True si esa cuenta es de administracion y no de un cliente.
-    if usuario is None:
-        return False
-    if getattr(usuario, "is_superuser", False) or getattr(usuario, "is_staff", False):
-        return True
-    perfil = getattr(usuario, "perfil", None)
-    rol = getattr(perfil, "rol", None) if perfil is not None else None
-    return rol is not None and (rol.nombre or "").strip().lower() == ROL_ADMIN
+#La regla vive en usuarios/roles.py: la misma para todo el proyecto
+from usuarios.roles import ROL_ADMIN, es_administrador  # noqa: F401
 
 
 def usuarios_clientes():

@@ -335,7 +335,6 @@ def editar_perfil(request):
             perfil.telefono=telefono
             if avatar:
                 perfil.foto=foto_a_data_uri(avatar)
-                perfil.avatar=None
             perfil.save()
 
             messages.success(request,"Tus datos se actualizaron correctamente")

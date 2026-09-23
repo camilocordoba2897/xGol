@@ -3,7 +3,7 @@
 //
 //  Sobrescribe renderAll() para pintar solo las tarjetas del video.
 //  NO toca analizador.js: reutiliza tal cual computeStats(),
-//  buildModel(), ctxControls(), pct(), fmt() y el estado global.
+//  buildModel(), toggleNeutral(), pct(), fmt() y el estado global.
 //
 //  Orden de carga obligatorio en la plantilla:
 //    analizador.js  ->  vista.js  ->  auto.js
@@ -468,11 +468,11 @@
           '<span class="neutral-slider"></span>' +
           '<span class="neutral-label">Cancha neutral</span>' +
         '</label>' +
-        ctxControls() +
       '</details>' +
       pieModelo(model, s1);
-
-    try { saveSession(); } catch (e) {}
+    // Ya no van arbitro, clasico, eliminatoria ni "necesita ganar": solo
+    // movian tarjetas, corners y tiros, que no se muestran en el pronostico.
+    // Eran controles que no cambiaban ningun numero de la pantalla.
   };
 
 })();

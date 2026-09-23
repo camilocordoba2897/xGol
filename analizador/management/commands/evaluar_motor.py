@@ -158,19 +158,6 @@ class Command(BaseCommand):
             else:
                 temperatura=t_previa
 
-            #Tramos para mercados de si/no, usando "mas de 2.5 goles" como guia
-            hist_25=[]
-            for f in filas:
-                try:
-                    p=f.mercados["totales"]["2.5"]["mas"]
-                except (KeyError,TypeError):
-                    continue
-                if f.goles_local is None or f.goles_visitante is None:
-                    continue
-                hist_25.append({"probabilidad":p,
-                                "acierto":(f.goles_local+f.goles_visitante)>2.5})
-            tramos=calibracion.construir_tramos(hist_25) if hist_25 else {}
-
             informe=evaluacion.informe(casos,liga)
             apuestas=evaluacion.rendimiento_apuestas(casos)
 
@@ -188,7 +175,6 @@ class Command(BaseCommand):
                     defaults={
                         "pesos":pesos,
                         "temperatura":temperatura,
-                        "tramos":tramos,
                         "partidos_evaluados":len(casos),
                         "log_perdida":informe["log_perdida"],
                         "rps":informe["rps"],

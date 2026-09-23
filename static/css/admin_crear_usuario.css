@@ -223,12 +223,6 @@
   color: var(--text-3);
   margin-bottom: 7px;
 }
-.ficha-campo label .ficha-opcional {
-  font-weight: 500;
-  letter-spacing: .06em;
-  text-transform: none;
-  opacity: .7;
-}
 
 /* Linea en vez de caja: mas ligero y distinto al registro */
 .ficha-campo input {

@@ -27,7 +27,11 @@
   if (!card) return;
 
   var URL_DATOS = card.getAttribute('data-url');
-  var URL_PLANES = card.getAttribute('data-planes') || '#planes';
+  // A donde lleva el boton y si esa persona ya puede ver el pronostico
+  // (administrador o plan vigente): lo decide la plantilla, no este script.
+  var URL_DESTINO = card.getAttribute('data-destino') || '#planes';
+  var CON_ACCESO = card.getAttribute('data-acceso') === '1';
+  var TITULO_BOTON = CON_ACCESO ? 'Ver pronóstico completo' : '🔒 Pronóstico completo';
   if (!URL_DATOS) return;
 
   var SEGUNDOS_ROTACION = 7;
@@ -157,11 +161,11 @@
           (t.fecha ? ' · ' + fechaBonita(t.fecha) : '') +
         '</div>' +
       '</div>' +
-      '<a class="pc-candado" href="' + escapar(URL_PLANES) + '">' +
+      '<a class="pc-candado" href="' + escapar(URL_DESTINO) + '">' +
         '<div class="pc-borroso"><span></span><span></span><span></span></div>' +
         '<div class="pc-candado-txt">' +
-          '<div class="pc-candado-t">🔒 Pronóstico completo</div>' +
-          '<div class="pc-candado-s">Ganador · goles · marcador · valor</div>' +
+          '<div class="pc-candado-t">' + TITULO_BOTON + '</div>' +
+          '<div class="pc-candado-s">Ganador · goles · marcador</div>' +
         '</div>' +
       '</a>' +
       pie();
@@ -187,10 +191,10 @@
         '<div class="pc-vacio-t">' + escapar(MOTIVOS[motivo] || MOTIVOS.sin_datos) + '</div>' +
         '<div class="pc-vacio-s">Vuelve en unos minutos: la agenda se actualiza sola.</div>' +
       '</div>' +
-      '<a class="pc-candado" href="' + escapar(URL_PLANES) + '">' +
+      '<a class="pc-candado" href="' + escapar(URL_DESTINO) + '">' +
         '<div class="pc-candado-txt">' +
           '<div class="pc-candado-t">Analiza cualquier partido</div>' +
-          '<div class="pc-candado-s">Ganador · goles · marcador · valor</div>' +
+          '<div class="pc-candado-s">Ganador · goles · marcador</div>' +
         '</div>' +
       '</a>' +
       pie();

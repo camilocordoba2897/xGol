@@ -1,24 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-#Cada equipo guardado en la biblioteca del analizador (antes vivia en localStorage)
-class BibliotecaEquipo(models.Model):
-  usuario=models.ForeignKey(User,on_delete=models.CASCADE,related_name="equipos_biblioteca")
-  nombre=models.CharField(max_length=80)
-  partidos=models.JSONField(default=list)
-  guardado=models.CharField(max_length=40,blank=True)
-  creado=models.DateTimeField(auto_now_add=True)
-
-  class Meta:
-    verbose_name="equipo de biblioteca"
-    verbose_name_plural="biblioteca de equipos"
-    unique_together=("usuario","nombre")
-    ordering=["nombre"]
-
-  def __str__(self):
-    return self.nombre
-
-
 #Partido registrado en el historial de apuestas (datos crudos para poder editarlo)
 class PartidoRegistrado(models.Model):
   usuario=models.ForeignKey(User,on_delete=models.CASCADE,related_name="partidos_registrados")
@@ -139,7 +121,6 @@ class PesosMotor(models.Model):
   #aprendio con el mercado en la mezcla: aplicarla a otra mezcla distinta
   #no tiene fundamento. Esta se aprende y se valida con esa mezcla.
   temperatura_sin_mercado=models.FloatField(default=1.0)
-  tramos=models.JSONField(default=dict)
   partidos_evaluados=models.IntegerField(default=0)
   log_perdida=models.FloatField(null=True,blank=True)
   rps=models.FloatField(null=True,blank=True)

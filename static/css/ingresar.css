@@ -34,11 +34,6 @@
   --ease: cubic-bezier(.16,1,.3,1);
 }
 
-html[data-tema="azul"]    { --accent:#38BDF8; --accent-dim:#7DD3FC; --accent-ink:#031A28; --accent-glow:rgba(56,189,248,.14); --accent-rgb:56,189,248; }
-html[data-tema="morado"]  { --accent:#A78BFA; --accent-dim:#C4B5FD; --accent-ink:#140B29; --accent-glow:rgba(167,139,250,.14); --accent-rgb:167,139,250; }
-html[data-tema="naranja"] { --accent:#FB923C; --accent-dim:#FDBA74; --accent-ink:#291303; --accent-glow:rgba(251,146,60,.14); --accent-rgb:251,146,60; }
-html[data-tema="rosa"]    { --accent:#F472B6; --accent-dim:#F9A8D4; --accent-ink:#290315; --accent-glow:rgba(244,114,182,.14); --accent-rgb:244,114,182; }
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 ::selection { background: rgba(var(--accent-rgb),.3); color: var(--text-0); }
 
@@ -58,11 +53,9 @@ body {
 
 /* foco visible accesible (teclado) */
 .barra-inicio:focus-visible,
-.barra-crear:focus-visible,
 .ver-clave:focus-visible,
 .btn-entrar:focus-visible,
 .btn-google:focus-visible,
-.enlace-fino:focus-visible,
 .acceso-links a:focus-visible,
 .acceso-recuperar a:focus-visible {
   outline: 2px solid var(--accent);
@@ -86,13 +79,6 @@ body {
 }
 .barra-inicio:hover { color: var(--text-0); border-color: var(--line-alta); background: var(--bg-2); }
 .barra-inicio svg { width: 15px; height: 15px; }
-.barra-crear {
-  font-family: var(--ff-display); font-size: .82rem; font-weight: 600;
-  color: var(--text-2); text-decoration: none;
-  padding: 8px 16px; border: 1px solid var(--line); border-radius: 8px;
-  transition: color .15s var(--ease), border-color .15s var(--ease), background-color .15s var(--ease);
-}
-.barra-crear:hover { color: var(--text-0); border-color: var(--line-alta); background: var(--bg-2); }
 
 /* ---------- Escenario ---------- */
 .escenario {
@@ -277,13 +263,6 @@ body {
 .acceso > *:nth-child(8) { animation-delay: .33s; }
 @keyframes subeEntra { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
-.acceso-eyebrow {
-  display: inline-flex; width: fit-content;
-  font-family: var(--ff-mono); font-size: .68rem; font-weight: 600;
-  letter-spacing: .09em; text-transform: uppercase; color: var(--accent);
-  background: var(--accent-glow); border: 1px solid rgba(var(--accent-rgb),.25);
-  border-radius: 999px; padding: 5px 12px; margin-bottom: 22px;
-}
 .acceso-titulo { font-family: var(--ff-display); font-weight: 800; font-size: 1.85rem; letter-spacing: -.02em; line-height: 1.15; }
 .acceso-sub { margin-top: 8px; margin-bottom: 32px; font-size: .9rem; color: var(--text-2); line-height: 1.5; }
 
@@ -302,12 +281,6 @@ body {
   font-family: var(--ff-display); font-size: .8rem; font-weight: 600;
   color: var(--text-2);
 }
-.enlace-fino {
-  font-family: var(--ff-body); font-size: .78rem; font-weight: 500;
-  color: var(--text-3); text-decoration: none;
-  transition: color .15s var(--ease);
-}
-.enlace-fino:hover { color: var(--accent); }
 
 .campo { position: relative; margin-bottom: 18px; }
 .campo input {
@@ -423,7 +396,6 @@ body {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 
-
 /* ============================================================
    MODO CLARO — se activa con html[data-modo="claro"]
    Misma convencion que analizador.css: solo sobrescribe
@@ -451,14 +423,6 @@ html[data-modo="claro"] {
   --accent-glow: rgba(15,122,85,.14);
   --accent-rgb: 15,122,85;
 }
-
-/* Los 4 temas de acento tambien viven en claro: se oscurecen para
-   mantener el contraste sobre fondo blanco. Doble atributo = mas
-   especificidad, asi ganan a los bloques html[data-tema] de arriba. */
-html[data-modo="claro"][data-tema="azul"]    { --accent:#0369A1; --accent-dim:#075985; --accent-ink:#FFFFFF; --accent-glow:rgba(3,105,161,.14);  --accent-rgb:3,105,161; }
-html[data-modo="claro"][data-tema="morado"]  { --accent:#6D28D9; --accent-dim:#5B21B6; --accent-ink:#FFFFFF; --accent-glow:rgba(109,40,217,.14); --accent-rgb:109,40,217; }
-html[data-modo="claro"][data-tema="naranja"] { --accent:#C2410C; --accent-dim:#9A3412; --accent-ink:#FFFFFF; --accent-glow:rgba(194,65,12,.14);  --accent-rgb:194,65,12; }
-html[data-modo="claro"][data-tema="rosa"]    { --accent:#BE185D; --accent-dim:#9D174F; --accent-ink:#FFFFFF; --accent-glow:rgba(190,24,93,.14);  --accent-rgb:190,24,93; }
 
 /* ---------- Fondo de pagina ---------- */
 html[data-modo="claro"] body {

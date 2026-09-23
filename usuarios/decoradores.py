@@ -1,5 +1,6 @@
 from django.shortcuts import redirect
 from django.contrib import messages
+from usuarios.roles import ROL_ADMIN,es_administrador
 
 def rol_requerido(nombre_rol):
     def envoltura(vista):
@@ -7,6 +8,10 @@ def rol_requerido(nombre_rol):
 
             if not request.user.is_authenticated:
                 return redirect("Ingresar")
+
+            #La zona de administracion usa la regla unica de usuarios/roles.py
+            if nombre_rol==ROL_ADMIN and es_administrador(request.user):
+                return vista(request,*args,**kwargs)
 
             if request.user.is_superuser:
                 return vista(request,*args,**kwargs)
