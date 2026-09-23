@@ -856,19 +856,19 @@ button.btn:hover{background:var(--accent-deep)}
 .outcome-card:nth-child(1){animation-delay:.04s}
 .outcome-card:nth-child(2){animation-delay:.10s}
 .outcome-card:nth-child(3){animation-delay:.16s}
-.outcome-card:hover{transform:translateY(-3px);border-color:var(--accent-dim);box-shadow:0 10px 30px oklch(0% 0 0 / .35)}
+.outcome-card:hover{border-color:var(--accent-dim);box-shadow:0 10px 30px oklch(0% 0 0 / .35)}
 .outcome-card .oc-prob{font-size:28px;font-weight:800}
 .outcome-card.win.high{border-color:var(--accent-deep)}
 .outcome-card.win.high::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
 
 /* Doble oportunidad */
 .dc-card{transition:transform .2s var(--ease-out),border-color .2s}
-.dc-card:hover{transform:translateY(-2px);border-color:var(--accent-dim)}
+.dc-card:hover{border-color:var(--accent-dim)}
 .dc-prob{font-size:19px;font-weight:700}
 
 /* Bet cards — barra animada + hover */
 .bet-card{border-radius:var(--r-md);transition:transform .2s var(--ease-out),border-color .2s,box-shadow .2s}
-.bet-card:hover{transform:translateY(-2px);border-color:var(--line);box-shadow:0 6px 20px oklch(0% 0 0 / .25)}
+.bet-card:hover{border-color:var(--line);box-shadow:0 6px 20px oklch(0% 0 0 / .25)}
 .bet-bar-fill{transition:width .7s var(--ease-out)}
 .bet-bar-fill.high{background:linear-gradient(90deg,var(--accent-dim),var(--accent))}
 .bet-conf.high{background:var(--accent-deep);color:var(--accent)}

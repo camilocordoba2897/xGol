@@ -1,7 +1,12 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block Titulo %}
   Editar usuario
+{% endblock %}
+
+{% block estilos %}
+  <link rel="stylesheet" href="{% static 'css/admin_editar_usuario.css' %}?v=1">
 {% endblock %}
 
 {% block content %}
@@ -15,53 +20,108 @@
     <div class="admin-badge">ADMINISTRACIÓN</div>
   </div>
 
-  <div class="card" style="max-width: 520px;">
+  {% comment %}
+    Sin esto la pantalla rechazaba el correo repetido pero no decia por
+    que: el formulario se recargaba igual y parecia que no habia pasado
+    nada.
+  {% endcomment %}
+  {% if messages %}
+    {% for i in messages %}
+      <div class="eu-aviso" role="alert">{{ i }}</div>
+    {% endfor %}
+  {% endif %}
 
-    {% comment %}
-      Sin esto la pantalla rechazaba el correo repetido pero no decia por
-      que: el formulario se recargaba igual y parecia que no habia pasado
-      nada.
-    {% endcomment %}
-    {% if messages %}
-      {% for i in messages %}
-        <div style="background: rgba(248,113,113,.10); border: 1px solid rgba(248,113,113,.32); border-left: 3px solid var(--bad); border-radius: 10px; padding: 11px 14px; margin-bottom: 16px; font-size: .86rem; color: var(--text-0);" role="alert">{{ i }}</div>
-      {% endfor %}
-    {% endif %}
+  <div class="eu-grid">
 
-    <form action="{% url 'AdminEditarUsuario' usuario.id %}" method="post">
-      {% csrf_token %}
+    <!-- FORMULARIO -->
+    <section class="eu-card">
+      <h2 class="eu-titulo">Datos de contacto</h2>
+      <p class="eu-sub">A este correo le llegan las facturas y la recuperación de contraseña.</p>
 
-      <div style="margin-bottom: 16px;">
-        <label style="display: block; font-size: .85rem; font-weight: 600; color: var(--text-1); margin-bottom: 6px;">Usuario</label>
-        <input type="text" value="{{ usuario.username }}" disabled
-               style="width: 100%; background: var(--bg-0); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--text-2); font-family: var(--ff-body); font-size: .95rem; opacity: .6;">
-        <span style="font-size: .78rem; color: var(--text-2);">El nombre de usuario no se puede cambiar</span>
+      <form action="{% url 'AdminEditarUsuario' usuario.id %}" method="post">
+        {% csrf_token %}
+
+        <div class="eu-campo">
+          <label for="eu-usuario">Usuario</label>
+          <input type="text" id="eu-usuario" value="{{ usuario.username }}" disabled>
+          <span class="eu-pista">El nombre de usuario no se puede cambiar.</span>
+        </div>
+
+        <div class="eu-campo">
+          <label for="eu-nombre">Nombre</label>
+          <input type="text" id="eu-nombre" name="nombre" value="{{ usuario.first_name }}" placeholder="Nombre" maxlength="40">
+        </div>
+
+        <div class="eu-campo">
+          <label for="eu-correo">Correo</label>
+          <input type="email" id="eu-correo" name="correo" value="{{ usuario.email }}" placeholder="correo@ejemplo.com"
+                 required maxlength="254" title="Aquí se envía la factura. Ej: nombre@correo.com">
+        </div>
+
+        <div class="eu-campo">
+          <label for="eu-telefono">Teléfono <span class="eu-opcional">(opcional)</span></label>
+          <input type="text" id="eu-telefono" name="telefono" value="{{ perfil.telefono|default:'' }}"
+                 placeholder="300 123 4567" maxlength="20" inputmode="tel">
+        </div>
+
+        <div class="eu-acciones">
+          <button type="submit" class="btn btn-primary">Guardar cambios</button>
+          <a href="{% url 'PanelAdmin' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+      </form>
+    </section>
+
+    <!-- FICHA DEL USUARIO: lo que el administrador necesita ver antes de tocar nada -->
+    <aside class="eu-card eu-ficha">
+      <div class="eu-ficha-cab">
+        <div class="eu-avatar">{{ usuario.username|first|upper }}</div>
+        <div>
+          <div class="eu-ficha-nombre">{{ usuario.get_full_name|default:usuario.username }}</div>
+          <div class="eu-ficha-correo">{{ usuario.email|default:"Sin correo" }}</div>
+        </div>
       </div>
 
-      <div style="margin-bottom: 16px;">
-        <label style="display: block; font-size: .85rem; font-weight: 600; color: var(--text-1); margin-bottom: 6px;">Nombre</label>
-        <input type="text" name="nombre" value="{{ usuario.first_name }}" placeholder="Nombre"
-               style="width: 100%; background: var(--bg-0); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--text-0); font-family: var(--ff-body); font-size: .95rem;">
-      </div>
+      <dl class="eu-datos">
+        <div>
+          <dt>Cuenta</dt>
+          <dd>{% if usuario.is_active %}<span class="eu-marca eu-ok">Activa</span>{% else %}<span class="eu-marca eu-mal">Bloqueada</span>{% endif %}</dd>
+        </div>
+        <div>
+          <dt>Suscripción</dt>
+          <dd>
+            {% if usuario.suscripcion.esta_vigente %}
+              <span class="eu-marca eu-ok">{{ usuario.suscripcion.plan }}</span>
+              <span class="eu-detalle">vence {{ usuario.suscripcion.vencimiento|date:"d/m/Y" }}</span>
+            {% else %}
+              <span class="eu-marca">Sin suscripción</span>
+            {% endif %}
+          </dd>
+        </div>
+        <div>
+          <dt>Cédula</dt>
+          <dd>{% if perfil.documento %}<span class="eu-mono">••••{{ perfil.documento|slice:"-4:" }}</span>{% else %}<span class="eu-falta">Sin registrar</span>{% endif %}</dd>
+        </div>
+        <div>
+          <dt>Nacimiento</dt>
+          <dd>{% if perfil.fecha_nacimiento %}{{ perfil.fecha_nacimiento|date:"d/m/Y" }}{% else %}<span class="eu-falta">Sin registrar</span>{% endif %}</dd>
+        </div>
+        <div>
+          <dt>Acceso</dt>
+          <dd>{% if es_google %}Google{% else %}Usuario y contraseña{% endif %}</dd>
+        </div>
+        <div>
+          <dt>Registrado</dt>
+          <dd>{{ usuario.date_joined|date:"d/m/Y" }}</dd>
+        </div>
+        <div>
+          <dt>Último ingreso</dt>
+          <dd>{{ usuario.last_login|date:"d/m/Y H:i"|default:"Nunca" }}</dd>
+        </div>
+      </dl>
 
-      <div style="margin-bottom: 16px;">
-        <label style="display: block; font-size: .85rem; font-weight: 600; color: var(--text-1); margin-bottom: 6px;">Correo</label>
-        <input type="email" name="correo" value="{{ usuario.email }}" placeholder="correo@ejemplo.com" required
-               maxlength="254" title="Aqui se envia la factura. Ej: nombre@correo.com"
-               style="width: 100%; background: var(--bg-0); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--text-0); font-family: var(--ff-body); font-size: .95rem;">
-      </div>
+      <p class="eu-nota">La cédula y la fecha de nacimiento no se editan desde aquí: cambiar el documento es la forma clásica de quedarse con una cuenta ajena.</p>
+    </aside>
 
-      <div style="margin-bottom: 22px;">
-        <label style="display: block; font-size: .85rem; font-weight: 600; color: var(--text-1); margin-bottom: 6px;">Teléfono</label>
-        <input type="text" name="telefono" value="{{ perfil.telefono|default:'' }}" placeholder="Teléfono"
-               style="width: 100%; background: var(--bg-0); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--text-0); font-family: var(--ff-body); font-size: .95rem;">
-      </div>
-
-      <div style="display: flex; gap: 10px;">
-        <button type="submit" class="btn btn-primary">Guardar cambios</button>
-        <a href="{% url 'PanelAdmin' %}" class="btn btn-secondary">Cancelar</a>
-      </div>
-    </form>
   </div>
 
 {% endblock %}

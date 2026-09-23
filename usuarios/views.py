@@ -407,6 +407,10 @@ def admin_eliminar_usuario(request,id):
 def admin_editar_usuario(request,id):
     usuario=get_object_or_404(User,id=id)
     perfil,creado=Perfil.objects.get_or_create(usuario=usuario)
+    #perfil.proveedor se queda en "local" tambien en las cuentas de Google
+    #(su perfil se crea por otro camino): se pregunta a allauth directamente.
+    from allauth.socialaccount.models import SocialAccount
+    es_google=SocialAccount.objects.filter(user=usuario,provider="google").exists()
 
     if request.method=="POST":
         #Aca tampoco se validaba nada. Se excluye al propio usuario para que
@@ -428,7 +432,7 @@ def admin_editar_usuario(request,id):
             for error in errores:
                 messages.error(request,error)
             return render(request,"admin_editar_usuario.html",{
-                "usuario":usuario,"perfil":perfil,
+                "usuario":usuario,"perfil":perfil,"es_google":es_google,
             })
 
         usuario.first_name=nombre
@@ -441,7 +445,7 @@ def admin_editar_usuario(request,id):
         messages.success(request,f"Los datos de {usuario.username} se actualizaron")
         return redirect("PanelAdmin")
 
-    return render(request,"admin_editar_usuario.html",{"usuario": usuario,"perfil": perfil})
+    return render(request,"admin_editar_usuario.html",{"usuario": usuario,"perfil": perfil,"es_google": es_google})
 
 #Solo por POST: con un enlace GET, cualquier pagina que visitara el
 #administrador podia bloquear cuentas con una simple imagen apuntando aca.
