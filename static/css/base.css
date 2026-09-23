@@ -626,3 +626,28 @@ footer p::before { content: ''; display: inline-block; width: 6px; height: 6px; 
   .elim-form { flex-direction: column-reverse; }
   .elim-btn { width: 100%; }
 }
+/* ============================================================
+   CAMPOS DE LAS PANTALLAS DE CUENTA (recuperar contraseña)
+   Antes llevaban outline:none sin nada a cambio: al escribir no se
+   veia en que campo estaba el cursor.
+   ============================================================ */
+.cuenta-campo { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+.cuenta-campo label {
+  font-family: var(--ff-display); font-size: .72rem; font-weight: 700;
+  letter-spacing: .07em; text-transform: uppercase; color: var(--text-2);
+}
+.cuenta-campo input {
+  font-family: var(--ff-body); font-size: .95rem;
+  background: var(--bg-0); border: 1px solid var(--line); border-radius: var(--radius-sm);
+  padding: 12px 14px; color: var(--text-0); outline: none;
+  transition: border-color var(--t), box-shadow var(--t);
+}
+.cuenta-campo input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.cuenta-pie { margin-top: 18px; text-align: center; font-size: .84rem; color: var(--text-3); line-height: 1.6; }
+.cuenta-pie a { color: var(--text-1); font-weight: 600; text-decoration: none; }
+.cuenta-pie a:hover { color: var(--accent); }
+.cuenta-nota {
+  margin-top: 16px; padding: 12px 14px; border-radius: var(--radius-sm);
+  background: var(--bg-0); border: 1px solid var(--line);
+  font-size: .8rem; line-height: 1.55; color: var(--text-2);
+}

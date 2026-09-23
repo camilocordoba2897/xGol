@@ -8,10 +8,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#04050A">
 <title>xGol — Panel de administración</title>
+<link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
+<link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/panel_admin.css' %}?v=12">
+<link rel="stylesheet" href="{% static 'css/panel_admin.css' %}?v=15">
 <script>
   // Tema y modo aplicados ANTES de pintar para que no parpadee
   (function() {
@@ -95,6 +97,27 @@
 
   <main class="lienzo">
 
+    {% comment %}
+      Los mensajes van FUERA de las pestanas. Antes estaban dentro de
+      "Resumen": si el administrador bloqueaba a alguien desde "Usuarios" o
+      consultaba un pago desde "Dinero", el aviso se generaba pero quedaba
+      escondido en otra pestana y nunca lo veia. Los errores van en rojo.
+    {% endcomment %}
+    {% if messages %}
+      <div class="avisos avisos-globales">
+        {% for i in messages %}
+          <div class="aviso {% if i.tags == 'error' %}aviso-error{% elif i.tags == 'warning' %}aviso-alerta{% endif %}" role="{% if i.tags == 'error' %}alert{% else %}status{% endif %}">
+            {% if i.tags == 'error' %}
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            {% else %}
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="8 12 11 15 16 9"/></svg>
+            {% endif %}
+            <div class="aviso-cuerpo">{{ i }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
     <!-- ======================= RESUMEN ======================= -->
     <section class="vista activa" id="v-resumen">
       <div class="vista-cabeza">
@@ -102,16 +125,6 @@
         <p>Las cuatro cifras que resumen el estado de xGol hoy.</p>
       </div>
 
-      {% if messages %}
-        <div class="avisos">
-          {% for i in messages %}
-            <div class="aviso" role="status">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="8 12 11 15 16 9"/></svg>
-              <div class="aviso-cuerpo">{{ i }}</div>
-            </div>
-          {% endfor %}
-        </div>
-      {% endif %}
 
       <div class="kpis">
         <div class="kpi" style="--kpi-color: var(--accent)">
@@ -438,10 +451,10 @@
               <select id="f-estado" name="estado">
                 <option value="todos">Todos</option>
                 <option value="Aprobado" {% if filtros.estado == "Aprobado" %}selected{% endif %}>Aprobado</option>
+                <option value="Pendiente" {% if filtros.estado == "Pendiente" %}selected{% endif %}>Pendiente</option>
                 <option value="Rechazado" {% if filtros.estado == "Rechazado" %}selected{% endif %}>Rechazado</option>
                 <option value="Anulado" {% if filtros.estado == "Anulado" %}selected{% endif %}>Anulado</option>
                 <option value="Error" {% if filtros.estado == "Error" %}selected{% endif %}>Error</option>
-                <option value="Reembolsado" {% if filtros.estado == "Reembolsado" %}selected{% endif %}>Reembolsado</option>
               </select>
             </div>
             <div class="campo"><label for="f-plan">Plan</label>
@@ -473,8 +486,15 @@
                 <td class="td-num td-derecha">${{ p.monto|pesos }}</td>
                 <td class="td-num td-derecha">{% if p.neto %}${{ p.neto|pesos }}{% else %}—{% endif %}</td>
                 <td class="td-derecha">
-                  {% if p.estado == "Aprobado" %}<a href="{% url 'DescargarFactura' p.id %}" class="accion">PDF</a>
-                  {% elif p.id_pasarela %}<form action="{% url 'AdminSincronizarPago' p.id %}" method="post" style="display:inline">{% csrf_token %}<button type="submit" class="accion">Consultar</button></form>{% endif %}
+                  <div class="acciones">
+                  {% if p.estado == "Aprobado" %}
+                    <a href="{% url 'DescargarFactura' p.id %}" class="accion">PDF</a>
+                  {% elif p.pasarela != "manual" %}
+                    {# Tenga o no id de la pasarela: sin id se busca por referencia. #}
+                    {# Es el caso del cliente que pago y cuyo aviso no llego.         #}
+                    <form action="{% url 'AdminSincronizarPago' p.id %}" method="post" style="display:inline">{% csrf_token %}<button type="submit" class="accion" title="Preguntarle a Wompi el estado real de este pago">Consultar</button></form>
+                  {% endif %}
+                  </div>
                 </td>
               </tr>
               {% empty %}<tr><td colspan="9"><div class="vacio"><b>Sin coincidencias</b>Ninguna transacción cumple estos filtros.</div></td></tr>{% endfor %}
@@ -575,7 +595,7 @@
                       {% endcomment %}
                       {% if i.documento or i.fecha_nacimiento %}
                         <div class="usuario-doc">
-                          {% if i.documento %}<span title="Numero de cedula">CC {{ i.documento }}</span>{% endif %}
+                          {% if i.documento %}<span title="Número de cédula">CC {{ i.documento }}</span>{% endif %}
                           {% if i.documento and i.fecha_nacimiento %}<span class="usuario-doc-sep">&middot;</span>{% endif %}
                           {% if i.fecha_nacimiento %}<span title="Fecha de nacimiento">{{ i.fecha_nacimiento|date:"d/m/Y" }}</span>{% endif %}
                         </div>
@@ -699,7 +719,7 @@
   })();
 </script>
 
-<script src="{% static 'js/tour_panel.js' %}?v=2"></script>
+<script src="{% static 'js/tour_panel.js' %}?v=4"></script>
 
 <!-- ============================================================
      CONFIRMAR CANCELACIÓN DE SUSCRIPCIÓN

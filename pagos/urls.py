@@ -1,6 +1,6 @@
 from django.urls import path
 from pagos.views import procesar_pago,retorno_pago,pago_confirmado,descargar_factura,webhook_wompi
-from pagos.vistas_finanzas import panel_finanzas,exportar_finanzas,admin_reembolso,admin_sincronizar_pago
+from pagos.vistas_finanzas import panel_finanzas,exportar_finanzas,admin_sincronizar_pago
 
 urlpatterns = [
     path('pago/procesar/<str:clave_plan>', procesar_pago, name="ProcesarPago"),
@@ -13,6 +13,5 @@ urlpatterns = [
 
     path('admin-panel/finanzas', panel_finanzas, name="PanelFinanzas"),
     path('admin-panel/finanzas/exportar', exportar_finanzas, name="ExportarFinanzas"),
-    path('admin-panel/finanzas/reembolso/<int:id>', admin_reembolso, name="AdminReembolso"),
     path('admin-panel/finanzas/sincronizar/<int:id>', admin_sincronizar_pago, name="AdminSincronizarPago"),
 ]

@@ -3,13 +3,13 @@
 #diferencia entre las dos cosas es el panel abriendo en 80 ms o en 40 s.
 #
 #Solo se suma lo que esta en estado "Aprobado". Un pago pendiente NO es una
-#venta, y un reembolsado dejo de serlo.
+#venta.
 from datetime import timedelta,date,datetime,time
 from django.db.models import Sum,Count,Q
 from django.utils import timezone
 from django.contrib.auth.models import User
 
-from pagos.models import Pago,Reembolso,MovimientoSuscripcion,EventoPasarela
+from pagos.models import Pago,MovimientoSuscripcion,EventoPasarela
 from suscripciones.models import Suscripcion
 
 MESES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]
@@ -109,16 +109,12 @@ def resumen_suscripciones():
 
 
 def resumen_incidencias():
-  #Lo que hay que vigilar: dinero que no entro, dinero que salio y firmas que
-  #no cuadraron.
+  #Lo que hay que vigilar: dinero que no entro y firmas que no cuadraron.
   hace_30=timezone.now()-timedelta(days=30)
-  reembolsos=Reembolso.objects.filter(estado="Aprobado")
   return {
     "pendientes":Pago.objects.filter(estado="Pendiente").count(),
     "rechazados_30":Pago.objects.filter(estado="Rechazado",creado__gte=hace_30).count(),
     "errores_30":Pago.objects.filter(estado="Error",creado__gte=hace_30).count(),
-    "reembolsos":reembolsos.count(),
-    "reembolsado_total":reembolsos.aggregate(t=Sum("monto"))["t"] or 0,
     "eventos_invalidos":EventoPasarela.objects.filter(firma_valida=False).count(),
     "eventos_sin_procesar":EventoPasarela.objects.filter(procesado=False,firma_valida=True).count(),
   }

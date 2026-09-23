@@ -60,7 +60,7 @@ El archivo `.env` no se sube al repositorio. Variables que usa `xgol/settings.py
 python manage.py test
 ```
 
-Son 73 pruebas sobre las 5 apps. Crean una base de datos temporal (`test_<DB_NAME>`) y no llaman a ninguna API
+Son más de 120 pruebas sobre las 5 apps. Crean una base de datos temporal (`test_<DB_NAME>`) y no llaman a ninguna API
 externa: football-data.org y Wompi se sustituyen por datos de ejemplo.
 Cubren:
 
@@ -83,7 +83,7 @@ Correr las pruebas antes de cada despliegue.
 
 | Comando | Qué hace |
 |---|---|
-| `python manage.py conciliar_pagos` | Concilia pagos pendientes con Wompi (lo programa `conciliar.bat`). |
+| `python manage.py conciliar_pagos` | Concilia pagos pendientes con Wompi. **No hace falta programarlo**: el sitio lo ejecuta solo una vez por hora (`pagos/middleware.py`). Se puede apagar con `CONCILIACION_AUTOMATICA=False`. |
 | `python manage.py ajustar_motor` | Ajusta Dixon-Coles y Elo por liga. |
 | `python manage.py descargar_historico` | Descarga el histórico de partidos con cuotas. |
 | `python manage.py calibrar_con_historico` | Aprende pesos y calibración sobre el histórico. |
@@ -91,6 +91,9 @@ Correr las pruebas antes de cada despliegue.
 | `python manage.py verificar_historico` | Avisa de equipos del histórico sin emparejar. |
 
 ## Despliegue
+
+Las fotos de perfil se guardan en la base de datos (reducidas a 256 px, WebP),
+no en disco: en Railway el disco se borra en cada despliegue.
 
 El `Procfile` aplica migraciones, crea la tabla de caché, recoge los estáticos
 y arranca gunicorn. Con `DEBUG=False` se activan HTTPS obligatorio, HSTS y

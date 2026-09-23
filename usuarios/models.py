@@ -28,7 +28,13 @@ class Perfil(models.Model):
   ciudad=models.CharField(max_length=60,null=True,blank=True)
   pais=models.CharField(max_length=60,null=True,blank=True)
   telefono=models.CharField(max_length=20,null=True,blank=True)
+  #Archivo viejo: ya no se escribe (ver foto). Se conserva para no perder
+  #las fotos que se subieron antes del cambio.
   avatar=models.ImageField(upload_to='avatares',null=True,blank=True)
+  #La foto va EN LA BASE DE DATOS, reducida a 256 px y en WebP (10-25 KB),
+  #como data URI. En Railway el disco se borra en cada despliegue: guardada
+  #como archivo, la foto de perfil desaparecia con cada actualizacion.
+  foto=models.TextField(blank=True,default="")
   proveedor=models.CharField(max_length=20,default='local')
   creado=models.DateTimeField(auto_now_add=True)
 
@@ -38,6 +44,16 @@ class Perfil(models.Model):
 
   def __str__(self):
     return self.usuario.username
+
+  @property
+  def foto_url(self):
+    #Lo que se pone en el src de la imagen: la foto de la base o, si es de
+    #antes del cambio, el archivo viejo.
+    if self.foto:
+      return self.foto
+    if self.avatar:
+      return self.avatar.url
+    return ""
 
   def identidad_completa(self):
     #Cedula y fecha de nacimiento: sin ellas no se puede comprar un plan.

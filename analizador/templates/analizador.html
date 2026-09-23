@@ -5,6 +5,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Analizador de Predicciones de Fútbol</title>
+<link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
+<link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -64,7 +66,7 @@ reconoce y la imprime tal cual encima de la pagina.
   <header class="lab-bar">
     <div class="lab-marca">
       <span class="lab-marca-nombre"><img src="{% static 'img/logo.png' %}" alt="xGol" style="height:70px;width:auto;display:block;margin:-7px 0;"></span>
-      <i>Pronostico</i>
+      <i>Pronóstico</i>
     </div>
     <div class="lab-acciones">
       <button class="guia-btn" onclick="abrirGuiaAnalizador()" title="Ver la guía paso a paso" aria-label="Ver la guía paso a paso">?</button>
@@ -252,7 +254,7 @@ reconoce y la imprime tal cual encima de la pagina.
     motor: "{% url 'MotorPronostico' %}"
   };
 </script>
-<script src="{% static 'js/auto.js' %}?v=20"></script>
+<script src="{% static 'js/auto.js' %}?v=21"></script>
 <script src="{% static 'js/seguimiento.js' %}?v=1"></script>
 <script src="{% static 'js/motor.js' %}?v=2"></script>
 <script>

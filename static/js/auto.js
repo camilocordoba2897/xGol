@@ -451,8 +451,8 @@
     sin_clave:   'Falta ODDS_API_KEY en .env y en settings.py. Mientras no este, no hay cuotas.',
     cuota:       'Se agotaron los creditos del plan de the-odds-api (500/mes en el gratuito).',
     red:         'No se pudo conectar con the-odds-api.',
-    sin_partido: 'the-odds-api no tiene este partido. Suele ser porque aun no abrio mercado (faltan varios dias) o porque el nombre del equipo no coincide entre los dos proveedores.',
-    sin_datos:   'El partido existe pero ninguna casa publica cuotas 1X2 todavia.',
+    sin_partido: 'the-odds-api no tiene este partido. Suele ser porque aún no abrió mercado (faltan varios días) o porque el nombre del equipo no coincide entre los dos proveedores.',
+    sin_datos:   'El partido existe pero ninguna casa publica cuotas 1X2 todavía.',
     parametros:  'Faltaron parametros en la peticion.'
   };
 

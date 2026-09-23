@@ -495,6 +495,8 @@ html[data-modo="claro"] .tour-siguiente { color: #FFFFFF; }
 .aviso svg { width: 17px; height: 17px; flex-shrink: 0; margin-top: 2px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; color: var(--accent); }
 .aviso-alerta { border-left-color: var(--warn); }
 .aviso-alerta svg { color: var(--warn); }
+.aviso-error { border-left-color: var(--bad); }
+.aviso-error svg { color: var(--bad); }
 .aviso-cuerpo b { font-weight: 700; }
 .aviso-lista { margin-top: 8px; display: flex; gap: 7px; flex-wrap: wrap; }
 .aviso-chip {

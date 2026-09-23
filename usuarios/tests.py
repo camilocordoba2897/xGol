@@ -132,7 +132,7 @@ class RegistroVistaTests(TestCase):
         errores = [str(m) for m in r.context["messages"]]
         self.assertTrue(any("usuario ya está en uso" in e for e in errores))
         self.assertTrue(any("correo ya tiene una cuenta" in e for e in errores))
-        self.assertTrue(any("registrada con esa cedula" in e for e in errores))
+        self.assertTrue(any("registrada con esa cédula" in e for e in errores))
         self.assertEqual(User.objects.count(), 3)
 
     def test_tras_registrarse_vuelve_al_plan_que_habia_elegido(self):
@@ -276,7 +276,7 @@ class PerfilTests(TestCase):
         r = self.client.post(self.url, {"accion": "datos", "correo": "ana@correo.com",
                                         "telefono": "3" * 40}, follow=True)
         self.assertEqual(r.status_code, 200)
-        self.assertTrue(any("telefono" in m for m in self.mensajes(r)))
+        self.assertTrue(any("teléfono" in m for m in self.mensajes(r)))
 
     def test_cambio_de_clave_sin_campos_no_da_500(self):
         r = self.client.post(self.url, {"accion": "clave", "clave_actual": "Clave#123"}, follow=True)
@@ -310,3 +310,109 @@ class PanelAdminTests(TestCase):
         Pago.objects.create(usuario=self.cliente, referencia="R2", estado="Aprobado", ambiente="test")
         self.client.post(reverse("AdminEliminarUsuario", args=[self.cliente.id]))
         self.assertFalse(User.objects.filter(pk=self.cliente.pk).exists())
+
+
+
+class RecuperarContrasenaTests(TestCase):
+    #El recorrido completo: pedir enlace -> correo -> clave nueva -> dentro.
+
+    def setUp(self):
+        cache.clear()
+        self.usuario = crear_cuenta()
+
+    def pedir(self, correo="juan@correo.com"):
+        return self.client.post(reverse("password_reset"), {"email": correo})
+
+    def enlace_del_correo(self):
+        import re
+        from django.core import mail
+        self.assertEqual(len(mail.outbox), 1)
+        return re.search(r"https?://[^/]+(/cuenta/reset/\S+)", mail.outbox[0].body).group(1)
+
+    def test_recorrido_completo_y_entra_solo(self):
+        self.assertRedirects(self.pedir("JUAN@correo.com"), reverse("password_reset_done"))
+        enlace = self.enlace_del_correo()
+        #Django cambia el token de la URL por uno de sesion y redirige
+        formulario = self.client.get(enlace, follow=True)
+        url_form = formulario.redirect_chain[-1][0]
+        #Clave debil: la rechaza con las reglas de xGol
+        r = self.client.post(url_form, {"new_password1": "debil", "new_password2": "debil"})
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.context["form"].errors)
+        #Clave fuerte: la guarda y deja la sesion abierta
+        r = self.client.post(url_form, {"new_password1": "Nueva#123", "new_password2": "Nueva#123"})
+        self.assertRedirects(r, reverse("password_reset_complete"), fetch_redirect_response=False)
+        self.usuario.refresh_from_db()
+        self.assertTrue(self.usuario.check_password("Nueva#123"))
+        self.assertEqual(int(self.client.session["_auth_user_id"]), self.usuario.pk)
+
+    def test_enlace_usado_no_sirve_dos_veces(self):
+        self.pedir()
+        enlace = self.enlace_del_correo()
+        url_form = self.client.get(enlace, follow=True).redirect_chain[-1][0]
+        self.client.post(url_form, {"new_password1": "Nueva#123", "new_password2": "Nueva#123"})
+        self.client.logout()
+        r = self.client.get(enlace, follow=True)
+        self.assertFalse(r.context["validlink"])
+
+    def test_tope_de_solicitudes_por_correo(self):
+        from django.core import mail
+        from usuarios.views import SOLICITUDES_POR_CORREO
+        for _ in range(SOLICITUDES_POR_CORREO + 2):
+            self.assertRedirects(self.pedir(), reverse("password_reset_done"))
+        self.assertEqual(len(mail.outbox), SOLICITUDES_POR_CORREO)
+
+    def test_correo_sin_cuenta_no_revela_nada(self):
+        from django.core import mail
+        self.assertRedirects(self.pedir("nadie@correo.com"), reverse("password_reset_done"))
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_cambiar_la_clave_levanta_el_bloqueo_del_login(self):
+        from usuarios.views import FALLOS_POR_CUENTA
+        for _ in range(FALLOS_POR_CUENTA):
+            self.client.post(reverse("Ingresar"), {"username": "juan", "password": "mala"})
+        self.pedir()
+        url_form = self.client.get(self.enlace_del_correo(), follow=True).redirect_chain[-1][0]
+        self.client.post(url_form, {"new_password1": "Nueva#123", "new_password2": "Nueva#123"})
+        self.client.logout()
+        r = self.client.post(reverse("Ingresar"), {"username": "juan", "password": "Nueva#123"})
+        self.assertEqual(r.status_code, 302)
+
+    def test_pantallas_del_recorrido_abren(self):
+        for nombre in ("password_reset", "password_reset_done", "password_reset_complete"):
+            self.assertEqual(self.client.get(reverse(nombre)).status_code, 200, nombre)
+
+
+class SinAppDeGoogleTests(TestCase):
+    #Si la app de Google faltara en la base, Ingresar y Registro no pueden
+    #caerse: simplemente no muestran el boton.
+
+    def test_ingresar_y_registro_abren_sin_google(self):
+        for nombre in ("Ingresar", "Registro"):
+            r = self.client.get(reverse(nombre))
+            self.assertEqual(r.status_code, 200, nombre)
+            self.assertNotContains(r, "/social/google/login/")
+
+
+class FotoEnLaBaseTests(TestCase):
+    #Railway borra el disco en cada despliegue: la foto va en la base
+
+    def test_la_foto_se_guarda_reducida_y_en_webp(self):
+        import io
+        from PIL import Image
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        usuario = User.objects.create_user(username="ana", email="ana@correo.com", password="Clave#123")
+        Perfil.objects.create(usuario=usuario)
+        self.client.force_login(usuario)
+        buf = io.BytesIO()
+        Image.new("RGB", (1200, 800), "green").save(buf, "JPEG")
+        foto = SimpleUploadedFile("foto.jpg", buf.getvalue(), content_type="image/jpeg")
+        self.client.post(reverse("EditarPerfil"), {"accion": "datos", "correo": "ana@correo.com",
+                                                   "avatar": foto})
+        perfil = Perfil.objects.get(usuario=usuario)
+        self.assertTrue(perfil.foto_url.startswith("data:image/webp;base64,"))
+        self.assertFalse(perfil.avatar)
+        import base64
+        guardada = Image.open(io.BytesIO(base64.b64decode(perfil.foto.split(",", 1)[1])))
+        self.assertLessEqual(max(guardada.size), 256)
+        self.assertContains(self.client.get(reverse("EditarPerfil")), "data:image/webp;base64,")

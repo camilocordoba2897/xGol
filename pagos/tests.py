@@ -204,3 +204,75 @@ class FacturaTests(TestCase):
         pago = Pago.objects.create(usuario=usuario, referencia="R1", estado="Aprobado",
                                    monto=20000, subtotal=16807, iva=3193, monto_centavos=2000000)
         self.assertTrue(generar_factura_pdf(pago).getvalue().startswith(b"%PDF"))
+
+
+@override_settings(**LLAVES)
+class PanelDineroTests(TestCase):
+
+    def setUp(self):
+        self.admin = User.objects.create_superuser("jefe", password="Clave#123")
+        self.client.force_login(self.admin)
+        self.cliente = User.objects.create_user(username="cliente", password="Clave#123")
+        self.dinero = reverse("PanelAdmin") + "?tab=dinero"
+
+    def test_la_pagina_vieja_de_finanzas_lleva_al_panel(self):
+        self.assertRedirects(self.client.get(reverse("PanelFinanzas")), self.dinero,
+                             fetch_redirect_response=False)
+
+    def test_consultar_aparece_en_pagos_sin_id_de_la_pasarela(self):
+        #El caso del cliente que pago, cerro el navegador y el aviso no llego
+        pago = Pago.objects.create(usuario=self.cliente, referencia="XGOLSINID", estado="Anulado",
+                                   monto=20000, monto_centavos=2000000, clave_plan="mensual")
+        r = self.client.get(self.dinero)
+        self.assertContains(r, reverse("AdminSincronizarPago", args=[pago.id]))
+
+    def test_consultar_rescata_el_pago_y_vuelve_al_panel(self):
+        pago = Pago.objects.create(usuario=self.cliente, referencia="XGOLSINID", estado="Anulado",
+                                   monto=20000, monto_centavos=2000000, clave_plan="mensual")
+        tx = {"id": "tx-9", "reference": "XGOLSINID", "status": "APPROVED",
+              "amount_in_cents": 2000000, "currency": "COP", "payment_method_type": "PSE"}
+        with mock.patch.object(pasarela, "buscar_por_referencia", return_value=(tx, None)):
+            r = self.client.post(reverse("AdminSincronizarPago", args=[pago.id]))
+        self.assertRedirects(r, self.dinero, fetch_redirect_response=False)
+        pago.refresh_from_db()
+        self.assertTrue(pago.aplicado)
+        self.assertTrue(self.cliente.suscripcion.esta_vigente())
+
+    def test_los_pendientes_se_pueden_buscar_con_el_filtro(self):
+        Pago.objects.create(usuario=self.cliente, referencia="XGOLPEND", estado="Pendiente",
+                            monto=20000, monto_centavos=2000000, clave_plan="mensual")
+        self.assertNotContains(self.client.get(self.dinero), "cliente</td>")
+        self.assertContains(self.client.get(self.dinero + "&estado=Pendiente"), "cliente</td>")
+
+
+class ConciliacionAutomaticaTests(TestCase):
+    #Sin cron: el trafico del sitio la dispara, como mucho una vez por hora
+
+    def setUp(self):
+        cache.clear()
+
+    @override_settings(CONCILIACION_AUTOMATICA=True)
+    def test_se_dispara_una_sola_vez_por_hora(self):
+        from pagos import middleware
+        with mock.patch.object(middleware.threading, "Thread") as hilo:
+            for _ in range(5):
+                self.client.get(reverse("Inicio"))
+        self.assertEqual(hilo.call_count, 1)
+        self.assertIs(hilo.call_args.kwargs["target"], middleware._conciliar)
+
+    @override_settings(CONCILIACION_AUTOMATICA=False)
+    def test_apagada_no_hace_nada(self):
+        from pagos import middleware
+        with mock.patch.object(middleware.threading, "Thread") as hilo:
+            self.client.get(reverse("Inicio"))
+        hilo.assert_not_called()
+
+    def test_la_tarea_concilia_caduca_y_vence(self):
+        from pagos import middleware, servicios
+        with mock.patch.object(servicios, "conciliar_pendientes") as c, \
+             mock.patch.object(servicios, "caducar_pendientes") as d, \
+             mock.patch.object(servicios, "marcar_vencidas") as v, \
+             mock.patch.object(pasarela, "configurada", return_value=True), \
+             mock.patch.object(middleware.connections, "close_all"):
+            middleware._conciliar()
+        c.assert_called_once(); d.assert_called_once(); v.assert_called_once()
