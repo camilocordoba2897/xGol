@@ -279,10 +279,15 @@ function renderLibrary() {
   if (names_.length === 0) {
     listEl.innerHTML = '<span class="lib-empty-note">Aún no hay equipos guardados. Carga un CSV abajo y elige guardarlo.</span>';
   } else {
+    // La biblioteca es compartida: la ven todos los suscriptores. Un nombre
+    // de equipo con HTML (venido de un CSV) se ejecutaria en el navegador de
+    // cada uno, asi que se escapa el texto y el argumento del onclick.
+    const escHTML = t => String(t).replace(/[&<>"']/g, c =>
+      ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     listEl.innerHTML = names_.map(n => {
       const count = teamLibrary[n].rows.length;
-      return `<span class="lib-chip">${n} <span class="lib-chip-count">${count}p</span>
-        <button onclick="deleteTeamFromLibrary('${n.replace(/'/g,"\\'")}')" title="Eliminar">✕</button></span>`;
+      return `<span class="lib-chip">${escHTML(n)} <span class="lib-chip-count">${count}p</span>
+        <button onclick="deleteTeamFromLibrary(${escHTML(JSON.stringify(n))})" title="Eliminar">✕</button></span>`;
     }).join('');
   }
 }

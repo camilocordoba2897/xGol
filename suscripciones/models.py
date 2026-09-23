@@ -37,10 +37,10 @@ class Suscripcion(models.Model):
   def esta_vigente(self):
     if not self.activa or self.vencimiento is None:
       return False
-    return self.vencimiento>=timezone.now().date()
+    return self.vencimiento>=timezone.localdate()
 
   def activar(self,nombre_plan,precio_plan,dias_plan):
-    hoy=timezone.now().date()
+    hoy=timezone.localdate()
 
     if self.esta_vigente():
       self.vencimiento=self.vencimiento+timedelta(days=dias_plan)
@@ -59,13 +59,13 @@ class Suscripcion(models.Model):
     #marca. Quitar el acceso que el usuario ya pago seria un cobro sin
     #contraprestacion.
     self.renovacion_automatica=False
-    self.cancelada_en=timezone.now().date()
+    self.cancelada_en=timezone.localdate()
     self.save(update_fields=["renovacion_automatica","cancelada_en"])
 
   def dias_restantes(self):
     if not self.esta_vigente():
       return 0
-    return (self.vencimiento-timezone.now().date()).days
+    return (self.vencimiento-timezone.localdate()).days
 
   def __str__(self):
     return f"{self.usuario.username} - {self.plan} - {'Activa' if self.activa else 'Inactiva'}"

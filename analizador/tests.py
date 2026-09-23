@@ -153,3 +153,49 @@ class ApuestasTests(TestCase):
         r = self.client.post(reverse("GuardarApuestas"), "{no es json",
                              content_type="application/json")
         self.assertEqual(r.status_code, 400)
+
+
+
+class BibliotecaYLigasTests(TestCase):
+
+    def setUp(self):
+        self.usuario = User.objects.create_user(username="ana", password="Clave#123")
+        Perfil.objects.create(usuario=self.usuario)
+        self.client.force_login(self.usuario)
+
+    def test_la_biblioteca_compartida_exige_suscripcion(self):
+        r = self.client.get(reverse("CargarBiblioteca"))
+        self.assertIn(reverse("Suscripcion"), r["Location"])
+
+    def test_apuestas_con_forma_rara_responden_400(self):
+        for cuerpo in ([1, 2], {"betLog": "x"}, {"betLog": [], "betLogMeta": []}):
+            r = self.client.post(reverse("GuardarApuestas"), json.dumps(cuerpo),
+                                 content_type="application/json")
+            self.assertEqual(r.status_code, 400, cuerpo)
+
+    def test_motor_rechaza_ligas_que_no_cubre(self):
+        from suscripciones.models import Suscripcion
+        Suscripcion.objects.create(usuario=self.usuario).activar("Mensual", 20000, 30)
+        r = self.client.get(reverse("MotorPronostico") + "?liga=XYZ&local=A&visitante=B")
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.json()["error"], "liga_no_cubierta")
+
+
+class EvaluacionHonestaTests(TestCase):
+    #Un pronostico guardado despues del saque no puede contar en las metricas
+
+    def test_descarta_pronosticos_guardados_despues_del_saque(self):
+        from io import StringIO
+        from unittest import mock
+        from django.core.management import call_command
+        from analizador.models import PrediccionMotor
+        p = PrediccionMotor.objects.create(liga="PL", id_partido="99", equipo_local="A",
+                                           equipo_visitante="B", prob_local=.5,
+                                           prob_empate=.3, prob_visitante=.2)
+        dato = {"terminado": True, "gf": 2, "gc": 0, "utc": "2020-01-01T15:00:00Z"}
+        with mock.patch("analizador.management.commands.evaluar_motor.resultado_partido",
+                        return_value=(dato, None)):
+            call_command("evaluar_motor", stdout=StringIO())
+        p.refresh_from_db()
+        self.assertTrue(p.evaluado)
+        self.assertEqual(p.resultado, "")

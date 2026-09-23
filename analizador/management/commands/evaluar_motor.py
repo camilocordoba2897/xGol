@@ -18,10 +18,22 @@
 #
 #COSTE EN CUOTA: una peticion por partido pendiente de resultado (topada con
 #--maximo). Ejecutalo una vez al dia, despues de ajustar_motor.
+from datetime import datetime
+
 from django.core.management.base import BaseCommand
 from analizador.api_datos import resultado_partido
 from analizador.models import PesosMotor,PrediccionMotor
 from analizador.motor import calibracion,combinacion,evaluacion
+
+def _despues_del_saque(creado,utc):
+    if not creado or not utc:
+        return False
+    try:
+        saque=datetime.fromisoformat(str(utc).replace("Z","+00:00"))
+    except ValueError:
+        return False
+    return creado>=saque
+
 
 def _resultado(gl,gv):
     if gl>gv:
@@ -48,12 +60,24 @@ class Command(BaseCommand):
 
         nuevos=0
         sin_terminar=0
+        descartados=0
         for fila in pendientes:
             dato,error=resultado_partido(fila.id_partido)
             if error:
                 continue
             if not dato or not dato.get("terminado"):
                 sin_terminar+=1
+                continue
+            #Un pronostico guardado DESPUES del saque no vale: el navegador es
+            #quien manda el id del partido, y pedir el pronostico de un partido
+            #ya jugado lo guardaria como si fuera previo e inflaria las
+            #metricas. Se marca evaluado SIN resultado, y todas las metricas
+            #excluyen resultado="".
+            if _despues_del_saque(fila.creado,dato.get("utc")):
+                fila.evaluado=True
+                fila.resultado=""
+                fila.save(update_fields=["evaluado","resultado"])
+                descartados+=1
                 continue
             fila.goles_local=dato["gf"]
             fila.goles_visitante=dato["gc"]
@@ -65,6 +89,8 @@ class Command(BaseCommand):
         self.stdout.write("")
         self.stdout.write(f"Resultados nuevos incorporados: {nuevos}"
                           f"   (pendientes de jugarse: {sin_terminar})")
+        if descartados:
+            self.stdout.write(f"Descartados por guardarse despues del saque: {descartados}")
 
         # ---------- 2 y 3. reaprender por liga ----------
         if opciones["liga"]:

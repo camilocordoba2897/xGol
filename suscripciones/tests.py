@@ -1,7 +1,7 @@
 #Pruebas de planes, vigencia y control de acceso por suscripcion.
 #
 #Correr con:  python manage.py test suscripciones
-from datetime import timedelta
+from datetime import date, timedelta
 
 from django.contrib.auth.models import User
 from django.test import TestCase
@@ -14,7 +14,7 @@ from usuarios.models import Perfil, Rol
 
 
 def hoy():
-    return timezone.now().date()
+    return timezone.localdate()
 
 
 class PlanesTests(TestCase):
@@ -115,7 +115,14 @@ class CheckoutTests(TestCase):
 
     def setUp(self):
         self.usuario = User.objects.create_user(username="ana", password="Clave#123")
+        Perfil.objects.create(usuario=self.usuario, documento="1234567",
+                              fecha_nacimiento=date(1990, 1, 1))
         self.client.force_login(self.usuario)
+
+    def test_cuenta_de_google_sin_cedula_va_a_completar_perfil(self):
+        Perfil.objects.filter(usuario=self.usuario).update(documento=None, fecha_nacimiento=None)
+        self.assertRedirects(self.client.get(reverse("Checkout", args=["mensual"])),
+                             reverse("EditarPerfil"), fetch_redirect_response=False)
 
     def test_muestra_el_precio_del_servidor(self):
         r = self.client.get(reverse("Checkout", args=["mensual"]))
@@ -141,3 +148,29 @@ class ActivacionManualTests(TestCase):
         self.client.post(reverse("AdminActivarSuscripcion", args=[usuario.id]), {"plan": "trimestral"})
         s = Suscripcion.objects.filter(usuario=usuario).first()
         self.assertFalse(s is not None and s.esta_vigente())
+
+
+class ActivacionManualNoDegradaTests(TestCase):
+
+    def test_mensual_encima_de_trimestral_suma_dias_sin_cambiar_el_plan(self):
+        admin = User.objects.create_superuser("jefe", password="Clave#123")
+        usuario = User.objects.create_user(username="ana", password="Clave#123")
+        Suscripcion.objects.create(usuario=usuario).activar("Trimestral", 50000, 90)
+        self.client.force_login(admin)
+        self.client.post(reverse("AdminActivarSuscripcion", args=[usuario.id]), {"plan": "mensual"})
+        s = Suscripcion.objects.get(usuario=usuario)
+        self.assertEqual(s.plan, "Trimestral")
+        self.assertEqual(s.vencimiento, hoy() + timedelta(days=120))
+
+
+class ZonaHorariaTests(TestCase):
+
+    def test_el_dia_del_vencimiento_vale_hasta_medianoche_en_colombia(self):
+        #22/10 a las 8 p. m. en Bogota ya es 23/10 en UTC. Antes el plan se
+        #daba por vencido 5 horas antes de tiempo.
+        from datetime import datetime, timezone as dtz
+        from unittest import mock
+        noche = datetime(2026, 10, 23, 1, 0, tzinfo=dtz.utc)
+        with mock.patch("django.utils.timezone.now", return_value=noche):
+            s = Suscripcion(activa=True, vencimiento=date(2026, 10, 22))
+            self.assertTrue(s.esta_vigente())
