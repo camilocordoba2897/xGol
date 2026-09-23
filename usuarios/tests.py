@@ -311,6 +311,23 @@ class PanelAdminTests(TestCase):
         self.client.post(reverse("AdminEliminarUsuario", args=[self.cliente.id]))
         self.assertFalse(User.objects.filter(pk=self.cliente.pk).exists())
 
+    def test_acierto_del_modelo_sin_datos_no_pinta_cero(self):
+        #Un 0,0 % se leeria como "el modelo falla todo" cuando en realidad
+        #todavia no hay ningun partido evaluado
+        texto = self.client.get(reverse("PanelAdmin")).content.decode()
+        self.assertIn("Sin partidos evaluados todavía", texto)
+        self.assertNotIn("0 de 0 apuestas", texto)
+
+    def test_acierto_del_modelo_sale_del_registro(self):
+        from analizador.models import RegistroApuesta
+        for acierto in (True, True, True, False):
+            RegistroApuesta.objects.create(usuario=self.cliente, referencia="1", equipo_local="A",
+                                           equipo_visitante="B", mercado="1X2", etiqueta="Gana A",
+                                           probabilidad=0.6, acierto=acierto)
+        texto = self.client.get(reverse("PanelAdmin")).content.decode()
+        self.assertIn("3 de 4 apuestas", texto)
+        self.assertNotIn("Sin partidos evaluados todavía", texto)
+
 
 
 class RecuperarContrasenaTests(TestCase):

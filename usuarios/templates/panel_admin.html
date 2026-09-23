@@ -169,8 +169,13 @@
             <div class="kpi-icono"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg></div>
             <div class="kpi-nombre">Acierto del modelo</div>
           </div>
+          {% if modelo.total %}
           <div class="kpi-valor">{{ modelo.tasa|floatformat:1 }}<small>%</small></div>
           <div class="kpi-pie"><span>{{ modelo.aciertos }} de {{ modelo.total }} apuestas</span></div>
+          {% else %}
+          <div class="kpi-valor">—</div>
+          <div class="kpi-pie"><span>Sin partidos evaluados todavía</span></div>
+          {% endif %}
         </div>
       </div>
 
@@ -312,7 +317,7 @@
         </div>
       </div>
       {% else %}
-        <div class="panel"><div class="vacio"><b>Sin datos todavía</b>Registra partidos con resultado en el analizador.</div></div>
+        <div class="panel"><div class="vacio"><b>Sin datos todavía</b>Se llena solo cuando terminan los partidos que se pronosticaron en el analizador.</div></div>
       {% endif %}
     </section>
 
