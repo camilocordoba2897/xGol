@@ -730,7 +730,7 @@ body.home {
   padding: 24px;
   transition: transform var(--t), border-color var(--t), box-shadow var(--t);
 }
-.live-card:hover { transform: translateY(-5px); border-color: rgba(var(--acc-rgb),.45); box-shadow: 0 20px 44px rgba(0,0,0,.4); }
+.live-card:hover { border-color: rgba(var(--acc-rgb),.45); box-shadow: 0 20px 44px rgba(0,0,0,.4); }
 .lc-league {
   font-size: .68rem; font-weight: 700;
   letter-spacing: .1em; text-transform: uppercase;

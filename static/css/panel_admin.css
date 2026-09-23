@@ -350,7 +350,7 @@ html[data-modo="claro"] .tour-siguiente { color: #FFFFFF; }
   border-radius: var(--r-md); padding: 18px 18px 16px;
   transition: border-color var(--t), transform var(--t);
 }
-.kpi:hover { border-color: var(--line); transform: translateY(-2px); }
+/* Las cifras no se pulsan: se quedan quietas */
 .kpi::before {
   content: ''; position: absolute; inset: 0 0 auto 0; height: 2px;
   background: linear-gradient(90deg, var(--kpi-color, var(--accent)), transparent 75%);

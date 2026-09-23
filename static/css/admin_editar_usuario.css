@@ -1,0 +1,120 @@
+/* ============================================================
+   EDITAR USUARIO (panel de administracion)
+   Formulario a la izquierda y ficha del usuario a la derecha.
+   Nada se mueve al pasar el mouse: son datos y un formulario, no
+   botones. Antes la tarjeta subia al tocarla y parecia que flotaba.
+   ============================================================ */
+
+.eu-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .eu-grid { grid-template-columns: 1fr; }
+}
+
+.eu-card {
+  background: linear-gradient(160deg, var(--bg-1), var(--bg-2));
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+}
+@media (max-width: 480px) {
+  .eu-card { padding: 20px; }
+}
+
+.eu-titulo {
+  font-family: var(--ff-display);
+  font-size: 1.15rem; font-weight: 700; letter-spacing: -.01em;
+  color: var(--text-0);
+}
+.eu-sub { margin: 4px 0 22px; font-size: .86rem; color: var(--text-2); line-height: 1.5; }
+
+.eu-aviso {
+  margin-bottom: 18px; padding: 12px 14px;
+  background: rgba(248,113,113,.10);
+  border: 1px solid rgba(248,113,113,.32);
+  border-left: 3px solid var(--bad);
+  border-radius: 10px;
+  font-size: .88rem; color: var(--text-0);
+}
+
+/* ---- Campos ---- */
+.eu-campo { margin-bottom: 16px; }
+.eu-campo label {
+  display: block; margin-bottom: 6px;
+  font-size: .84rem; font-weight: 600; color: var(--text-1);
+}
+.eu-opcional { font-weight: 400; color: var(--text-3); }
+.eu-campo input {
+  width: 100%; box-sizing: border-box;
+  background: var(--bg-0);
+  border: 1px solid var(--line); border-radius: 10px;
+  padding: 12px 14px;
+  font-family: var(--ff-body); font-size: .95rem; color: var(--text-0);
+  transition: border-color var(--t), box-shadow var(--t);
+}
+.eu-campo input::placeholder { color: var(--text-3); }
+.eu-campo input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.eu-campo input:disabled { color: var(--text-2); opacity: .65; cursor: not-allowed; }
+.eu-pista { display: block; margin-top: 6px; font-size: .78rem; color: var(--text-3); }
+
+.eu-acciones { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+
+/* ---- Ficha del usuario ---- */
+.eu-ficha-cab {
+  display: flex; align-items: center; gap: 14px;
+  padding-bottom: 18px; margin-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+.eu-avatar {
+  width: 48px; height: 48px; flex-shrink: 0;
+  display: grid; place-items: center;
+  border-radius: 14px;
+  background: var(--accent-glow);
+  border: 1px solid rgba(var(--accent-rgb), .45);
+  font-family: var(--ff-display); font-size: 1.2rem; font-weight: 800;
+  color: var(--accent);
+}
+.eu-ficha-nombre {
+  font-family: var(--ff-display); font-weight: 700; font-size: 1.02rem;
+  color: var(--text-0); word-break: break-word;
+}
+.eu-ficha-correo { font-size: .84rem; color: var(--text-2); word-break: break-all; }
+
+.eu-datos { margin: 0; }
+.eu-datos > div {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line);
+}
+.eu-datos > div:last-child { border-bottom: none; }
+.eu-datos dt { font-size: .82rem; color: var(--text-2); }
+.eu-datos dd {
+  margin: 0; text-align: right;
+  font-size: .88rem; font-weight: 600; color: var(--text-0);
+}
+.eu-mono { font-family: var(--ff-mono); letter-spacing: .04em; }
+.eu-detalle { display: block; margin-top: 3px; font-size: .76rem; font-weight: 400; color: var(--text-2); }
+.eu-falta { font-weight: 500; color: var(--warn); }
+
+.eu-marca {
+  display: inline-block;
+  padding: 3px 10px; border-radius: 999px;
+  font-size: .76rem; font-weight: 700;
+  background: var(--bg-0); border: 1px solid var(--line); color: var(--text-2);
+}
+.eu-ok  { color: var(--accent); border-color: rgba(var(--accent-rgb), .4); background: var(--accent-glow); }
+.eu-mal { color: var(--bad); border-color: rgba(248,113,113,.4); background: rgba(248,113,113,.10); }
+
+.eu-nota {
+  margin-top: 16px; padding: 12px 14px;
+  background: var(--bg-0); border: 1px solid var(--line); border-radius: 10px;
+  font-size: .78rem; line-height: 1.55; color: var(--text-3);
+}

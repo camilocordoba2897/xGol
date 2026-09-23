@@ -193,7 +193,9 @@ nav a.btn-inicio { border-radius: 999px; }
   padding: 30px;
   transition: border-color var(--t), transform var(--t);
 }
-.card:hover { border-color: var(--accent-dim); transform: translateY(-2px); }
+/* Sin efecto al pasar el mouse: .card envuelve formularios, resumenes y
+   mensajes, nada que se pueda pulsar. Si subia al tocarla parecia que la
+   pantalla flotaba (editar usuario, checkout, recuperar contrasena). */
 
 .card--static:hover { transform: none; border-color: var(--line); }
 
@@ -296,6 +298,11 @@ footer p::before { content: ''; display: inline-block; width: 6px; height: 6px; 
   border: 1px solid var(--accent);
   padding: 6px 14px; border-radius: 999px;
   white-space: nowrap;
+}
+/* En el celular la etiqueta le quitaba medio ancho al titulo, que se partia
+   en tres lineas. Es decorativa: la franja ya dice "Gestion de usuarios". */
+@media (max-width: 560px) {
+  .admin-banner .admin-badge { display: none; }
 }
 
 /* Tarjetas de resumen del admin (mismo look que el número de precio de los planes) */
