@@ -84,10 +84,10 @@ Correr las pruebas antes de cada despliegue.
 | Comando | Qué hace |
 |---|---|
 | `python manage.py conciliar_pagos` | Concilia pagos pendientes con Wompi. **No hace falta programarlo**: el sitio lo ejecuta solo una vez por hora (`pagos/middleware.py`). Se puede apagar con `CONCILIACION_AUTOMATICA=False`. |
-| `python manage.py ajustar_motor` | Ajusta Dixon-Coles y Elo por liga. |
+| `python manage.py ajustar_motor` | Ajusta Dixon-Coles y Elo por liga. **Automático**: el sitio lo corre cada madrugada (3–6 a. m.) y afina cada liga una vez al mes (`analizador/middleware.py`). |
 | `python manage.py descargar_historico` | Descarga el histórico de partidos con cuotas. |
-| `python manage.py calibrar_con_historico` | Aprende pesos y calibración sobre el histórico. |
-| `python manage.py evaluar_motor` | Evalúa los pronósticos guardados y reaprende. |
+| `python manage.py calibrar_con_historico` | Aprende pesos y calibración sobre el histórico. **Automático** si la base no tiene calibración (por ejemplo, un despliegue nuevo). |
+| `python manage.py evaluar_motor` | Evalúa los pronósticos guardados y reaprende. **Automático** cada madrugada. |
 | `python manage.py verificar_historico` | Avisa de equipos del histórico sin emparejar. |
 
 ## Despliegue
