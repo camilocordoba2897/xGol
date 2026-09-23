@@ -395,7 +395,10 @@ def admin_eliminar_usuario(request,id):
 
     #Borrar el usuario borra en cascada sus pagos y facturas, y esos registros
     #contables se tienen que conservar. Quien ya pago se bloquea, no se borra.
-    if usuario.pagos.filter(estado__in=("Aprobado","Reembolsado")).exists():
+    #Solo cuentan los pagos de PRODUCCION: los del sandbox de Wompi (y las
+    #activaciones manuales hechas en modo prueba) no movieron dinero real, y
+    #sin esta distincion no habia forma de limpiar las cuentas de prueba.
+    if usuario.pagos.filter(estado__in=("Aprobado","Reembolsado"),ambiente="prod").exists():
         messages.error(request,f"{usuario.username} tiene pagos registrados y sus facturas deben conservarse. "
                                "Bloquea la cuenta en lugar de eliminarla.")
         return redirect("PanelAdmin")
