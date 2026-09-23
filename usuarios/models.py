@@ -19,7 +19,11 @@ class Perfil(models.Model):
   nombre=models.CharField(max_length=60,null=True,blank=True)
   apellidos=models.CharField(max_length=60,null=True,blank=True)
   tipo_documento=models.CharField(max_length=20,null=True,blank=True)
-  documento=models.CharField(max_length=30,null=True,blank=True)
+  #unique: la validacion del registro ya lo revisa, pero dos registros
+  #simultaneos pasarian los dos. El indice de la base es la garantia final.
+  #Las cuentas sin cedula (Google, alta del panel) guardan NULL, y en MySQL
+  #varios NULL no chocan entre si.
+  documento=models.CharField(max_length=30,null=True,blank=True,unique=True)
   fecha_nacimiento=models.DateField(null=True,blank=True)
   ciudad=models.CharField(max_length=60,null=True,blank=True)
   pais=models.CharField(max_length=60,null=True,blank=True)

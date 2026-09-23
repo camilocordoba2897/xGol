@@ -26,7 +26,8 @@
       {% endfor %}
     {% endif %}
 
-    <form action="{% url 'Registro' %}" method="post">
+    <form action="{% url 'Registro' %}" method="post" id="reg-form"
+          data-disponible="{% url 'RegistroDisponible' %}">
       {% csrf_token %}
 
       <div class="reg-fila">
@@ -250,10 +251,50 @@
     if(campo.value) revisar(campo);
   }
 
+  // ---- Usuario, correo y cedula: que no esten ya registrados ----
+  // Cuando el formato ya esta bien se le pregunta al servidor si el dato
+  // esta libre. Si esta tomado, el aviso sale debajo del campo y el
+  // navegador NO deja enviar el formulario hasta que se cambie.
+  var form=document.getElementById("reg-form");
+  var URL_DISPONIBLE=form?form.getAttribute("data-disponible"):"";
+  var csrf=form?form.querySelector("[name=csrfmiddlewaretoken]"):null;
+  var esperas={}, turnos={};
+
+  function consultar(campo,nombre){
+    var valor=campo.value.trim();
+    var turno=turnos[campo.id]=(turnos[campo.id]||0)+1;
+    var datos=new FormData();
+    datos.append("campo",nombre);
+    datos.append("valor",valor);
+    fetch(URL_DISPONIBLE,{method:"POST",body:datos,
+      headers:{"X-CSRFToken":csrf?csrf.value:"","X-Requested-With":"fetch"}})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        //Si mientras tanto siguio escribiendo, esta respuesta ya no vale
+        if(turno!==turnos[campo.id]||campo.value.trim()!==valor) return;
+        if(d.disponible===false){
+          campo.setCustomValidity(d.mensaje);
+          marcar(campo,d.mensaje);
+        }
+      })
+      .catch(function(){ /* sin red decide el servidor al enviar */ });
+  }
+
+  function conDisponibilidad(revisar,nombre){
+    return function(campo){
+      campo.setCustomValidity("");
+      revisar(campo);
+      clearTimeout(esperas[campo.id]);
+      turnos[campo.id]=(turnos[campo.id]||0)+1;
+      if(!URL_DISPONIBLE||!campo.value.trim()||campo.classList.contains("reg-mal")) return;
+      esperas[campo.id]=setTimeout(function(){ consultar(campo,nombre); },400);
+    };
+  }
+
   enlazar("reg-nombre",reSoloNombre,function(c){ revisarNombre(c,"El nombre"); },true);
   enlazar("reg-apellidos",reSoloNombre,function(c){ revisarNombre(c,"Los apellidos"); },true);
-  enlazar("reg-username",/[^A-Za-z0-9]/g,revisarUsuario,true);
-  enlazar("reg-email",/\s/g,revisarCorreo,true);
+  enlazar("reg-username",/[^A-Za-z0-9]/g,conDisponibilidad(revisarUsuario,"username"),true);
+  enlazar("reg-email",/\s/g,conDisponibilidad(revisarCorreo,"email"),true);
 
   // ---- Cedula: solo numeros ----
   // El filtro de "enlazar" ya borra letras y simbolos al teclear Y al pegar.
@@ -266,7 +307,7 @@
     if(/^(\d)\1+$/.test(v)){ marcar(campo,"Ese numero de cedula no es valido."); return; }
     marcar(campo,"");
   }
-  enlazar("reg-documento",/[^0-9]/g,revisarDocumento,true);
+  enlazar("reg-documento",/[^0-9]/g,conDisponibilidad(revisarDocumento,"documento"),true);
 
   // ---- Fecha de nacimiento: solo mayores de 18 ----
   (function(){

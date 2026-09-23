@@ -161,14 +161,31 @@ def partidos_proximos():
     #"Hoy". Al quitar esa pestaña, los partidos de hoy se habrian perdido de
     #la pagina entera. Se descartan solo los que ya terminaron: en una lista
     #que se llama "Proximos" un partido con resultado final no pinta nada.
-    datos = cache.get("partidos_proximos_v3")
+    #
+    #PARON DE SELECCIONES: en las fechas FIFA ninguna de las nueve ligas juega
+    #durante casi dos semanas. Con solo 7 dias la lista (y la tarjeta
+    #flotante, que sale de aqui) se quedaba vacia. Si la semana no trae nada,
+    #se sigue buscando hacia adelante en bloques de 10 dias, que es el rango
+    #maximo que acepta football-data, y se para en el primero con partidos.
+    datos = cache.get("partidos_proximos_v4")
     if datos is None:
         hoy = date.today()
-        hasta = (hoy + timedelta(days=7)).isoformat()
-        datos = [p for p in _partidos_rango(hoy.isoformat(), hasta)
-                 if p.get("estado") != "FINISHED"]
-        cache.set("partidos_proximos_v3", datos, 600)
+        hasta = hoy + timedelta(days=7)
+        datos = _pendientes(_partidos_rango(hoy.isoformat(), hasta.isoformat()))
+        desde = hasta + timedelta(days=1)
+        while not datos and desde <= hoy + timedelta(days=BUSCAR_HASTA):
+            hasta = desde + timedelta(days=9)
+            datos = _pendientes(_partidos_rango(desde.isoformat(), hasta.isoformat()))
+            desde = hasta + timedelta(days=1)
+        cache.set("partidos_proximos_v4", datos, 600)
     return datos
+
+#Dias hacia adelante que se buscan como mucho cuando la semana viene vacia.
+#Son 3 peticiones extra en el peor caso, y solo cada 10 minutos (cache).
+BUSCAR_HASTA = 30
+
+def _pendientes(partidos):
+    return [p for p in partidos if p.get("estado") != "FINISHED"]
 
 def partidos_vivo():
     datos = cache.get("partidos_vivo_v2")

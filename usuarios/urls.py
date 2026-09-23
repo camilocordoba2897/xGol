@@ -1,8 +1,9 @@
 from django.urls import path
-from usuarios.views import registro,ingresar,salir,panel_admin,editar_perfil,admin_eliminar_usuario,admin_editar_usuario,admin_estado_usuario,admin_crear_usuario
+from usuarios.views import registro,ingresar,salir,panel_admin,editar_perfil,admin_eliminar_usuario,admin_editar_usuario,admin_estado_usuario,admin_crear_usuario,disponible
 
 urlpatterns = [
     path('registro', registro, name="Registro"),
+    path('registro/disponible', disponible, name="RegistroDisponible"),
     path('ingresar', ingresar, name="Ingresar"),
     path('salir', salir, name="Salir"),
     path('panel-admin', panel_admin, name="PanelAdmin"),
