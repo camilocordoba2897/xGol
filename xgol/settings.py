@@ -73,12 +73,16 @@ MIDDLEWARE = [
     #Concilia los pagos una vez por hora sin necesidad de cron. Ver el motivo
     #en pagos/middleware.py.
     'pagos.middleware.ConciliacionAutomatica',
+    #Mantiene el motor de prediccion al dia sin cron: ver analizador/middleware.py
+    'analizador.middleware.MantenimientoMotor',
 ]
 
 #Apagada al correr las pruebas: un hilo aparte tocando la base en medio de
 #una prueba la volveria impredecible. Se puede apagar tambien desde .env.
 CONCILIACION_AUTOMATICA=(os.getenv('CONCILIACION_AUTOMATICA','True')=='True'
                          and 'test' not in sys.argv)
+MOTOR_AUTOMATICO=(os.getenv('MOTOR_AUTOMATICO','True')=='True'
+                  and 'test' not in sys.argv)
 ROOT_URLCONF = 'xgol.urls'
 
 TEMPLATES = [

@@ -34,7 +34,7 @@ from django.core.management.base import BaseCommand
 
 from analizador import api_historico, motor_datos
 from analizador.api_datos import LIGAS
-from analizador.models import PesosMotor
+from analizador.models import AjusteMotor, PesosMotor
 from analizador.motor import calibracion, combinacion, elo, evaluacion, nucleo, tasas
 
 MINIMO_PARA_APRENDER = 200
@@ -51,6 +51,10 @@ class Command(BaseCommand):
                  "medida mas fiable pero mas lento.")
         parser.add_argument("--simular", action="store_true",
             help="Calcula y muestra todo, pero NO guarda nada en la base de datos.")
+        parser.add_argument("--parametros-afinados", action="store_true",
+            help="Ajusta Dixon-Coles con la memoria afinada de cada liga (la de "
+                 "ajustar_motor --afinar) en vez de la de fabrica. Correr primero con "
+                 "--simular y comparar antes de dejarlo guardado.")
 
     def handle(self, *args, **opciones):
         descargadas = api_historico.ligas_descargadas()
@@ -71,6 +75,7 @@ class Command(BaseCommand):
         self.stdout.write("Esto no gasta cuota de API. Tarda alrededor de un minuto por liga.")
         self.stdout.write("")
 
+        self.afinados = opciones["parametros_afinados"]
         for liga in ligas:
             self._una_liga(liga, n_prueba, simular)
 
@@ -118,6 +123,18 @@ class Command(BaseCommand):
             return
         examen = temporadas[-n_prueba:]
 
+        #Con --parametros-afinados el Dixon-Coles del examen usa la misma
+        #memoria que el motor en vivo (la afinada de esta liga). Por defecto
+        #sigue con la de fabrica, que es con la que se midieron los 5.353
+        #partidos, hasta comparar las dos con --simular.
+        xi, ridge = tasas.XI_POR_DEFECTO, tasas.RIDGE_POR_DEFECTO
+        if self.afinados:
+            fila = AjusteMotor.objects.filter(liga=liga).first()
+            parametros = (fila.parametros or {}) if fila else {}
+            if parametros.get("xi") is not None and parametros.get("ridge") is not None:
+                xi, ridge = parametros["xi"], parametros["ridge"]
+        self.stdout.write(f"  memoria del modelo: xi {xi:.4f}, ridge {ridge:.3f}")
+
         #--- avance temporada por temporada ---
         historial_fuentes = []
         casos_calibracion = []
@@ -127,7 +144,7 @@ class Command(BaseCommand):
             entreno = [p for p in partidos if p["temporada"] < temporada]
             if len(entreno) < MINIMO_PARA_APRENDER:
                 continue
-            ajuste = tasas.ajustar(entreno)
+            ajuste = tasas.ajustar(entreno, xi=xi, ridge=ridge)
             tabla = elo.calcular(entreno)
 
             for p in partidos:

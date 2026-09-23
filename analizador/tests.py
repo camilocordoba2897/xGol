@@ -199,3 +199,59 @@ class EvaluacionHonestaTests(TestCase):
         p.refresh_from_db()
         self.assertTrue(p.evaluado)
         self.assertEqual(p.resultado, "")
+
+
+class MantenimientoMotorTests(TestCase):
+    #El motor se mantiene solo en produccion: sin cron y sin correr comandos a mano
+
+    def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
+
+    def visitar(self, hora):
+        from datetime import datetime
+        from unittest import mock
+        from django.test import override_settings
+        from django.utils import timezone
+        from analizador import middleware
+        momento = timezone.make_aware(datetime(2026, 9, 23, hora, 30))
+        with override_settings(MOTOR_AUTOMATICO=True), \
+             mock.patch.object(middleware.timezone, "localtime", return_value=momento), \
+             mock.patch.object(middleware, "_lanzar") as lanzar:
+            for _ in range(3):
+                self.client.get(reverse("Inicio"))
+        return [c.args[0] for c in lanzar.call_args_list]
+
+    def test_base_vacia_se_calibra_y_se_ajusta_de_una_vez(self):
+        from analizador import middleware
+        lanzados = self.visitar(hora=14)
+        self.assertEqual(lanzados.count(middleware._calibrar), 1)
+        self.assertEqual(lanzados.count(middleware._primer_ajuste), 1)
+
+    def test_con_datos_el_ajuste_solo_corre_de_madrugada_y_una_vez(self):
+        from analizador import middleware
+        from analizador.models import AjusteMotor, PesosMotor
+        AjusteMotor.objects.create(liga="PL", parametros={"xi": 0.003})
+        PesosMotor.objects.create(liga="PL", pesos={})
+        self.assertEqual(self.visitar(hora=14), [])
+        self.assertEqual(self.visitar(hora=4), [middleware._mantenimiento_nocturno])
+        self.assertEqual(self.visitar(hora=5), [])   #ya corrio hoy
+
+    def test_afina_una_vez_al_mes_y_no_todas_las_noches(self):
+        #Una liga que se quedo con los parametros de fabrica (porque afinar no
+        #los mejoraba) no puede provocar un afinado cada noche
+        from django.core.cache import cache
+        from analizador import middleware
+        from analizador.models import AjusteMotor
+        AjusteMotor.objects.create(liga="SA", parametros={})
+        self.assertTrue(middleware._toca_afinar())          #nunca se afino
+        cache.set("motor_afinado_reciente", 1, 60)
+        self.assertFalse(middleware._toca_afinar())
+
+    def test_el_primer_ajuste_es_el_rapido(self):
+        from unittest import mock
+        from analizador import middleware
+        with mock.patch.object(middleware, "_correr") as correr:
+            middleware._primer_ajuste()
+        self.assertEqual([c.args for c in correr.call_args_list],
+                         [("ajustar_motor",), ("evaluar_motor",)])
