@@ -940,17 +940,6 @@ button.btn:hover{background:var(--accent-deep)}
   transition:width .7s var(--ease-out),height .5s var(--ease-out)
 }
 
-/* Banner de sesión recuperada */
-.session-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
-  background:linear-gradient(135deg, var(--accent-deep), var(--bg-2));
-  border:1px solid var(--accent-dim);border-radius:12px;padding:11px 15px;margin-bottom:14px;
-  font-size:12.5px;color:var(--text-1);animation:rise .4s var(--ease-out) both}
-.session-banner strong{color:var(--accent)}
-.session-banner button{background:var(--bg-0);border:1px solid var(--line);color:var(--text-2);
-  font-size:11.5px;font-weight:600;padding:6px 13px;border-radius:8px;cursor:pointer;
-  transition:all .15s var(--ease);white-space:nowrap}
-.session-banner button:hover{border-color:var(--bad);color:var(--bad)}
-
 /* Foco visible accesible */
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 
@@ -1373,21 +1362,6 @@ html[data-modo="claro"] .modo-btn .ic-luna{display:block}
 .mteam-escudo{width:36px;height:36px;object-fit:contain;display:block;margin:0 auto 7px}
 
 /* Modo manual plegado (CSV + biblioteca) */
-.modo-manual{
-  border:1px solid var(--line-soft);border-radius:12px;
-  padding:0 16px;margin-top:4px;background:var(--bg-2);
-}
-.modo-manual > summary{
-  cursor:pointer;list-style:none;padding:13px 0;
-  font-family:var(--font-eyebrow);font-size:12px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.07em;color:var(--text-2);
-}
-.modo-manual > summary::-webkit-details-marker{display:none}
-.modo-manual > summary::before{content:'▸ ';color:var(--accent)}
-.modo-manual[open] > summary::before{content:'▾ '}
-.modo-manual > summary:hover{color:var(--accent)}
-.modo-manual[open]{padding-bottom:16px}
-
 @media (max-width:620px){
   .auto-partido{grid-template-columns:1fr auto 1fr;gap:8px}
   .auto-cuando{grid-column:1 / -1;text-align:left;margin-top:2px}

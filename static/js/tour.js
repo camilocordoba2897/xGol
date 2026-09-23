@@ -147,19 +147,6 @@
              'y te lleva solo a la pantalla del pronóstico.'
     },
     {
-      donde: ['#session-banner'],
-      titulo: 'Tu último análisis',
-      texto: 'Cuando vuelves, aquí se recupera el último enfrentamiento que estabas viendo. ' +
-             '<strong>Empezar de nuevo</strong> lo descarta y deja la pantalla limpia.'
-    },
-    {
-      donde: ['#modo-manual', '.modo-manual'],
-      titulo: 'Modo manual',
-      texto: 'Para ligas o partidos que la API no cubre. Cargas un <strong>CSV</strong> por ' +
-             'equipo con su historial y el pronóstico se calcula igual. Los equipos quedan ' +
-             'guardados en la biblioteca para no volver a subirlos.'
-    },
-    {
       donde: ['.guia-btn', 'button[onclick*="abrirGuia"]'],
       titulo: 'Esta guía',
       texto: 'Este botón vuelve a abrirla cuando quieras. Y ojo: en la pantalla del ' +
