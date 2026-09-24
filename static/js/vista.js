@@ -181,7 +181,7 @@
 
     var tarjetas = top.map(function(s, idx) {
       var esLocal = s.h > s.a, esEmpate = s.h === s.a;
-      var color = esLocal ? 'var(--home)' : esEmpate ? '#6b7280' : 'var(--away)';
+      var color = esLocal ? 'var(--home)' : esEmpate ? 'var(--draw)' : 'var(--away)';
       var etiqueta = esLocal ? names.team1 : esEmpate ? 'Empate' : names.team2;
       var ancho = Math.round((s.p / maxP) * 100);
       return '<div class="scoreline-card' + (idx === 0 ? ' sc-top' : '') + '">' +
@@ -196,7 +196,7 @@
       '<div class="pr-titulo">Resultado más probable</div>' +
       '<div class="pr-grande">' + top[0].h + ' - ' + top[0].a + '</div>' +
       '<div class="pr-sub">con ' + pct(top[0].p) + '% de probabilidad</div>' +
-      '<div class="pr-leyenda" style="margin:14px 0 8px">Top 12 marcadores &middot; Poisson + Dixon-Coles, ordenados por probabilidad</div>' +
+      '<div class="pr-leyenda" style="margin:14px 0 8px">Los 12 marcadores más probables, de mayor a menor</div>' +
       '<div class="scoreline-grid">' + tarjetas + '</div>' +
     '</div>';
   }

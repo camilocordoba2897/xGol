@@ -160,8 +160,9 @@ def pronosticar(local, visitante, ajuste_liga=None, tabla_elo=None, casas=None,
                 "consenso": consenso,
                 "mejor_cuota": mod_mercado.mejor_cuota(casas),
             }
-        else:
-            diagnostico["avisos"].append("las cuotas recibidas no se pudieron interpretar")
+        #Si las cuotas no se pudieron interpretar, el motor sigue con las otras
+        #fuentes y no se avisa en pantalla: igual que cuando no hay cuotas,
+        #lo mas limpio es que la fuente de mercado simplemente no aparezca.
 
     if not matrices:
         raise ValueError("no hay ninguna fuente disponible para pronosticar")

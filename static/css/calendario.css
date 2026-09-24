@@ -70,9 +70,14 @@
   outline:2px solid var(--accent);outline-offset:2px;
 }
 
-/* Accion principal: se aclara al pasar y se hunde al pulsar */
-.fecha-btn-establecer:hover{filter:brightness(1.08)}
-.fecha-btn-establecer:active{transform:translateY(1px);filter:brightness(.94)}
+/* Accion principal: se OSCURECE al senalarla y mas todavia al pulsarla.
+   Antes se aclaraba un 8 % (brightness 1.08) sobre un verde que ya es muy
+   claro, y no se notaba si estaba senalado o no. */
+.fecha-btn-establecer:hover{background:var(--accent-dim);border-color:var(--accent-dim)}
+.fecha-btn-establecer:active{transform:translateY(1px);filter:brightness(.85)}
+/* En claro el verde es oscuro: la letra va en blanco, no en el gris del fondo */
+html[data-modo="claro"] .fecha-btn-establecer,
+html[data-modo="claro"] .fecha-dia.sel{color:#fff}
 
 /* Accion secundaria: se enciende el borde y el texto */
 .fecha-btn-cancelar:hover{

@@ -91,6 +91,35 @@ button.btn-inicio:focus-visible {
   button.btn-inicio:hover { transform: none; }
 }
 
+/* MODO CLARO (analizador, ingresar y panel, que son las pantallas que
+   ponen data-modo="claro" en <html>). El verde #4ade80 sobre fondo blanco
+   tiene un contraste de 1,7 a 1: el boton casi no se leia. Aqui va el
+   verde oscuro del modo claro, y al senalarlo se rellena de verde con
+   letra blanca, igual que en oscuro se rellena de verde con letra oscura.
+   El selector lleva "html[data-modo]" delante para que pese mas que el
+   estilo propio de .volver-inicio del analizador. */
+html[data-modo="claro"] a.btn-inicio,
+html[data-modo="claro"] button.btn-inicio {
+  color: #0b5f42;
+  background: rgba(15, 122, 85, .08);
+  border-color: rgba(15, 122, 85, .40);
+}
+html[data-modo="claro"] a.btn-inicio:hover,
+html[data-modo="claro"] button.btn-inicio:hover {
+  color: #ffffff;
+  background: #0f7a55;
+  border-color: #0f7a55;
+}
+html[data-modo="claro"] a.btn-inicio:active,
+html[data-modo="claro"] button.btn-inicio:active {
+  background: #0b5f42;
+  border-color: #0b5f42;
+}
+html[data-modo="claro"] a.btn-inicio:focus-visible,
+html[data-modo="claro"] button.btn-inicio:focus-visible {
+  outline-color: #0f7a55;
+}
+
 /* En pantallas chicas se achica un poco para que no apriete */
 @media (max-width: 520px) {
   a.btn-inicio,
