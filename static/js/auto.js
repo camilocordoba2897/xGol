@@ -109,11 +109,23 @@
     if (!url) return;
     var previo = nodo.querySelector('.mteam-escudo');
     if (previo) { if (previo.src === url) return; previo.remove(); }
+    var luzPrevia = nodo.querySelector('.mteam-luz');
+    if (luzPrevia) luzPrevia.remove();
     var img = document.createElement('img');
     img.className = 'mteam-escudo';
     img.src = url;
     img.alt = '';
     nodo.insertBefore(img, nodo.firstChild);
+
+    // LUZ DEL ESCUDO: el mismo escudo, grande y muy difuminado, detras del
+    // equipo. Asi la luz sale con los colores de cada club sin tener que
+    // leerlos: los escudos vienen de football-data sin permiso CORS y el
+    // navegador no deja sacar sus pixeles, pero si dibujarlos con un filtro.
+    var luz = document.createElement('span');
+    luz.className = 'mteam-luz';
+    luz.setAttribute('aria-hidden', 'true');
+    luz.style.backgroundImage = 'url("' + String(url).replace(/"/g, '%22') + '")';
+    nodo.insertBefore(luz, nodo.firstChild);
   }
 
   // ============================================================
