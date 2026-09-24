@@ -689,6 +689,19 @@ html[data-modo="claro"] .cal-pista,
 html[data-modo="claro"] .apilada,
 html[data-modo="claro"] .mini-pista { background: #DDE3E1; }
 
+/* "Volver al sitio": su verde va escrito directo (#4ade80) y sobre el rail
+   blanco casi no se leia. Verde oscuro en reposo, relleno al senalarlo. */
+html[data-modo="claro"] .rail-inicio { color: #0b5f42; background: rgba(15,122,85,.10); }
+html[data-modo="claro"] .rail-inicio:hover { color: #FFFFFF; background: #0F7A55; }
+html[data-modo="claro"] .rail-inicio:active { background: #0B5F42; }
+
+/* Al senalarlos, estos botones se rellenan con su color. En claro ese color
+   es oscuro (verde #0F7A55, ambar #B45309) y la letra casi negra de modo
+   oscuro quedaba ilegible encima: aqui va en blanco. */
+html[data-modo="claro"] .accion-si:hover,
+html[data-modo="claro"] .accion-no:hover,
+html[data-modo="claro"] .dlg-btn-si { color: #FFFFFF; }
+
 /* ============================================================
    RESPONSIVE
    ============================================================ */
@@ -787,8 +800,9 @@ html[data-modo="claro"] .mini-pista { background: #DDE3E1; }
 .dlg-btn-si {
   background: var(--warn); color: #1a1102; border-color: var(--warn);
 }
+/* Se oscurece al senalarlo (antes se aclaraba y apenas se notaba) */
 .dlg-btn-si:hover {
-  filter: brightness(1.08);
+  filter: brightness(.82);
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(var(--warn-rgb),.38);
 }

@@ -93,7 +93,11 @@ def motor_pronostico(request):
     local=motor_datos.nombre_de_equipo(bruto_local,mapa)
     visitante=motor_datos.nombre_de_equipo(bruto_visitante,mapa)
 
-    casas,error_cuotas=motor_datos.casas_desde_api(liga,local,visitante)
+    #El motivo por el que no hay cuotas (sin_partido, limite de la API...) ya
+    #no se manda a la pantalla: salia como "sin cuotas (sin_partido)", que es
+    #un codigo interno y no le dice nada al usuario. Si hay cuotas, la tarjeta
+    #de cuotas y la tabla de fuentes las muestran; si no, simplemente no salen.
+    casas,_motivo_sin_cuotas=motor_datos.casas_desde_api(liga,local,visitante)
     pesos,temperatura,temperatura_sm,fila_pesos=_pesos_y_calibracion(liga)
 
     try:
@@ -128,8 +132,6 @@ def motor_pronostico(request):
     salida["liga"]=liga
     salida["local"]=local
     salida["visitante"]=visitante
-    if error_cuotas:
-        salida["diagnostico"]["avisos"].append(f"sin cuotas ({error_cuotas})")
 
     id_partido=(request.GET.get("id_partido") or "").strip()
     if id_partido:

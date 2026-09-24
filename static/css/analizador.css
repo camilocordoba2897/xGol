@@ -702,8 +702,15 @@ html[data-modo="claro"] .guia-btn{background:#ffffff}
 .panel-admin svg{width:15px;height:15px;fill:none;stroke:currentColor;
   stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 
-/* En modo claro no hace falta nada aparte: el boton usa las variables del
-   tema, que ya cambian solas. */
+/* En modo claro SI hace falta: los verdes de arriba van escritos directos,
+   no con variables, y #4ade80 sobre blanco casi no se leia. Verde oscuro en
+   reposo y relleno verde con letra blanca al senalarlo. */
+html[data-modo="claro"] .panel-admin{
+  color:#0b5f42;background:rgba(15,122,85,.08);border-color:rgba(15,122,85,.40);
+}
+html[data-modo="claro"] .panel-admin:hover{
+  color:#fff;background:#0f7a55;border-color:#0f7a55;
+}
 
 @media (max-width:560px){
   .panel-admin{font-size:.75rem;padding:7px 12px}
