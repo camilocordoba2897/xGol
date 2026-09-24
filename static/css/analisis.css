@@ -742,7 +742,30 @@ body:has(.lib-modal-bg.show) .subir-btn{opacity:0;visibility:hidden}
 .pr-header .mteam:first-child{justify-self:end}
 .pr-header .mteam:last-child{justify-self:start}
 
+/* ---- Luz de los escudos ----
+   auto.js pone detras de cada escudo una copia del mismo escudo, grande y
+   muy difuminada: la luz sale con los colores del club. Va en z-index -1
+   dentro de .mteam (que abre su propia capa con z-index 0), asi queda por
+   encima del fondo de la cabecera pero debajo del escudo y del nombre. La
+   cabecera ya tiene overflow:hidden y recorta la luz en sus esquinas. */
+.pr-header .mteam{position:relative;z-index:0}
+/* El escudo se estira a todo el recuadro (100% 100%) a proposito: con
+   "contain" un escudo alto dejaba la luz en una franja vertical. Estirado y
+   difuminado se vuelve un resplandor redondo; la mascara radial le borra
+   los bordes para que se apague suave hacia afuera. */
+.mteam-luz{
+  position:absolute;left:50%;top:44px;z-index:-1;
+  width:380px;height:300px;transform:translate(-50%,-50%);
+  background-position:center;background-size:100% 100%;background-repeat:no-repeat;
+  filter:blur(46px) saturate(1.6);
+  -webkit-mask-image:radial-gradient(closest-side,#000 30%,transparent 100%);
+  mask-image:radial-gradient(closest-side,#000 30%,transparent 100%);
+  opacity:.42;pointer-events:none;
+}
+html[data-modo="claro"] .mteam-luz{opacity:.3}
+
 @media (max-width:520px){
+  .mteam-luz{top:34px;width:240px;height:200px;filter:blur(34px) saturate(1.6)}
   .pr-header .match-teams{gap:12px}
   .pr-header .mteam{max-width:none}
   .pr-fecha{font-size:11px;white-space:normal}
