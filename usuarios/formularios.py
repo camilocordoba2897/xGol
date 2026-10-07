@@ -15,6 +15,10 @@ from usuarios.validaciones import validar_contrasena
 
 
 class FormularioNuevaContrasena(SetPasswordForm):
+    #El sitio corre con LANGUAGE_CODE en ingles: sin esto, si las dos claves no
+    #coinciden sale "The two password fields didn't match." en pantalla.
+    error_messages = {"password_mismatch": "Las dos contraseñas no coinciden."}
+
     def clean_new_password1(self):
         clave = self.cleaned_data.get("new_password1")
         _, error = validar_contrasena(clave)
