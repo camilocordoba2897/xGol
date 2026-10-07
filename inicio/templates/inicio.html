@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/home.css' %}?v=36">
+<link rel="stylesheet" href="{% static 'css/home.css' %}?v=37">
 </head>
 <body class="home">
 
@@ -37,6 +37,10 @@
       <a href="#partidos">Partidos</a>
       <a href="#ligas">Ligas</a>
       <a href="#" onclick="abrirComoFunciona(event)">Cómo funciona</a>
+      {# Solo en el menú del celular: ahí no cabe la pestaña lateral #}
+      <a href="{% static 'manual/manual-de-usuario.html' %}" class="nav-manual" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg>Manual de usuario
+      </a>
     </div>
 
     <div class="nav-actions">
@@ -916,6 +920,16 @@
 </script>
 
 <script src="{% static 'js/prediccion.js' %}?v=5"></script>
+
+<!-- MANUAL DE USUARIO: pestaña fija en el borde izquierdo. Vive en el margen
+     que deja el contenido (28 px), así que no tapa nada. Abre en otra pestaña
+     para no perder el home. En celular va dentro del menú. -->
+<a class="manual-tab" href="{% static 'manual/manual-de-usuario.html' %}" target="_blank" rel="noopener"
+   aria-label="Abrir el manual de usuario (se abre en otra pestaña)">
+  <svg class="manual-tab-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg>
+  <span class="manual-tab-txt">Manual</span>
+  <span class="manual-tab-globo" aria-hidden="true">Manual de usuario<small>Abre la guía paso a paso</small></span>
+</a>
 
 <!-- BOTON SUBIR -->
 <button type="button" class="subir" id="btnSubir" onclick="irArriba()" title="Volver al inicio" aria-label="Volver al inicio de la página">
