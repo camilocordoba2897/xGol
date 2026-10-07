@@ -1428,3 +1428,122 @@ body.home {
 .pc-vacio-i{ font-size:1.9rem; opacity:.35; margin-bottom:8px; }
 .pc-vacio-t{ font-size:.9rem; font-weight:600; color:var(--texto-1); line-height:1.45; }
 .pc-vacio-s{ font-size:.72rem; color:var(--texto-3); margin-top:6px; }
+/* ============================================================
+   MANUAL DE USUARIO — pestaña fija en el borde izquierdo
+   Mide 26 px y el contenido del home empieza a 28 px del borde,
+   así que nunca tapa nada. Al señalarla se oscurece, se asoma un
+   poco y aparece un globo con el nombre completo.
+   En pantallas de 1020 px o menos se esconde: ahí el manual está
+   dentro del menú ☰ (.nav-manual).
+   ============================================================ */
+.manual-tab {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  z-index: 490;
+  width: 26px;
+  padding: 14px 0 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  border-radius: 0 12px 12px 0;
+  background: linear-gradient(180deg, var(--acc-bright), var(--acc));
+  color: #04140a;
+  text-decoration: none;
+  box-shadow: 0 10px 26px rgba(0,0,0,.45), 0 0 0 1px rgba(var(--acc-rgb),.35);
+  transform: translate(-100%, -50%);
+  animation: manualEntra .6s cubic-bezier(.23,1,.32,1) .5s forwards;
+  transition: width var(--t), background var(--t), color var(--t), box-shadow var(--t);
+}
+@keyframes manualEntra { to { transform: translate(0, -50%); } }
+.manual-tab-ic {
+  width: 15px; height: 15px;
+  fill: none; stroke: currentColor;
+  stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+  transition: transform var(--t);
+}
+.manual-tab-txt {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--ff-display);
+  font-weight: 800;
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.manual-tab-globo {
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 9px 13px;
+  border-radius: 12px;
+  border: 1px solid rgba(var(--acc-rgb),.35);
+  background: rgba(10,11,14,.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--texto-0);
+  font-family: var(--ff-display);
+  font-weight: 700;
+  font-size: .86rem;
+  white-space: nowrap;
+  box-shadow: 0 12px 30px rgba(0,0,0,.5);
+  opacity: 0; visibility: hidden;
+  transform: translate(-6px, -50%);
+  transition: opacity var(--t), transform var(--t), visibility var(--t);
+  pointer-events: none;
+}
+.manual-tab-globo small {
+  font-family: var(--ff-body);
+  font-weight: 500;
+  font-size: .72rem;
+  color: var(--texto-3);
+}
+.manual-tab-globo::before {
+  content: "";
+  position: absolute; left: -6px; top: 50%;
+  width: 10px; height: 10px;
+  margin-top: -5px;
+  background: inherit;
+  border-left: 1px solid rgba(var(--acc-rgb),.35);
+  border-bottom: 1px solid rgba(var(--acc-rgb),.35);
+  transform: rotate(45deg);
+}
+.manual-tab:hover,
+.manual-tab:focus-visible {
+  width: 32px;
+  background: linear-gradient(180deg, #22c55e, #15803d);
+  color: #fff;
+  box-shadow: 0 14px 34px rgba(0,0,0,.55), 0 0 0 4px rgba(var(--acc-rgb),.18), 0 0 26px rgba(var(--acc-rgb),.35);
+}
+.manual-tab:hover .manual-tab-ic,
+.manual-tab:focus-visible .manual-tab-ic { transform: scale(1.12) rotate(-8deg); }
+.manual-tab:hover .manual-tab-globo,
+.manual-tab:focus-visible .manual-tab-globo { opacity: 1; visibility: visible; transform: translate(0, -50%); }
+.manual-tab:active { background: linear-gradient(180deg, #16a34a, #166534); }
+.manual-tab:focus-visible { outline: 2px solid var(--acc); outline-offset: 3px; }
+
+/* el enlace del menú solo existe en el celular */
+.nav-links .nav-manual { display: none; }
+.nav-manual svg {
+  width: 17px; height: 17px; flex: none;
+  fill: none; stroke: currentColor;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+
+@media (max-width: 1020px) {
+  .manual-tab { display: none; }
+  .nav-links .nav-manual {
+    display: flex; align-items: center; gap: 9px;
+    margin-top: 4px;
+    color: var(--acc);
+    border-top: 1px solid var(--borde-soft);
+  }
+  .nav-links .nav-manual:hover { color: var(--acc-bright); background: rgba(var(--acc-rgb),.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .manual-tab { animation: none; transform: translate(0, -50%); }
+  .manual-tab, .manual-tab-ic, .manual-tab-globo { transition: none; }
+}

@@ -14,7 +14,7 @@
 #Nada mas del proyecto se toca: ni el motor, ni las vistas, ni el frontend.
 import unicodedata
 import requests
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from django.conf import settings
 from django.core.cache import cache
 
@@ -42,8 +42,12 @@ DIAS_ADELANTE = 45        #ventana de proximos partidos que se ofrece.
 PARTIDOS_PROFUNDO = 60    #historial largo para enfrentamientos directos.
                           #Es la MISMA peticion (solo cambia el limit), asi
                           #que no gasta cuota extra. El motor sigue usando 15.
-DIAS_ATRAS = 14           #ventana hacia atras: para mostrar los que ya se jugaron
-                          #con su marcador, igual que en la referencia.
+DIAS_ATRAS = 60           #ventana hacia atras para los que ya se jugaron. Con
+                          #14 dias, en cada fecha FIFA las ligas europeas se
+                          #quedaban sin "Resultados recientes". Es la MISMA
+                          #peticion: ampliar la ventana no gasta cuota.
+MAX_JUGADOS = 20          #de esa ventana se muestran solo los mas recientes
+                          #(unas dos jornadas), para no alargar la lista.
 DIAS_HISTORIAL = 365      #ventana del historial de UN equipo.
                           #ESTO ARREGLA EL AVISO "historial insuficiente".
                           #football-data.org, si no se le pasa un rango de
@@ -115,18 +119,25 @@ def _fd_partidos_liga(liga):
     })
     if error:
         return [], error
-    salida = []
+    #Un partido sin jugar cuya hora ya paso hace rato es uno aplazado que el
+    #proveedor no actualizo: no se puede ofrecer su pronostico.
+    vencido = (datetime.now(timezone.utc) - timedelta(hours=4)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    jugados, por_jugar = [], []
     for m in crudo.get("matches", []):
-        if m.get("status") in ("CANCELLED", "POSTPONED"):
+        estado = m.get("status", "")
+        if estado in ("CANCELLED", "POSTPONED", "SUSPENDED"):
             continue
         local = _equipo_resumen(m.get("homeTeam"))
         visitante = _equipo_resumen(m.get("awayTeam"))
         if not local["id"] or not visitante["id"]:
             continue
-        estado = m.get("status", "")
-        jugado = estado == "FINISHED"
         completo = (m.get("score", {}) or {}).get("fullTime", {}) or {}
-        salida.append({
+        jugado = estado in ("FINISHED", "AWARDED") and completo.get("home") is not None \
+            and completo.get("away") is not None
+        en_juego = estado in ("IN_PLAY", "PAUSED", "LIVE")
+        if not jugado and not en_juego and (m.get("utcDate") or "") < vencido:
+            continue
+        (jugados if jugado else por_jugar).append({
             "id": m.get("id"),
             "utc": m.get("utcDate", ""),
             "estado": estado,
@@ -137,8 +148,9 @@ def _fd_partidos_liga(liga):
             "local": local,
             "visitante": visitante,
         })
-    salida.sort(key=lambda x: x["utc"])
-    return salida[:MAX_PARTIDOS], None
+    jugados.sort(key=lambda x: x["utc"])
+    por_jugar.sort(key=lambda x: x["utc"])
+    return jugados[-MAX_JUGADOS:] + por_jugar[:MAX_PARTIDOS], None
 
 
 def _fila_desde_partido(m, id_equipo, nombre_equipo):
