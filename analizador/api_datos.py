@@ -376,7 +376,10 @@ def ligas_disponibles():
 
 def partidos_liga(liga):
     #Un error NUNCA se cachea: si no, un 429 pasajero deja la liga vacia 10 min
-    llave = f"auto_partidos_{liga}"
+    #"v2": la cache vive en la base y sobrevive al despliegue. Con la llave
+    #vieja, tras subir el cambio de DIAS_ATRAS se seguia sirviendo hasta 15 min
+    #la lista sin "Resultados recientes". Cambiar la llave la invalida al instante.
+    llave = f"auto_partidos_v2_{liga}"
     datos = cache.get(llave)
     if datos is not None:
         return datos, None
