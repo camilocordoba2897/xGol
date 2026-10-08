@@ -1429,10 +1429,11 @@ body.home {
 .pc-vacio-t{ font-size:.9rem; font-weight:600; color:var(--texto-1); line-height:1.45; }
 .pc-vacio-s{ font-size:.72rem; color:var(--texto-3); margin-top:6px; }
 /* ============================================================
-   MANUAL DE USUARIO — pestaña fija en el borde izquierdo
-   Mide 26 px y el contenido del home empieza a 28 px del borde,
-   así que nunca tapa nada. Al señalarla se oscurece, se asoma un
-   poco y aparece un globo con el nombre completo.
+   MANUAL DE USUARIO — ícono fijo en el borde izquierdo, a media altura
+   Es media cápsula de 26 x 52 px: el contenido del home empieza a 28 px
+   del borde, así que nunca tapa nada. Un brillo suave cada pocos segundos
+   lo hace notar sin molestar. Al señalarlo se oscurece, se asoma un poco
+   y aparece el globo con el nombre completo.
    En pantallas de 1020 px o menos se esconde: ahí el manual está
    dentro del menú ☰ (.nav-manual).
    ============================================================ */
@@ -1442,35 +1443,50 @@ body.home {
   top: 50%;
   z-index: 490;
   width: 26px;
-  padding: 14px 0 12px;
+  height: 52px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 9px;
-  border-radius: 0 12px 12px 0;
-  background: linear-gradient(180deg, var(--acc-bright), var(--acc));
+  padding-left: 4px;
+  border-radius: 0 26px 26px 0;
+  background: linear-gradient(135deg, var(--acc-bright), var(--acc) 60%, #22c55e);
   color: #04140a;
   text-decoration: none;
-  box-shadow: 0 10px 26px rgba(0,0,0,.45), 0 0 0 1px rgba(var(--acc-rgb),.35);
-  transform: translate(-100%, -50%);
-  animation: manualEntra .6s cubic-bezier(.23,1,.32,1) .5s forwards;
-  transition: width var(--t), background var(--t), color var(--t), box-shadow var(--t);
+  box-shadow: 0 8px 22px rgba(0,0,0,.45), 0 0 0 1px rgba(var(--acc-rgb),.4);
+  transform: translate(0, -50%);
+  animation: manualEntra .6s cubic-bezier(.23,1,.32,1) .5s both,
+             manualBrillo 3.6s ease-in-out 1.4s infinite;
+  transition: width var(--t), padding var(--t), background var(--t), color var(--t), box-shadow var(--t);
 }
-@keyframes manualEntra { to { transform: translate(0, -50%); } }
+@keyframes manualEntra { from { transform: translate(-100%, -50%); } }
+@keyframes manualBrillo {
+  0%, 70%, 100% { box-shadow: 0 8px 22px rgba(0,0,0,.45), 0 0 0 1px rgba(var(--acc-rgb),.4); }
+  35% { box-shadow: 0 8px 22px rgba(0,0,0,.45), 0 0 0 1px rgba(var(--acc-rgb),.4), 0 0 18px 2px rgba(var(--acc-rgb),.55); }
+}
 .manual-tab-ic {
-  width: 15px; height: 15px;
-  fill: none; stroke: currentColor;
-  stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+  width: 17px; height: 17px; flex: none;
+  fill: currentColor;
+  transform-origin: 50% 60%;
+  animation: manualHoja 3.6s ease-in-out 1.4s infinite;
   transition: transform var(--t);
 }
-.manual-tab-txt {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  font-family: var(--ff-display);
-  font-weight: 800;
-  font-size: .68rem;
-  letter-spacing: .14em;
-  text-transform: uppercase;
+/* el libro "pasa la hoja" cada pocos segundos */
+@keyframes manualHoja {
+  0%, 78%, 100% { transform: none; }
+  84% { transform: rotate(-12deg) scale(1.12); }
+  90% { transform: rotate(7deg) scale(1.06); }
+  95% { transform: rotate(-3deg); }
+}
+/* onda verde que sale del botón y se desvanece */
+.manual-tab::after {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: manualOnda 3.6s ease-out 1.4s infinite;
+}
+@keyframes manualOnda {
+  0%   { box-shadow: 0 0 0 0 rgba(var(--acc-rgb),.6); }
+  45%, 100% { box-shadow: 0 0 0 9px rgba(var(--acc-rgb),0); }
 }
 .manual-tab-globo {
   position: absolute;
@@ -1512,16 +1528,28 @@ body.home {
 }
 .manual-tab:hover,
 .manual-tab:focus-visible {
-  width: 32px;
-  background: linear-gradient(180deg, #22c55e, #15803d);
+  width: 34px;
+  padding-left: 9px;
+  background: linear-gradient(135deg, #22c55e, #16a34a 55%, #15803d);
   color: #fff;
-  box-shadow: 0 14px 34px rgba(0,0,0,.55), 0 0 0 4px rgba(var(--acc-rgb),.18), 0 0 26px rgba(var(--acc-rgb),.35);
+  animation-play-state: running, paused;
+  box-shadow: 0 12px 30px rgba(0,0,0,.55), 0 0 0 4px rgba(var(--acc-rgb),.18), 0 0 24px rgba(var(--acc-rgb),.4);
 }
 .manual-tab:hover .manual-tab-ic,
-.manual-tab:focus-visible .manual-tab-ic { transform: scale(1.12) rotate(-8deg); }
+.manual-tab:focus-visible .manual-tab-ic { animation: none; transform: scale(1.18) rotate(-8deg); }
+.manual-tab:hover::after,
+.manual-tab:focus-visible::after { animation: none; }
 .manual-tab:hover .manual-tab-globo,
 .manual-tab:focus-visible .manual-tab-globo { opacity: 1; visibility: visible; transform: translate(0, -50%); }
-.manual-tab:active { background: linear-gradient(180deg, #16a34a, #166534); }
+.manual-tab:active { background: linear-gradient(135deg, #16a34a, #166534); }
+.manual-tab:active .manual-tab-ic { transform: scale(.94); }
+
+/* En pantallas de 1340 px o más el margen libre es de 43 px: el botón crece */
+@media (min-width: 1340px) {
+  .manual-tab { width: 36px; height: 64px; padding-left: 7px; border-radius: 0 32px 32px 0; }
+  .manual-tab-ic { width: 20px; height: 20px; }
+  .manual-tab:hover, .manual-tab:focus-visible { width: 44px; padding-left: 12px; }
+}
 .manual-tab:focus-visible { outline: 2px solid var(--acc); outline-offset: 3px; }
 
 /* el enlace del menú solo existe en el celular */
@@ -1544,6 +1572,6 @@ body.home {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .manual-tab { animation: none; transform: translate(0, -50%); }
+  .manual-tab, .manual-tab-ic, .manual-tab::after { animation: none; }
   .manual-tab, .manual-tab-ic, .manual-tab-globo { transition: none; }
 }
