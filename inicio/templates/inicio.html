@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/home.css' %}?v=37">
+<link rel="stylesheet" href="{% static 'css/home.css' %}?v=40">
 </head>
 <body class="home">
 
@@ -921,13 +921,12 @@
 
 <script src="{% static 'js/prediccion.js' %}?v=5"></script>
 
-<!-- MANUAL DE USUARIO: pestaña fija en el borde izquierdo. Vive en el margen
-     que deja el contenido (28 px), así que no tapa nada. Abre en otra pestaña
-     para no perder el home. En celular va dentro del menú. -->
+<!-- MANUAL DE USUARIO: solo el ícono, fijo en el borde izquierdo a media
+     altura. Vive en el margen que deja el contenido (28 px), así que no tapa
+     nada. Al señalarlo aparece el nombre. En celular va dentro del menú. -->
 <a class="manual-tab" href="{% static 'manual/manual-de-usuario.html' %}" target="_blank" rel="noopener"
    aria-label="Abrir el manual de usuario (se abre en otra pestaña)">
-  <svg class="manual-tab-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg>
-  <span class="manual-tab-txt">Manual</span>
+  <svg class="manual-tab-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M232,44H160a43.86,43.86,0,0,0-32,13.85A43.86,43.86,0,0,0,96,44H24A12,12,0,0,0,12,56V200a12,12,0,0,0,12,12H96a20,20,0,0,1,20,20,12,12,0,0,0,24,0,20,20,0,0,1,20-20h72a12,12,0,0,0,12-12V56A12,12,0,0,0,232,44ZM96,188H36V68H96a20,20,0,0,1,20,20V192.81A43.79,43.79,0,0,0,96,188Zm124,0H160a43.71,43.71,0,0,0-20,4.83V88a20,20,0,0,1,20-20h60Z"/></svg>
   <span class="manual-tab-globo" aria-hidden="true">Manual de usuario<small>Abre la guía paso a paso</small></span>
 </a>
 
