@@ -3,7 +3,7 @@
 #ni gasten el cupo de 10 peticiones por minuto.
 #
 #Correr con:  python manage.py test inicio
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from unittest import mock
 
 from django.core.cache import cache
@@ -134,6 +134,40 @@ class TarjetaDestacadaTests(TestCase):
 
     def test_sin_partidos_explica_el_motivo(self):
         self.assertEqual(self._con_partidos([])["motivo"], "sin_partidos")
+
+
+class EnVivoTests(TestCase):
+    #El plan gratuito de football-data entrega los partidos en juego con unos
+    #5 minutos de retraso. Fuera de horario de partido la pestaña sale vacia,
+    #asi que aqui se comprueba con datos simulados que, cuando SI hay partidos,
+    #salen los de las nueve ligas con su marcador y su minuto.
+    def setUp(self):
+        cache.clear()
+
+    @staticmethod
+    def _crudo(estado, codigo="PL", minutos_jugados=30):
+        inicio = datetime.now(timezone.utc) - timedelta(minutes=minutos_jugados)
+        return {"status": estado, "utcDate": inicio.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "competition": {"code": codigo, "name": "Premier League", "emblem": ""},
+                "homeTeam": {"shortName": "Arsenal", "crest": ""},
+                "awayTeam": {"shortName": "Chelsea", "crest": ""},
+                "score": {"fullTime": {"home": 1, "away": 0}, "halfTime": {"home": 1, "away": 0}}}
+
+    def test_solo_salen_los_que_se_estan_jugando_en_ligas_cubiertas(self):
+        crudo = {"matches": [self._crudo("IN_PLAY"), self._crudo("PAUSED", "BSA", 50),
+                             self._crudo("FINISHED"), self._crudo("TIMED"),
+                             self._crudo("IN_PLAY", "ELC")]}
+        with mock.patch.object(api_partidos, "_pedir", return_value=crudo):
+            vivos = self.client.get(reverse("PartidosVivo")).json()["partidos"]
+        self.assertEqual([p["estado"] for p in vivos], ["IN_PLAY", "PAUSED"])
+        self.assertEqual((vivos[0]["goles_local"], vivos[0]["goles_visitante"]), (1, 0))
+        self.assertEqual(vivos[0]["periodo"], "1T")
+        self.assertEqual(vivos[1]["minuto_texto"], "DESCANSO")
+
+    def test_si_la_api_falla_la_pestana_queda_vacia_sin_error(self):
+        with mock.patch.object(api_partidos, "_pedir", return_value={}):
+            r = self.client.get(reverse("PartidosVivo"))
+        self.assertEqual((r.status_code, r.json()["partidos"]), (200, []))
 
 
 
