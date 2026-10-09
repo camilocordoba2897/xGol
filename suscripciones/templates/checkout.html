@@ -1,8 +1,9 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% load formato %}
 
 {% block Titulo %}
-  Confirma tu plan
+  {% translate "Confirma tu plan" %}
 {% endblock %}
 
 {% block estilos %}
@@ -43,7 +44,7 @@
 
   <h2 style="font-family: var(--ff-display); font-size: 1.7rem; color: var(--text-0); margin-bottom: 28px; display: flex; align-items: center; gap: 10px;">
     <a href="{% url 'Suscripcion' %}" style="color: var(--text-2); text-decoration: none; font-size: 1.5rem;">‹</a>
-    Confirma tu plan
+    {% translate "Confirma tu plan" %}
   </h2>
 
   {% if messages %}
@@ -58,55 +59,56 @@
 
     <!-- MEDIOS DE PAGO (izquierda) -->
     <div>
-      <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 6px; font-size: 1.1rem;">Cómo vas a pagar</h3>
+      <h3 style="font-family: var(--ff-display); color: var(--text-0); margin-bottom: 6px; font-size: 1.1rem;">{% translate "Cómo vas a pagar" %}</h3>
       <p style="color: var(--text-2); font-size: .9rem; margin-bottom: 18px;">
-        En la siguiente pantalla eliges entre tarjeta, PSE, Nequi y las demás
-        opciones que tenga disponibles la pasarela de Bancolombia.
+        {% blocktranslate trimmed %}En la siguiente pantalla eliges entre tarjeta, PSE, Nequi y las demás
+        opciones que tenga disponibles la pasarela de Bancolombia.{% endblocktranslate %}
       </p>
 
       <div style="background: var(--bg-2); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 12px; padding: 14px 16px;">
         <p style="color: var(--text-2); font-size: .84rem; line-height: 1.6;">
-          🔒 xGol no recibe ni guarda los datos de tu tarjeta. Los escribes directamente
-          en la pasarela de pagos, que es quien los procesa.
+          {% blocktranslate trimmed %}🔒 xGol no recibe ni guarda los datos de tu tarjeta. Los escribes directamente
+          en la pasarela de pagos, que es quien los procesa.{% endblocktranslate %}
         </p>
       </div>
     </div>
 
     <!-- RESUMEN DEL PLAN (derecha) -->
     <div class="card co-resumen" style="background: var(--bg-2);">
-      <h3 style="font-family: var(--ff-display); font-size: 1.5rem; color: var(--text-0); margin-bottom: 6px;">Plan {{ plan.nombre }}</h3>
-      <p style="color: var(--text-2); font-size: .9rem; margin-bottom: 18px;">Características principales</p>
+      {% translate plan.nombre as nombre_plan %}
+      <h3 style="font-family: var(--ff-display); font-size: 1.5rem; color: var(--text-0); margin-bottom: 6px;">{% blocktranslate with nombre=nombre_plan %}Plan {{ nombre }}{% endblocktranslate %}</h3>
+      <p style="color: var(--text-2); font-size: .9rem; margin-bottom: 18px;">{% translate "Características principales" %}</p>
 
       <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 22px;">
         <div style="display: flex; align-items: flex-start; gap: 12px;">
           <span style="color: var(--accent); flex-shrink: 0;">⚡</span>
-          <span style="color: var(--text-1); font-size: .92rem;">Acceso completo al analizador de fútbol</span>
+          <span style="color: var(--text-1); font-size: .92rem;">{% translate "Acceso completo al analizador de fútbol" %}</span>
         </div>
         <div style="display: flex; align-items: flex-start; gap: 12px;">
           <span style="color: var(--accent); flex-shrink: 0;">📊</span>
-          <span style="color: var(--text-1); font-size: .92rem;">Todos los mercados: 1X2, córners, tarjetas, props</span>
+          <span style="color: var(--text-1); font-size: .92rem;">{% translate "Todos los mercados: 1X2, córners, tarjetas, props" %}</span>
         </div>
         <div style="display: flex; align-items: flex-start; gap: 12px;">
           <span style="color: var(--accent); flex-shrink: 0;">🎯</span>
-          <span style="color: var(--text-1); font-size: .92rem;">Modelos Poisson, Dixon-Coles y xG</span>
+          <span style="color: var(--text-1); font-size: .92rem;">{% translate "Modelos Poisson, Dixon-Coles y xG" %}</span>
         </div>
         <div style="display: flex; align-items: flex-start; gap: 12px;">
           <span style="color: var(--accent); flex-shrink: 0;">📋</span>
-          <span style="color: var(--text-1); font-size: .92rem;">Acceso por {{ plan.dias }} días</span>
+          <span style="color: var(--text-1); font-size: .92rem;">{% blocktranslate with dias=plan.dias %}Acceso por {{ dias }} días{% endblocktranslate %}</span>
         </div>
       </div>
 
       <div style="border-top: 1px solid var(--line); padding-top: 16px;">
         <div style="display: flex; justify-content: space-between; padding: 5px 0;">
-          <span style="color: var(--text-2);">Suscripción {{ plan.nombre }}</span>
+          <span style="color: var(--text-2);">{% blocktranslate with nombre=nombre_plan %}Suscripción {{ nombre }}{% endblocktranslate %}</span>
           <span style="color: var(--text-1); font-family: var(--ff-mono);">${{ subtotal|pesos }}</span>
         </div>
         <div style="display: flex; justify-content: space-between; padding: 5px 0;">
-          <span style="color: var(--text-2);">IVA incluido (19%)</span>
+          <span style="color: var(--text-2);">{% translate "IVA incluido (19%)" %}</span>
           <span style="color: var(--text-2); font-family: var(--ff-mono);">${{ iva|pesos }}</span>
         </div>
         <div style="display: flex; justify-content: space-between; padding: 10px 0 4px; border-top: 1px solid var(--line); margin-top: 6px;">
-          <span style="color: var(--text-0); font-weight: 700;">Monto a pagar hoy</span>
+          <span style="color: var(--text-0); font-weight: 700;">{% translate "Monto a pagar hoy" %}</span>
           <span style="color: var(--text-0); font-weight: 800; font-family: var(--ff-mono); font-size: 1.1rem;">${{ plan.precio|pesos }}</span>
         </div>
       </div>
@@ -119,53 +121,54 @@
           {# registro. Se piden aqui mismo y viajan con el mismo clic de     #}
           {# pagar; el servidor las valida y las guarda antes de cobrar.     #}
           <div class="co-edad">
-            <div class="co-edad-t">Confirma que eres mayor de edad</div>
-            <p class="co-edad-s">xGol es solo para mayores de 18 años. Lo pedimos una sola vez.</p>
+            <div class="co-edad-t">{% translate "Confirma que eres mayor de edad" %}</div>
+            <p class="co-edad-s">{% translate "xGol es solo para mayores de 18 años. Lo pedimos una sola vez." %}</p>
             <div class="co-campos">
               {% if pide_documento %}
               <div class="co-campo">
-                <label for="co-documento">Cédula</label>
+                <label for="co-documento">{% translate "Cédula" %}</label>
                 <input type="text" name="documento" id="co-documento" required autofocus
                        inputmode="numeric" pattern="[1-9][0-9]{5,9}" minlength="6" maxlength="10"
-                       placeholder="Solo números" autocomplete="off"
+                       placeholder="{% translate 'Solo números' %}" autocomplete="off"
                        value="{{ borrador.documento|default:'' }}"
-                       title="Entre 6 y 10 dígitos, sin puntos ni letras">
+                       title="{% translate 'Entre 6 y 10 dígitos, sin puntos ni letras' %}">
               </div>
               {% endif %}
               {% if pide_fecha %}
               <div class="co-campo">
-                <label for="co-nacimiento">Fecha de nacimiento</label>
+                <label for="co-nacimiento">{% translate "Fecha de nacimiento" %}</label>
                 <input type="date" name="fecha_nacimiento" id="co-nacimiento" required
                        value="{{ borrador.fecha_nacimiento|default:'' }}">
               </div>
               {% endif %}
             </div>
-            <p class="co-nota">Se guardan en tu perfil y no se pueden cambiar después.</p>
+            <p class="co-nota">{% translate "Se guardan en tu perfil y no se pueden cambiar después." %}</p>
           </div>
           {% endif %}
           <button type="submit" class="btn btn-primary" id="btnPagar"
                   style="width: 100%; justify-content: center; margin-top: 18px; padding: 14px;">
-            Ir a pagar ${{ plan.precio|pesos }}
+            {% blocktranslate with monto=plan.precio|pesos %}Ir a pagar ${{ monto }}{% endblocktranslate %}
           </button>
         </form>
       {% else %}
         <div style="margin-top: 18px; padding: 14px; border: 1px solid var(--warn); border-radius: 12px; background: var(--warn-bg);">
           <p style="color: var(--warn); font-size: .88rem;">
-            Los pagos están temporalmente fuera de servicio. Vuelve a intentarlo en unos minutos.
+            {% translate "Los pagos están temporalmente fuera de servicio. Vuelve a intentarlo en unos minutos." %}
           </p>
         </div>
       {% endif %}
 
       <p style="text-align: center; color: var(--text-3); font-size: .75rem; margin-top: 12px;">
-        🔒 Pago procesado por Wompi (Bancolombia)
+        {% translate "🔒 Pago procesado por Wompi (Bancolombia)" %}
       </p>
     </div>
 
   </div>
 
   <p style="text-align: center; color: var(--text-3); font-size: .78rem; margin-top: 24px; max-width: 700px; margin-left: auto; margin-right: auto; line-height: 1.6;">
-    El acceso dura {{ plan.dias }} días y no se renueva solo: cuando termine, vuelves aquí si quieres seguir.
-    Al continuar aceptas los <a href="{% url 'TerminosCondiciones' %}" style="color: var(--text-2);">términos y condiciones</a>.
+    {% url 'TerminosCondiciones' as url_terminos %}
+    {% blocktranslate trimmed with dias=plan.dias %}El acceso dura {{ dias }} días y no se renueva solo: cuando termine, vuelves aquí si quieres seguir.
+    Al continuar aceptas los <a href="{{ url_terminos }}" style="color: var(--text-2);">términos y condiciones</a>.{% endblocktranslate %}
   </p>
 
 </div>
@@ -201,7 +204,7 @@
     if (!formulario || !boton) return;
     formulario.addEventListener('submit', function() {
       boton.disabled = true;
-      boton.textContent = 'Abriendo la pasarela…';
+      boton.textContent = gettext('Abriendo la pasarela…');
     });
   })();
 </script>

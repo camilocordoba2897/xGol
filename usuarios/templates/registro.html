@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% load static %}
 
-{% block Titulo %}Crear cuenta{% endblock %}
+{% block Titulo %}{% translate "Crear cuenta" %}{% endblock %}
 
 {% block estilos %}
   <link rel="stylesheet" href="{% static 'css/registro.css' %}?v=7">
@@ -17,8 +18,8 @@
       <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
     </div>
 
-    <h2 class="reg-titulo">Crear tu cuenta en <span class="logo-x">x</span>Gol</h2>
-    <p class="reg-sub">Solo unos datos y ya puedes empezar</p>
+    <h2 class="reg-titulo">{% blocktranslate %}Crear tu cuenta en <span class="logo-x">x</span>Gol{% endblocktranslate %}</h2>
+    <p class="reg-sub">{% translate "Solo unos datos y ya puedes empezar" %}</p>
 
     {% if messages %}
       {% for i in messages %}
@@ -34,54 +35,54 @@
 
       <div class="reg-fila">
         <div class="reg-campo">
-          <label for="reg-nombre">Nombre</label>
-          <input type="text" name="nombre" id="reg-nombre" placeholder="Tu nombre" required
+          <label for="reg-nombre">{% translate "Nombre" %}</label>
+          <input type="text" name="nombre" id="reg-nombre" placeholder="{% translate 'Tu nombre' %}" required
                  value="{{ datos.nombre|default:'' }}"
                  pattern="\s*[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+([ '\-]+[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*\s*" minlength="2" maxlength="40"
-                 title="Solo letras. Ej: Juan Camilo" autocomplete="off">
+                 title="{% translate 'Solo letras. Ej: Juan Camilo' %}" autocomplete="off">
           <small class="reg-pista" data-para="reg-nombre"></small>
         </div>
         <div class="reg-campo">
-          <label for="reg-apellidos">Apellidos</label>
-          <input type="text" name="apellidos" id="reg-apellidos" placeholder="Tus apellidos" required
+          <label for="reg-apellidos">{% translate "Apellidos" %}</label>
+          <input type="text" name="apellidos" id="reg-apellidos" placeholder="{% translate 'Tus apellidos' %}" required
                  value="{{ datos.apellidos|default:'' }}"
                  pattern="\s*[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+([ '\-]+[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*\s*" minlength="2" maxlength="40"
-                 title="Solo letras. Ej: Restrepo Gómez" autocomplete="off">
+                 title="{% translate 'Solo letras. Ej: Restrepo Gómez' %}" autocomplete="off">
           <small class="reg-pista" data-para="reg-apellidos"></small>
         </div>
       </div>
 
       <div class="reg-fila">
         <div class="reg-campo">
-          <label for="reg-username">Nombre de usuario</label>
-          <input type="text" name="username" id="reg-username" placeholder="Elige un usuario" required
+          <label for="reg-username">{% translate "Nombre de usuario" %}</label>
+          <input type="text" name="username" id="reg-username" placeholder="{% translate 'Elige un usuario' %}" required
                  value="{{ datos.username|default:'' }}"
                  pattern="[A-Za-z0-9]+" minlength="3" maxlength="20"
-                 title="Solo letras y números, sin espacios ni símbolos" autocomplete="off">
+                 title="{% translate 'Solo letras y números, sin espacios ni símbolos' %}" autocomplete="off">
           <small class="reg-pista" data-para="reg-username"></small>
         </div>
         <div class="reg-campo">
-          <label for="reg-email">Correo</label>
-          <input type="email" name="email" id="reg-email" placeholder="correo@ejemplo.com" required
+          <label for="reg-email">{% translate "Correo" %}</label>
+          <input type="email" name="email" id="reg-email" placeholder="{% translate 'correo@ejemplo.com' %}" required
                  value="{{ datos.email|default:'' }}"
                  maxlength="254" autocomplete="email"
-                 title="Escribe un correo válido. Ej: nombre@correo.com">
+                 title="{% translate 'Escribe un correo válido. Ej: nombre@correo.com' %}">
           <small class="reg-pista" data-para="reg-email"></small>
         </div>
       </div>
 
       <div class="reg-fila">
         <div class="reg-campo">
-          <label for="reg-documento">Cédula</label>
-          <input type="text" name="documento" id="reg-documento" placeholder="Solo números" required
+          <label for="reg-documento">{% translate "Cédula" %}</label>
+          <input type="text" name="documento" id="reg-documento" placeholder="{% translate 'Solo números' %}" required
                  value="{{ datos.documento|default:'' }}"
                  inputmode="numeric" pattern="[1-9][0-9]{5,9}"
                  minlength="6" maxlength="10" autocomplete="off"
-                 title="Entre 6 y 10 dígitos, sin puntos ni letras">
+                 title="{% translate 'Entre 6 y 10 dígitos, sin puntos ni letras' %}">
           <small class="reg-pista" data-para="reg-documento"></small>
         </div>
         <div class="reg-campo">
-          <label for="reg-nacimiento">Fecha de nacimiento</label>
+          <label for="reg-nacimiento">{% translate "Fecha de nacimiento" %}</label>
           {% comment %}
             type=date ya trae el calendario del navegador y ademas deja
             teclear la fecha a mano, que es lo que se pidio. El tope de
@@ -89,34 +90,34 @@
           {% endcomment %}
           <input type="date" name="fecha_nacimiento" id="reg-nacimiento" required
                  value="{{ datos.fecha_nacimiento|default:'' }}"
-                 title="Debes ser mayor de 18 años">
+                 title="{% translate 'Debes ser mayor de 18 años' %}">
           <small class="reg-pista" data-para="reg-nacimiento"></small>
         </div>
       </div>
 
       <div class="reg-campo">
-        <label for="reg-password">Contraseña</label>
+        <label for="reg-password">{% translate "Contraseña" %}</label>
         <div class="reg-pass-wrap">
-          <input type="password" name="password" id="reg-password" placeholder="Tu contraseña" required>
-          <button type="button" class="reg-pass-ojo" id="reg-pass-ojo" aria-label="Mostrar contraseña" aria-pressed="false">
+          <input type="password" name="password" id="reg-password" placeholder="{% translate 'Tu contraseña' %}" required>
+          <button type="button" class="reg-pass-ojo" id="reg-pass-ojo" aria-label="{% translate 'Mostrar contraseña' %}" aria-pressed="false">
             <svg class="ojo-abierto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
             <svg class="ojo-cerrado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.6 20.6 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a20.6 20.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
           </button>
         </div>
 
         <ul class="ph-reqs" id="ph-reqs" hidden>
-          <li data-regla="longitud">Debe ser de 8 a 16 caracteres</li>
-          <li data-regla="minuscula">Al menos 1 letra minúscula</li>
-          <li data-regla="mayuscula">Al menos 1 letra mayúscula</li>
-          <li data-regla="numero">Al menos 1 número</li>
-          <li data-regla="especial">Al menos 1 carácter especial</li>
+          <li data-regla="longitud">{% translate "Debe ser de 8 a 16 caracteres" %}</li>
+          <li data-regla="minuscula">{% translate "Al menos 1 letra minúscula" %}</li>
+          <li data-regla="mayuscula">{% translate "Al menos 1 letra mayúscula" %}</li>
+          <li data-regla="numero">{% translate "Al menos 1 número" %}</li>
+          <li data-regla="especial">{% translate "Al menos 1 carácter especial" %}</li>
         </ul>
       </div>
 
-      <button type="submit" class="reg-boton">Crear cuenta</button>
+      <button type="submit" class="reg-boton">{% translate "Crear cuenta" %}</button>
     </form>
 
-    <p class="reg-pie">¿Ya tienes cuenta? <a href="{% url 'Ingresar' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Inicia sesión</a></p>
+    <p class="reg-pie">{% translate "¿Ya tienes cuenta?" %} <a href="{% url 'Ingresar' %}{% if next %}?next={{ next|urlencode }}{% endif %}">{% translate "Inicia sesión" %}</a></p>
 
   </div>
 </div>
@@ -172,7 +173,7 @@
       campo.type=verla?"text":"password";
       boton.classList.toggle("mostrando",verla);
       boton.setAttribute("aria-pressed",verla?"true":"false");
-      boton.setAttribute("aria-label",verla?"Ocultar contraseña":"Mostrar contraseña");
+      boton.setAttribute("aria-label",verla?gettext("Ocultar contraseña"):gettext("Mostrar contraseña"));
     });
   })();
 </script>
@@ -208,28 +209,43 @@
     campo.classList.add("reg-mal");
   }
 
-  function revisarNombre(campo,etiqueta){
+  //Cada mensaje va completo (no "El nombre" + "debe..."): en otros idiomas
+  //el orden de las palabras cambia y pegados por pedazos quedarian mal.
+  var AVISOS_NOMBRE={
+    nombre:{
+      corto:gettext("El nombre debe tener al menos 2 letras."),
+      letras:gettext("El nombre solo puede tener letras."),
+      raro:gettext("El nombre no parece un nombre válido.")
+    },
+    apellidos:{
+      corto:gettext("Los apellidos deben tener al menos 2 letras."),
+      letras:gettext("Los apellidos solo pueden tener letras."),
+      raro:gettext("Los apellidos no parecen válidos.")
+    }
+  };
+
+  function revisarNombre(campo,avisos){
     var v=campo.value.trim().replace(/\s+/g," ");
     if(!v){ marcar(campo,""); return; }
-    if(v.length<2){ marcar(campo,etiqueta+" debe tener al menos 2 letras."); return; }
-    if(!reNombre.test(v)){ marcar(campo,etiqueta+" solo puede tener letras."); return; }
-    if(reRepetida.test(v.toLowerCase())){ marcar(campo,etiqueta+" no parece un nombre válido."); return; }
+    if(v.length<2){ marcar(campo,avisos.corto); return; }
+    if(!reNombre.test(v)){ marcar(campo,avisos.letras); return; }
+    if(reRepetida.test(v.toLowerCase())){ marcar(campo,avisos.raro); return; }
     marcar(campo,"");
   }
 
   function revisarUsuario(campo){
     var v=campo.value.trim();
     if(!v){ marcar(campo,""); return; }
-    if(v.length<3){ marcar(campo,"Debe tener al menos 3 caracteres."); return; }
-    if(!reUsuario.test(v)){ marcar(campo,"Solo letras y números, sin espacios ni símbolos."); return; }
-    if(!/[A-Za-z]/.test(v)){ marcar(campo,"Debe tener al menos una letra."); return; }
+    if(v.length<3){ marcar(campo,gettext("Debe tener al menos 3 caracteres.")); return; }
+    if(!reUsuario.test(v)){ marcar(campo,gettext("Solo letras y números, sin espacios ni símbolos.")); return; }
+    if(!/[A-Za-z]/.test(v)){ marcar(campo,gettext("Debe tener al menos una letra.")); return; }
     marcar(campo,"");
   }
 
   function revisarCorreo(campo){
     var v=campo.value.trim();
     if(!v){ marcar(campo,""); return; }
-    if(!reCorreo.test(v)){ marcar(campo,"Escribe un correo válido. Ej: nombre@correo.com"); return; }
+    if(!reCorreo.test(v)){ marcar(campo,gettext("Escribe un correo válido. Ej: nombre@correo.com")); return; }
     marcar(campo,"");
   }
 
@@ -299,8 +315,8 @@
     };
   }
 
-  enlazar("reg-nombre",reSoloNombre,function(c){ revisarNombre(c,"El nombre"); },true);
-  enlazar("reg-apellidos",reSoloNombre,function(c){ revisarNombre(c,"Los apellidos"); },true);
+  enlazar("reg-nombre",reSoloNombre,function(c){ revisarNombre(c,AVISOS_NOMBRE.nombre); },true);
+  enlazar("reg-apellidos",reSoloNombre,function(c){ revisarNombre(c,AVISOS_NOMBRE.apellidos); },true);
   enlazar("reg-username",/[^A-Za-z0-9]/g,conDisponibilidad(revisarUsuario,"username"),true);
   enlazar("reg-email",/\s/g,conDisponibilidad(revisarCorreo,"email"),true);
 
@@ -310,9 +326,9 @@
   function revisarDocumento(campo){
     var v=campo.value.trim();
     if(!v){ marcar(campo,""); return; }
-    if(v.charAt(0)==="0"){ marcar(campo,"No puede empezar por cero."); return; }
-    if(v.length<6){ marcar(campo,"La cédula debe tener al menos 6 dígitos."); return; }
-    if(/^(\d)\1+$/.test(v)){ marcar(campo,"Ese número de cédula no es válido."); return; }
+    if(v.charAt(0)==="0"){ marcar(campo,gettext("No puede empezar por cero.")); return; }
+    if(v.length<6){ marcar(campo,gettext("La cédula debe tener al menos 6 dígitos.")); return; }
+    if(/^(\d)\1+$/.test(v)){ marcar(campo,gettext("Ese número de cédula no es válido.")); return; }
     marcar(campo,"");
   }
   enlazar("reg-documento",/[^0-9]/g,conDisponibilidad(revisarDocumento,"documento"),true);
@@ -348,13 +364,13 @@
       var v=campo.value;
       if(!v){ marcar(campo,""); return; }
       var partes=v.split("-");
-      if(partes.length!==3){ marcar(campo,"Escribe una fecha válida."); return; }
+      if(partes.length!==3){ marcar(campo,gettext("Escribe una fecha válida.")); return; }
       var f=new Date(+partes[0],+partes[1]-1,+partes[2]);
-      if(isNaN(f.getTime())){ marcar(campo,"Escribe una fecha válida."); return; }
-      if(f>hoy){ marcar(campo,"La fecha no puede ser futura."); return; }
+      if(isNaN(f.getTime())){ marcar(campo,gettext("Escribe una fecha válida.")); return; }
+      if(f>hoy){ marcar(campo,gettext("La fecha no puede ser futura.")); return; }
       var a=edad(f);
-      if(a>110){ marcar(campo,"Revisa la fecha, no parece correcta."); return; }
-      if(a<18){ marcar(campo,"Debes ser mayor de 18 años para registrarte."); return; }
+      if(a>110){ marcar(campo,gettext("Revisa la fecha, no parece correcta.")); return; }
+      if(a<18){ marcar(campo,gettext("Debes ser mayor de 18 años para registrarte.")); return; }
       marcar(campo,"");
     }
 

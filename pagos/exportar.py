@@ -9,6 +9,8 @@ import zipfile
 from datetime import datetime,date
 from xml.sax.saxutils import escape
 
+from django.utils.translation import gettext, gettext_lazy
+
 #Excel en español interpreta la coma como separador decimal: con ";" el CSV
 #se abre en columnas sin tener que usar el asistente de importacion.
 SEPARADOR_CSV=";"
@@ -52,7 +54,7 @@ def _columna(indice):
 
 def _celda_xml(referencia,valor,estilo):
   if isinstance(valor,bool):
-    valor="Si" if valor else "No"
+    valor=gettext("Sí") if valor else gettext("No")
   if isinstance(valor,(int,float)) and not isinstance(valor,bool):
     return f'<c r="{referencia}" s="{estilo}"><v>{valor}</v></c>'
   texto=escape(_texto(valor))
@@ -100,12 +102,15 @@ def a_xlsx(cabeceras,filas,hoja="Reporte",titulo=None,subtitulo=None,
   ancho=len(cabeceras) or 1
   filas=list(filas)
 
+  #El estado llega ya traducido (es lo que se ve en el archivo)
+  aprobado={"aprobado",gettext("Aprobado").lower()}
+
   def _cuenta_en_total(fila):
     if columna_estado is None:
       return True
     if columna_estado>=len(fila):
       return False
-    return str(fila[columna_estado] or "").strip().lower()=="aprobado"
+    return str(fila[columna_estado] or "").strip().lower() in aprobado
 
   lineas=[]
   fila_actual=1
@@ -157,7 +162,7 @@ def a_xlsx(cabeceras,filas,hoja="Reporte",titulo=None,subtitulo=None,
 
   # ---- Fila de totales ----
   if totalizar and filas:
-    rotulo="TOTAL APROBADO" if columna_estado is not None else "TOTAL"
+    rotulo=gettext("TOTAL APROBADO") if columna_estado is not None else gettext("TOTAL")
     partes=[]
     for i in range(ancho):
       if i==0:
@@ -310,10 +315,13 @@ def a_xlsx(cabeceras,filas,hoja="Reporte",titulo=None,subtitulo=None,
 # ============================================================
 #  CONJUNTOS DE DATOS EXPORTABLES
 # ============================================================
+#Los titulos salen en el idioma de quien descarga el archivo
 CABECERAS_TRANSACCIONES=[
-  "Fecha","Factura","Referencia","ID pasarela","Usuario","Correo","Plan",
-  "Metodo","Estado","Subtotal","IVA","Total","Comision estimada","Neto estimado",
-  "Dias","Vigencia hasta","Ambiente",
+  gettext_lazy("Fecha"),gettext_lazy("Factura"),gettext_lazy("Referencia"),gettext_lazy("ID pasarela"),
+  gettext_lazy("Usuario"),gettext_lazy("Correo"),gettext_lazy("Plan"),
+  gettext_lazy("Método"),gettext_lazy("Estado"),gettext_lazy("Subtotal"),gettext_lazy("IVA"),
+  gettext_lazy("Total"),gettext_lazy("Comisión estimada"),gettext_lazy("Neto estimado"),
+  gettext_lazy("Días"),gettext_lazy("Vigencia hasta"),gettext_lazy("Ambiente"),
 ]
 
 #Indices de las columnas de arriba que llevan formato de pesos y las que
@@ -333,9 +341,9 @@ def filas_transacciones(pagos):
       pago.id_pasarela,
       pago.usuario.username,
       pago.correo_pagador or pago.usuario.email or "",
-      pago.plan,
-      pago.metodo,
-      pago.estado,
+      gettext(pago.plan) if pago.plan else "",
+      gettext(pago.metodo) if pago.metodo else "",
+      pago.get_estado_display(),
       pago.subtotal,
       pago.iva,
       pago.monto,
@@ -347,7 +355,8 @@ def filas_transacciones(pagos):
     ]
 
 
-CABECERAS_RESUMEN=["Periodo","Transacciones","Ingreso bruto","Comision estimada","Neto estimado"]
+CABECERAS_RESUMEN=[gettext_lazy("Periodo"),gettext_lazy("Transacciones"),gettext_lazy("Ingreso bruto"),
+                   gettext_lazy("Comisión estimada"),gettext_lazy("Neto estimado")]
 
 MONEDA_RESUMEN=[2,3,4]
 #El resumen NO se totaliza: sus filas son acumulados que se solapan
@@ -356,8 +365,8 @@ TOTALIZAR_RESUMEN=[]
 
 
 def filas_resumen(resumen):
-  nombres=[("hoy","Hoy"),("semana","Esta semana"),("mes","Este mes"),
-           ("trimestre","Este trimestre"),("anio","Este ano"),("historico","Historico")]
+  nombres=[("hoy",gettext("Hoy")),("semana",gettext("Esta semana")),("mes",gettext("Este mes")),
+           ("trimestre",gettext("Este trimestre")),("anio",gettext("Este año")),("historico",gettext("Histórico"))]
   for llave,titulo in nombres:
     dato=resumen.get(llave) or {}
     yield [titulo,dato.get("cuenta",0),dato.get("total",0),dato.get("comision",0),dato.get("neto",0)]

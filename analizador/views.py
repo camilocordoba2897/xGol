@@ -4,15 +4,17 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.db import transaction
 import json
+from django.utils.translation import gettext_noop
 from suscripciones.decoradores import suscripcion_requerida
 from analizador.models import PartidoRegistrado,RegistroApuesta
 from analizador import api_datos
 from analizador import api_cuotas
 
-#Iconos por mercado para reconstruir la apuesta si viene sin icono (ej. CSV importado)
+#Iconos por mercado para reconstruir la apuesta si viene sin icono (ej. CSV importado).
+#El nombre del mercado se guarda en español; el panel lo muestra traducido.
 ICONOS_MERCADO={
-    "1X2":"🏆","Goles":"⚽","BTTS":"🤝","Córners":"🚩",
-    "Tiros a puerta":"🎯","Tiros":"💥","Tarjetas":"🟨","Mitades":"⏱️",
+    gettext_noop("1X2"):"🏆",gettext_noop("Goles"):"⚽",gettext_noop("BTTS"):"🤝",gettext_noop("Córners"):"🚩",
+    gettext_noop("Tiros a puerta"):"🎯",gettext_noop("Tiros"):"💥",gettext_noop("Tarjetas"):"🟨",gettext_noop("Mitades"):"⏱️",
 }
 
 def _referencia_a_ts(valor):

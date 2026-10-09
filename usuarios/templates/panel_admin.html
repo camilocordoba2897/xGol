@@ -1,19 +1,22 @@
+{% load i18n %}
 {% load static %}
 {% load humanize %}
 {% load formato %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#04050A">
-<title>xGol — Panel de administración</title>
+<title>{% translate "xGol — Panel de administración" %}</title>
 <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
 <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/panel_admin.css' %}?v=18">
+{# Textos traducidos para los scripts del panel (gettext) #}
+<script src="{% url 'TextosJS' %}?idioma={{ LANGUAGE_CODE }}&amp;v={{ VERSION_TEXTOS }}"></script>
 <script>
   // Tema y modo aplicados ANTES de pintar para que no parpadee
   (function() {
@@ -40,27 +43,27 @@
 <aside class="rail">
   <div class="rail-marca"><img src="{% static 'img/logo.png' %}" alt="xGol" style="height:2.6rem;width:auto;display:block;margin:0 auto;"></div>
 
-  <a class="rail-link activo" href="#" data-vista="resumen" onclick="abrirVista('resumen', event)" data-nombre="Resumen">
+  <a class="rail-link activo" href="#" data-vista="resumen" onclick="abrirVista('resumen', event)" data-nombre="{% translate 'Resumen' %}">
     <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
   </a>
-  <a class="rail-link" href="#" data-vista="modelo" onclick="abrirVista('modelo', event)" data-nombre="Modelo">
+  <a class="rail-link" href="#" data-vista="modelo" onclick="abrirVista('modelo', event)" data-nombre="{% translate 'Modelo' %}">
     <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>
   </a>
-  <a class="rail-link" href="#" data-vista="dinero" onclick="abrirVista('dinero', event)" data-nombre="Dinero">
+  <a class="rail-link" href="#" data-vista="dinero" onclick="abrirVista('dinero', event)" data-nombre="{% translate 'Dinero' %}">
     <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 6.5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
   </a>
-  <a class="rail-link" href="#" data-vista="usuarios" onclick="abrirVista('usuarios', event)" data-nombre="Usuarios">
+  <a class="rail-link" href="#" data-vista="usuarios" onclick="abrirVista('usuarios', event)" data-nombre="{% translate 'Usuarios' %}">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
   </a>
-  <a class="rail-link" href="#" data-vista="accesos" onclick="abrirVista('accesos', event)" data-nombre="Accesos">
+  <a class="rail-link" href="#" data-vista="accesos" onclick="abrirVista('accesos', event)" data-nombre="{% translate 'Accesos' %}">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
   </a>
 
   <div class="rail-fin">
-    <a class="rail-link rail-inicio" href="{% url 'Inicio' %}" data-nombre="Volver al sitio">
+    <a class="rail-link rail-inicio" href="{% url 'Inicio' %}" data-nombre="{% translate 'Volver al sitio' %}">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     </a>
-    <a class="rail-link rail-salir" href="{% url 'Salir' %}" data-nombre="Cerrar sesión">
+    <a class="rail-link rail-salir" href="{% url 'Salir' %}" data-nombre="{% translate 'Cerrar sesión' %}">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
     </a>
   </div>
@@ -70,8 +73,8 @@
 
   <header class="topbar">
     <div>
-      <div class="topbar-ruta">xGol · Administración</div>
-      <div class="topbar-titulo" id="tituloVista">Resumen</div>
+      <div class="topbar-ruta">{% translate "xGol · Administración" %}</div>
+      <div class="topbar-titulo" id="tituloVista">{% translate "Resumen" %}</div>
     </div>
 
     <div class="topbar-acciones">
@@ -82,11 +85,11 @@
         salia en todas las vistas (Resumen, Modelo, Dinero...) sin venir
         al caso.
       {% endcomment %}
-      <button type="button" class="icono-btn" onclick="abrirGuia()" title="Ver la guía paso a paso" aria-label="Ver la guía paso a paso">
+      <button type="button" class="icono-btn" onclick="abrirGuia()" title="{% translate 'Ver la guía paso a paso' %}" aria-label="{% translate 'Ver la guía paso a paso' %}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.2 9.2a2.8 2.8 0 0 1 5.5.8c0 1.9-2.8 2.8-2.8 2.8"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </button>
 
-      <button type="button" class="icono-btn" onclick="alternarModo()" title="Cambiar entre modo claro y oscuro" aria-label="Cambiar entre modo claro y oscuro">
+      <button type="button" class="icono-btn" onclick="alternarModo()" title="{% translate 'Cambiar entre modo claro y oscuro' %}" aria-label="{% translate 'Cambiar entre modo claro y oscuro' %}">
         <svg class="ic-sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><line x1="12" y1="1.6" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22.4"/><line x1="4.2" y1="4.2" x2="5.9" y2="5.9"/><line x1="18.1" y1="18.1" x2="19.8" y2="19.8"/><line x1="1.6" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22.4" y2="12"/><line x1="4.2" y1="19.8" x2="5.9" y2="18.1"/><line x1="18.1" y1="5.9" x2="19.8" y2="4.2"/></svg>
         <svg class="ic-luna" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.4A8.6 8.6 0 0 1 9.6 3.5a8.6 8.6 0 1 0 10.9 10.9z"/></svg>
       </button>
@@ -119,8 +122,8 @@
     <!-- ======================= RESUMEN ======================= -->
     <section class="vista activa" id="v-resumen">
       <div class="vista-cabeza">
-        <h1>Resumen</h1>
-        <p>Las cuatro cifras que resumen el estado de xGol hoy.</p>
+        <h1>{% translate "Resumen" %}</h1>
+        <p>{% translate "Las cuatro cifras que resumen el estado de xGol hoy." %}</p>
       </div>
 
 
@@ -128,51 +131,51 @@
         <div class="kpi" style="--kpi-color: var(--accent)">
           <div class="kpi-cabeza">
             <div class="kpi-icono"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
-            <div class="kpi-nombre">Usuarios</div>
+            <div class="kpi-nombre">{% translate "Usuarios" %}</div>
           </div>
           <div class="kpi-valor">{{ usuarios.total|pesos }}</div>
           <div class="kpi-pie">
             {% if usuarios.variacion is not None %}
               <span class="delta {% if usuarios.variacion >= 0 %}delta-sube{% else %}delta-baja{% endif %}">{{ usuarios.variacion }}%</span>
             {% endif %}
-            <span>{{ usuarios.nuevos }} nuevos en 30 días</span>
+            <span>{% blocktranslate count n=usuarios.nuevos %}{{ n }} nuevo en 30 días{% plural %}{{ n }} nuevos en 30 días{% endblocktranslate %}</span>
           </div>
         </div>
 
         <div class="kpi" style="--kpi-color: var(--cian)">
           <div class="kpi-cabeza">
             <div class="kpi-icono"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 11.5 11.5 14 15 10"/></svg></div>
-            <div class="kpi-nombre">Suscripciones</div>
+            <div class="kpi-nombre">{% translate "Suscripciones" %}</div>
           </div>
           <div class="kpi-valor">{{ usuarios.con_suscripcion }}<small>/ {{ usuarios.total }}</small></div>
-          <div class="kpi-pie"><span>{{ usuarios.conversion }}% de la base paga</span></div>
+          <div class="kpi-pie"><span>{% blocktranslate with p=usuarios.conversion %}{{ p }}% de la base paga{% endblocktranslate %}</span></div>
         </div>
 
         <div class="kpi" style="--kpi-color: var(--warn)">
           <div class="kpi-cabeza">
             <div class="kpi-icono"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 6.5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-            <div class="kpi-nombre">Ingresos del mes</div>
+            <div class="kpi-nombre">{% translate "Ingresos del mes" %}</div>
           </div>
           <div class="kpi-valor">${{ dinero.mes|pesos }}</div>
           <div class="kpi-pie">
             {% if dinero.variacion is not None %}
               <span class="delta {% if dinero.variacion >= 0 %}delta-sube{% else %}delta-baja{% endif %}">{{ dinero.variacion }}%</span>
             {% endif %}
-            <span>{{ dinero.mes_cuenta }} ventas</span>
+            <span>{% blocktranslate count n=dinero.mes_cuenta %}{{ n }} venta{% plural %}{{ n }} ventas{% endblocktranslate %}</span>
           </div>
         </div>
 
         <div class="kpi" style="--kpi-color: {% if motor.comparado.nivel == 'malo' %}var(--bad){% else %}var(--ok){% endif %}">
           <div class="kpi-cabeza">
             <div class="kpi-icono"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg></div>
-            <div class="kpi-nombre">Acierto del modelo</div>
+            <div class="kpi-nombre">{% translate "Acierto del modelo" %}</div>
           </div>
           {% if motor.acierto is not None %}
           <div class="kpi-valor">{{ motor.acierto|floatformat:1 }}<small>%</small></div>
-          <div class="kpi-pie"><span>1X2 · {{ motor.partidos|pesos }} partidos medidos a ciegas</span></div>
+          <div class="kpi-pie"><span>{% blocktranslate with n=motor.partidos|pesos %}1X2 · {{ n }} partidos medidos a ciegas{% endblocktranslate %}</span></div>
           {% else %}
           <div class="kpi-valor">—</div>
-          <div class="kpi-pie"><span>El motor aún se está calibrando</span></div>
+          <div class="kpi-pie"><span>{% translate "El motor aún se está calibrando" %}</span></div>
           {% endif %}
         </div>
       </div>
@@ -180,8 +183,8 @@
       <div style="margin-top:14px">
         <div class="panel">
           <div class="panel-cabeza">
-            <div class="panel-titulo">Estado de la base</div>
-            <p class="panel-explica">Dónde está cada uno de los {{ usuarios.total }} registrados.</p>
+            <div class="panel-titulo">{% translate "Estado de la base" %}</div>
+            <p class="panel-explica">{% blocktranslate with n=usuarios.total %}Dónde está cada uno de los {{ n }} registrados.{% endblocktranslate %}</p>
           </div>
           <div class="panel-cuerpo">
             <div class="apilada">
@@ -190,12 +193,12 @@
               <span class="s-bloq" style="width: {{ usuarios.pct_bloq|floatformat:1 }}%"></span>
             </div>
             <div class="apilada-leyenda">
-              <div class="apilada-item"><i class="i-activa"></i> Pagando <b>{{ usuarios.con_suscripcion }}</b></div>
-              <div class="apilada-item"><i class="i-sin"></i> Registrados sin pagar <b>{{ usuarios.sin_suscripcion }}</b></div>
-              <div class="apilada-item"><i class="i-bloq"></i> Bloqueados <b>{{ usuarios.bloqueados }}</b></div>
+              <div class="apilada-item"><i class="i-activa"></i> {% translate "Pagando" %} <b>{{ usuarios.con_suscripcion }}</b></div>
+              <div class="apilada-item"><i class="i-sin"></i> {% translate "Registrados sin pagar" %} <b>{{ usuarios.sin_suscripcion }}</b></div>
+              <div class="apilada-item"><i class="i-bloq"></i> {% translate "Bloqueados" %} <b>{{ usuarios.bloqueados }}</b></div>
             </div>
           </div>
-          <div class="panel-pie"><b>Vencen en 5 días:</b> {{ usuarios.por_vencer|length }} · <b>Ya vencidas:</b> {{ usuarios.vencidas }}</div>
+          <div class="panel-pie"><b>{% translate "Vencen en 5 días:" %}</b> {{ usuarios.por_vencer|length }} · <b>{% translate "Ya vencidas:" %}</b> {{ usuarios.vencidas }}</div>
         </div>
       </div>
     </section>
@@ -203,39 +206,39 @@
     <!-- ======================= MODELO ======================= -->
     <section class="vista" id="v-modelo">
       <div class="vista-cabeza">
-        <h1>Modelo</h1>
-        <p>Mide si el modelo acierta lo que promete, comparado con las referencias publicadas del sector.</p>
+        <h1>{% translate "Modelo" %}</h1>
+        <p>{% translate "Mide si el modelo acierta lo que promete, comparado con las referencias publicadas del sector." %}</p>
       </div>
 
-      <div class="seccion-cabeza"><div class="seccion-titulo">Motor de predicción</div></div>
+      <div class="seccion-cabeza"><div class="seccion-titulo">{% translate "Motor de predicción" %}</div></div>
       {% if motor.ligas %}
       <div class="kpis">
         <div class="kpi kpi-mini" style="--kpi-color: var(--accent)">
-          <div class="kpi-cabeza"><div class="kpi-nombre">Acierto 1X2</div></div>
+          <div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Acierto 1X2" %}</div></div>
           <div class="kpi-valor">{{ motor.acierto|floatformat:1 }}<small>%</small></div>
-          <div class="kpi-pie"><span class="delta {% if motor.comparado.nivel == 'malo' %}delta-baja{% elif motor.comparado.nivel == 'bueno' %}delta-sube{% else %}delta-neutro{% endif %}">{{ motor.comparado.texto }}</span></div>
+          <div class="kpi-pie"><span class="delta {% if motor.comparado.nivel == 'malo' %}delta-baja{% elif motor.comparado.nivel == 'bueno' %}delta-sube{% else %}delta-neutro{% endif %}">{% translate motor.comparado.texto %}</span></div>
         </div>
         <div class="kpi kpi-mini" style="--kpi-color: var(--cian)">
-          <div class="kpi-cabeza"><div class="kpi-nombre">RPS</div></div>
+          <div class="kpi-cabeza"><div class="kpi-nombre">{% translate "RPS" %}</div></div>
           <div class="kpi-valor">{{ motor.rps|floatformat:3 }}</div>
-          <div class="kpi-pie"><span>0,19 a 0,21 es un buen modelo</span></div>
+          <div class="kpi-pie"><span>{% translate "0,19 a 0,21 es un buen modelo" %}</span></div>
         </div>
         <div class="kpi kpi-mini" style="--kpi-color: var(--ok)">
-          <div class="kpi-cabeza"><div class="kpi-nombre">Log-pérdida</div></div>
+          <div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Log-pérdida" %}</div></div>
           <div class="kpi-valor">{{ motor.log_perdida|floatformat:3 }}</div>
-          <div class="kpi-pie"><span>1,099 es no saber nada</span></div>
+          <div class="kpi-pie"><span>{% translate "1,099 es no saber nada" %}</span></div>
         </div>
         <div class="kpi kpi-mini" style="--kpi-color: var(--warn)">
-          <div class="kpi-cabeza"><div class="kpi-nombre">Partidos medidos</div></div>
+          <div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Partidos medidos" %}</div></div>
           <div class="kpi-valor">{{ motor.partidos|pesos }}</div>
-          <div class="kpi-pie"><span>en {{ motor.ligas|length }} ligas, sin ver el resultado</span></div>
+          <div class="kpi-pie"><span>{% blocktranslate with n=motor.ligas|length %}en {{ n }} ligas, sin ver el resultado{% endblocktranslate %}</span></div>
         </div>
       </div>
 
       <div class="panel" style="margin-top:14px">
         <div class="panel-cabeza">
-          <div class="panel-titulo">Dónde caes frente a la referencia real</div>
-          <p class="panel-explica">Acierto 1X2 del motor contra los rangos documentados en estudios públicos de predicción de fútbol.</p>
+          <div class="panel-titulo">{% translate "Dónde caes frente a la referencia real" %}</div>
+          <p class="panel-explica">{% translate "Acierto 1X2 del motor contra los rangos documentados en estudios públicos de predicción de fútbol." %}</p>
         </div>
         <div class="panel-cuerpo">
           <div class="regla">
@@ -248,27 +251,27 @@
             <span class="regla-marca" style="left: {{ motor.acierto|floatformat:0 }}%" data-valor="{{ motor.acierto|floatformat:1 }}%"></span>
           </div>
           <div class="regla-hitos">
-            <span>0%</span><span>41% suelo</span><span>55.9% tope 1X2</span><span>70% dudoso</span><span>100%</span>
+            <span>0%</span><span>{% blocktranslate trimmed %}41% suelo{% endblocktranslate %}</span><span>{% blocktranslate trimmed %}55.9% tope 1X2{% endblocktranslate %}</span><span>{% blocktranslate trimmed %}70% dudoso{% endblocktranslate %}</span><span>100%</span>
           </div>
         </div>
         <div class="panel-pie">
-          <b>41%</b> es acertar siempre al local · <b>55.9%</b> es el mejor 1X2 documentado · por encima de <b>70%</b> sostenido no hay modelo público creíble.
+          {% blocktranslate trimmed %}<b>41%</b> es acertar siempre al local · <b>55.9%</b> es el mejor 1X2 documentado · por encima de <b>70%</b> sostenido no hay modelo público creíble.{% endblocktranslate %}
         </div>
       </div>
 
       <div class="dos-columnas" style="margin-top:14px">
         <div class="panel">
           <div class="panel-cabeza">
-            <div class="panel-titulo">Por liga</div>
-            <p class="panel-explica">Cada temporada se pronosticó sin ver su futuro.</p>
+            <div class="panel-titulo">{% translate "Por liga" %}</div>
+            <p class="panel-explica">{% translate "Cada temporada se pronosticó sin ver su futuro." %}</p>
           </div>
           <div class="tabla-marco">
             <table class="tabla">
-              <thead><tr><th>Liga</th><th class="td-centro">Partidos</th><th>Acierto</th><th class="td-derecha">RPS</th></tr></thead>
+              <thead><tr><th>{% translate "Liga" %}</th><th class="td-centro">{% translate "Partidos" %}</th><th>{% translate "Acierto" %}</th><th class="td-derecha">{% translate "RPS" %}</th></tr></thead>
               <tbody>
                 {% for l in motor.ligas %}
                 <tr>
-                  <td><span style="font-weight:600">{{ l.nombre }}</span><div class="usuario-correo">{{ l.actualizado|date:"d/m/Y" }}</div></td>
+                  <td><span style="font-weight:600">{{ l.nombre }}</span><div class="usuario-correo">{{ l.actualizado|date:"SHORT_DATE_FORMAT" }}</div></td>
                   <td class="td-num td-centro">{{ l.partidos|pesos }}</td>
                   <td>
                     {% if l.acierto is not None %}
@@ -282,63 +285,63 @@
               </tbody>
             </table>
           </div>
-          <div class="panel-pie">En 1X2 lo normal está entre <b>50%</b> y <b>55%</b>: hay tres resultados posibles.</div>
+          <div class="panel-pie">{% blocktranslate trimmed %}En 1X2 lo normal está entre <b>50%</b> y <b>55%</b>: hay tres resultados posibles.{% endblocktranslate %}</div>
         </div>
 
         <div class="panel">
           <div class="panel-cabeza">
-            <div class="panel-titulo">Pronósticos en vivo</div>
-            <p class="panel-explica">Guardados antes de cada partido y evaluados solos cuando termina.</p>
+            <div class="panel-titulo">{% translate "Pronósticos en vivo" %}</div>
+            <p class="panel-explica">{% translate "Guardados antes de cada partido y evaluados solos cuando termina." %}</p>
           </div>
           <div class="tabla-marco">
             <table class="tabla">
               <tbody>
-                <tr><td>Guardados</td><td class="td-derecha td-num">{{ motor.vivo.guardados|pesos }}</td></tr>
-                <tr><td>Esperando resultado</td><td class="td-derecha td-num">{{ motor.vivo.pendientes|pesos }}</td></tr>
-                <tr><td>Evaluados</td><td class="td-derecha td-num">{{ motor.vivo.evaluados|pesos }}</td></tr>
-                <tr><td>Acierto en vivo</td><td class="td-derecha td-num">{% if motor.vivo.acierto is not None %}{{ motor.vivo.acierto|floatformat:1 }}% ({{ motor.vivo.aciertos }} de {{ motor.vivo.evaluados }}){% else %}—{% endif %}</td></tr>
-                {% if motor.vivo.descartados %}<tr><td>Descartados</td><td class="td-derecha td-num">{{ motor.vivo.descartados|pesos }}</td></tr>{% endif %}
+                <tr><td>{% translate "Guardados" %}</td><td class="td-derecha td-num">{{ motor.vivo.guardados|pesos }}</td></tr>
+                <tr><td>{% translate "Esperando resultado" %}</td><td class="td-derecha td-num">{{ motor.vivo.pendientes|pesos }}</td></tr>
+                <tr><td>{% translate "Evaluados" %}</td><td class="td-derecha td-num">{{ motor.vivo.evaluados|pesos }}</td></tr>
+                <tr><td>{% translate "Acierto en vivo" %}</td><td class="td-derecha td-num">{% if motor.vivo.acierto is not None %}{% blocktranslate with p=motor.vivo.acierto|floatformat:1 a=motor.vivo.aciertos t=motor.vivo.evaluados %}{{ p }}% ({{ a }} de {{ t }}){% endblocktranslate %}{% else %}—{% endif %}</td></tr>
+                {% if motor.vivo.descartados %}<tr><td>{% translate "Descartados" %}</td><td class="td-derecha td-num">{{ motor.vivo.descartados|pesos }}</td></tr>{% endif %}
               </tbody>
             </table>
           </div>
-          <div class="panel-pie">{% if motor.vivo.evaluados < 200 %}Con menos de <b>200</b> partidos en vivo el porcentaje todavía es ruido: manda la medición a ciegas.{% else %}Los descartados se pidieron después del saque y no cuentan.{% endif %}</div>
+          <div class="panel-pie">{% if motor.vivo.evaluados < 200 %}{% blocktranslate trimmed %}Con menos de <b>200</b> partidos en vivo el porcentaje todavía es ruido: manda la medición a ciegas.{% endblocktranslate %}{% else %}{% translate "Los descartados se pidieron después del saque y no cuentan." %}{% endif %}</div>
         </div>
       </div>
       {% else %}
-        <div class="panel"><div class="vacio"><b>El motor aún se está calibrando</b>Se calibra solo con el histórico de cada liga; en unos minutos aparecen sus métricas.</div></div>
+        <div class="panel"><div class="vacio"><b>{% translate "El motor aún se está calibrando" %}</b>{% translate "Se calibra solo con el histórico de cada liga; en unos minutos aparecen sus métricas." %}</div></div>
       {% endif %}
 
-      <div class="seccion-cabeza" style="margin-top:28px"><div class="seccion-titulo">Seguimiento del analizador</div></div>
+      <div class="seccion-cabeza" style="margin-top:28px"><div class="seccion-titulo">{% translate "Seguimiento del analizador" %}</div></div>
       <div id="seguimiento-analizador">
       {% if modelo.total %}
       <div class="kpis">
         <div class="kpi kpi-mini" style="--kpi-color: var(--accent)">
-          <div class="kpi-cabeza"><div class="kpi-nombre">Acierto real</div></div>
+          <div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Acierto real" %}</div></div>
           <div class="kpi-valor">{{ modelo.tasa|floatformat:1 }}<small>%</small></div>
-          <div class="kpi-pie"><span>{{ modelo.aciertos }} de {{ modelo.total }} líneas</span></div>
+          <div class="kpi-pie"><span>{% blocktranslate with a=modelo.aciertos t=modelo.total %}{{ a }} de {{ t }} líneas{% endblocktranslate %}</span></div>
         </div>
         <div class="kpi kpi-mini" style="--kpi-color: var(--cian)">
-          <div class="kpi-cabeza"><div class="kpi-nombre">Sesgo</div></div>
-          <div class="kpi-valor">{% if modelo.sesgo >= 0 %}+{% endif %}{{ modelo.sesgo|floatformat:1 }}<small>pts</small></div>
-          <div class="kpi-pie"><span>prometía {{ modelo.esperado|floatformat:1 }}%</span></div>
+          <div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Sesgo" %}</div></div>
+          <div class="kpi-valor">{% if modelo.sesgo >= 0 %}+{% endif %}{{ modelo.sesgo|floatformat:1 }}<small>{% translate "pts" %}</small></div>
+          <div class="kpi-pie"><span>{% blocktranslate with p=modelo.esperado|floatformat:1 %}prometía {{ p }}%{% endblocktranslate %}</span></div>
         </div>
         <div class="kpi kpi-mini" style="--kpi-color: {% if modelo.roi >= 0 %}var(--ok){% else %}var(--bad){% endif %}">
-          <div class="kpi-cabeza"><div class="kpi-nombre">ROI</div></div>
+          <div class="kpi-cabeza"><div class="kpi-nombre">{% translate "ROI" %}</div></div>
           <div class="kpi-valor">{% if modelo.roi is not None %}{% if modelo.roi >= 0 %}+{% endif %}{{ modelo.roi|floatformat:1 }}<small>%</small>{% else %}—{% endif %}</div>
-          <div class="kpi-pie"><span>{{ modelo.ganancia|floatformat:1 }} u. en {{ modelo.con_cuota }} apuestas</span></div>
+          <div class="kpi-pie"><span>{% blocktranslate with g=modelo.ganancia|floatformat:1 n=modelo.con_cuota %}{{ g }} u. en {{ n }} apuestas{% endblocktranslate %}</span></div>
         </div>
         <div class="kpi kpi-mini" style="--kpi-color: var(--warn)">
-          <div class="kpi-cabeza"><div class="kpi-nombre">Muestra</div></div>
+          <div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Muestra" %}</div></div>
           <div class="kpi-valor">{{ modelo.total|pesos }}</div>
-          <div class="kpi-pie"><span>cuota media {{ modelo.cuota_media|floatformat:2 }}</span></div>
+          <div class="kpi-pie"><span>{% blocktranslate with c=modelo.cuota_media|floatformat:2 %}cuota media {{ c }}{% endblocktranslate %}</span></div>
         </div>
       </div>
 
       <div class="dos-columnas" style="margin-top:14px">
         <div class="panel">
           <div class="panel-cabeza">
-            <div class="panel-titulo">Calibración</div>
-            <p class="panel-explica">Si dijo 70%, debería acertar 7 de cada 10.</p>
+            <div class="panel-titulo">{% translate "Calibración" %}</div>
+            <p class="panel-explica">{% blocktranslate trimmed %}Si dijo 70%, debería acertar 7 de cada 10.{% endblocktranslate %}</p>
           </div>
           <div class="panel-cuerpo">
             {% for f in calibracion %}
@@ -346,36 +349,36 @@
                 <div class="cal-cabeza">
                   <span class="cal-rango">{{ f.etiqueta }}</span>
                   <span class="cal-cuenta">{{ f.cuenta }}</span>
-                  <span class="cal-sello {% if not f.fiable %}sello-vacio{% elif f.veredicto == 'Ajustado' %}sello-ok{% elif f.veredicto == 'Optimista' %}sello-optimista{% else %}sello-conserva{% endif %}">{{ f.veredicto }}</span>
+                  <span class="cal-sello {% if not f.fiable %}sello-vacio{% elif f.veredicto == 'Ajustado' %}sello-ok{% elif f.veredicto == 'Optimista' %}sello-optimista{% else %}sello-conserva{% endif %}">{% translate f.veredicto %}</span>
                 </div>
                 <div class="cal-par">
-                  <span class="cal-nombre">Prometió</span>
+                  <span class="cal-nombre">{% translate "Prometió" %}</span>
                   <span class="cal-pista"><span class="cal-relleno predicho" style="width: {{ f.predicho|floatformat:0 }}%"></span></span>
                   <span class="cal-cifra">{{ f.predicho|floatformat:0 }}%</span>
                 </div>
                 <div class="cal-par">
-                  <span class="cal-nombre">Acertó</span>
+                  <span class="cal-nombre">{% translate "Acertó" %}</span>
                   <span class="cal-pista"><span class="cal-relleno real" style="width: {{ f.real|floatformat:0 }}%"></span></span>
                   <span class="cal-cifra">{{ f.real|floatformat:0 }}%</span>
                 </div>
               </div>
             {% endfor %}
           </div>
-          <div class="panel-pie"><b>Optimista</b> promete de más · <b>Conservador</b> se queda corto · <b>Ajustado</b> cumple.</div>
+          <div class="panel-pie">{% blocktranslate trimmed %}<b>Optimista</b> promete de más · <b>Conservador</b> se queda corto · <b>Ajustado</b> cumple.{% endblocktranslate %}</div>
         </div>
 
         <div class="panel">
           <div class="panel-cabeza">
-            <div class="panel-titulo">Por mercado</div>
-            <p class="panel-explica">Qué tipo de apuesta deja plata.</p>
+            <div class="panel-titulo">{% translate "Por mercado" %}</div>
+            <p class="panel-explica">{% translate "Qué tipo de apuesta deja plata." %}</p>
           </div>
           <div class="tabla-marco">
             <table class="tabla">
-              <thead><tr><th>Mercado</th><th class="td-centro">Aciertos</th><th>Acierto</th><th class="td-derecha">ROI</th></tr></thead>
+              <thead><tr><th>{% translate "Mercado" %}</th><th class="td-centro">{% translate "Aciertos" %}</th><th>{% translate "Acierto" %}</th><th class="td-derecha">{% translate "ROI" %}</th></tr></thead>
               <tbody>
                 {% for m in mercados %}
                 <tr>
-                  <td><span style="font-weight:600">{{ m.mercado }}</span>{% if not m.fiable %}<div class="usuario-correo">pocos datos</div>{% endif %}</td>
+                  <td><span style="font-weight:600">{% translate m.mercado %}</span>{% if not m.fiable %}<div class="usuario-correo">{% translate "pocos datos" %}</div>{% endif %}</td>
                   <td class="td-num td-centro">{{ m.aciertos }}/{{ m.cuenta }}</td>
                   <td>
                     <span class="mini-pista"><span class="mini-relleno {% if m.tasa < 50 %}baja{% elif m.tasa < 65 %}media{% endif %}" style="width: {{ m.tasa|floatformat:0 }}%"></span></span>
@@ -390,11 +393,11 @@
               </tbody>
             </table>
           </div>
-          <div class="panel-pie">ROI negativo pierde plata aunque acierte mucho: la cuota es muy baja.</div>
+          <div class="panel-pie">{% translate "ROI negativo pierde plata aunque acierte mucho: la cuota es muy baja." %}</div>
         </div>
       </div>
       {% else %}
-        <div class="panel"><div class="vacio"><b>Sin datos todavía</b>Se llena solo cuando terminan los partidos que se pronosticaron en el analizador.</div></div>
+        <div class="panel"><div class="vacio"><b>{% translate "Sin datos todavía" %}</b>{% translate "Se llena solo cuando terminan los partidos que se pronosticaron en el analizador." %}</div></div>
       {% endif %}
       </div>
     </section>
@@ -402,8 +405,8 @@
     <!-- ======================= DINERO ======================= -->
     <section class="vista" id="v-dinero">
       <div class="vista-cabeza">
-        <h1>Dinero</h1>
-        <p>Control financiero completo: ingresos, suscripciones y todas las transacciones.</p>
+        <h1>{% translate "Dinero" %}</h1>
+        <p>{% translate "Control financiero completo: ingresos, suscripciones y todas las transacciones." %}</p>
       </div>
 
       {% if not pasarela_lista %}
@@ -411,36 +414,36 @@
         <div class="aviso aviso-alerta">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           <div class="aviso-cuerpo">
-            Faltan las llaves de la pasarela en <code>.env</code>. Nadie puede pagar.
+            {% blocktranslate trimmed %}Faltan las llaves de la pasarela en <code>.env</code>. Nadie puede pagar.{% endblocktranslate %}
           </div>
         </div>
       </div>
       {% endif %}
 
       <div class="kpis kpis-6">
-        <div class="kpi kpi-mini" style="--kpi-color: var(--accent)"><div class="kpi-cabeza"><div class="kpi-nombre">Hoy</div></div><div class="kpi-valor">${{ ingresos.hoy.total|pesos }}</div><div class="kpi-pie"><span>{{ ingresos.hoy.cuenta }} ventas</span></div></div>
-        <div class="kpi kpi-mini" style="--kpi-color: var(--accent)"><div class="kpi-cabeza"><div class="kpi-nombre">Semana</div></div><div class="kpi-valor">${{ ingresos.semana.total|pesos }}</div><div class="kpi-pie"><span>{{ ingresos.semana.cuenta }} ventas</span></div></div>
-        <div class="kpi kpi-mini" style="--kpi-color: var(--accent)"><div class="kpi-cabeza"><div class="kpi-nombre">Mes</div></div><div class="kpi-valor">${{ ingresos.mes.total|pesos }}</div><div class="kpi-pie"><span>{{ ingresos.mes.cuenta }} ventas</span></div></div>
-        <div class="kpi kpi-mini" style="--kpi-color: var(--cian)"><div class="kpi-cabeza"><div class="kpi-nombre">Trimestre</div></div><div class="kpi-valor">${{ ingresos.trimestre.total|pesos }}</div><div class="kpi-pie"><span>{{ ingresos.trimestre.cuenta }} ventas</span></div></div>
-        <div class="kpi kpi-mini" style="--kpi-color: var(--cian)"><div class="kpi-cabeza"><div class="kpi-nombre">Año</div></div><div class="kpi-valor">${{ ingresos.anio.total|pesos }}</div><div class="kpi-pie"><span>{{ ingresos.anio.cuenta }} ventas</span></div></div>
-        <div class="kpi kpi-mini" style="--kpi-color: var(--warn)"><div class="kpi-cabeza"><div class="kpi-nombre">Histórico</div></div><div class="kpi-valor">${{ ingresos.historico.total|pesos }}</div><div class="kpi-pie"><span>{{ ingresos.historico.cuenta }} ventas</span></div></div>
+        <div class="kpi kpi-mini" style="--kpi-color: var(--accent)"><div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Hoy" %}</div></div><div class="kpi-valor">${{ ingresos.hoy.total|pesos }}</div><div class="kpi-pie"><span>{% blocktranslate count n=ingresos.hoy.cuenta %}{{ n }} venta{% plural %}{{ n }} ventas{% endblocktranslate %}</span></div></div>
+        <div class="kpi kpi-mini" style="--kpi-color: var(--accent)"><div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Semana" %}</div></div><div class="kpi-valor">${{ ingresos.semana.total|pesos }}</div><div class="kpi-pie"><span>{% blocktranslate count n=ingresos.semana.cuenta %}{{ n }} venta{% plural %}{{ n }} ventas{% endblocktranslate %}</span></div></div>
+        <div class="kpi kpi-mini" style="--kpi-color: var(--accent)"><div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Mes" %}</div></div><div class="kpi-valor">${{ ingresos.mes.total|pesos }}</div><div class="kpi-pie"><span>{% blocktranslate count n=ingresos.mes.cuenta %}{{ n }} venta{% plural %}{{ n }} ventas{% endblocktranslate %}</span></div></div>
+        <div class="kpi kpi-mini" style="--kpi-color: var(--cian)"><div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Trimestre" %}</div></div><div class="kpi-valor">${{ ingresos.trimestre.total|pesos }}</div><div class="kpi-pie"><span>{% blocktranslate count n=ingresos.trimestre.cuenta %}{{ n }} venta{% plural %}{{ n }} ventas{% endblocktranslate %}</span></div></div>
+        <div class="kpi kpi-mini" style="--kpi-color: var(--cian)"><div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Año" %}</div></div><div class="kpi-valor">${{ ingresos.anio.total|pesos }}</div><div class="kpi-pie"><span>{% blocktranslate count n=ingresos.anio.cuenta %}{{ n }} venta{% plural %}{{ n }} ventas{% endblocktranslate %}</span></div></div>
+        <div class="kpi kpi-mini" style="--kpi-color: var(--warn)"><div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Histórico" %}</div></div><div class="kpi-valor">${{ ingresos.historico.total|pesos }}</div><div class="kpi-pie"><span>{% blocktranslate count n=ingresos.historico.cuenta %}{{ n }} venta{% plural %}{{ n }} ventas{% endblocktranslate %}</span></div></div>
       </div>
 
       <div class="dos-columnas" style="margin-top:14px">
         <div class="panel">
           <div class="panel-cabeza">
-            <div class="panel-titulo">Ingresos · 12 meses</div>
-            <p class="panel-explica">Dinero cobrado cada mes.</p>
+            <div class="panel-titulo">{% translate "Ingresos · 12 meses" %}</div>
+            <p class="panel-explica">{% translate "Dinero cobrado cada mes." %}</p>
           </div>
           <div class="panel-cuerpo">
-            <svg class="gr" viewBox="0 0 620 186" role="img" aria-label="Ingresos mensuales">
+            <svg class="gr" viewBox="0 0 620 186" role="img" aria-label="{% translate 'Ingresos mensuales' %}">
               <line class="gr-guia" x1="0" y1="0.5" x2="620" y2="0.5"/>
               <line class="gr-guia" x1="0" y1="75.5" x2="620" y2="75.5"/>
               <line class="gr-guia" x1="0" y1="150.5" x2="620" y2="150.5"/>
               {% for b in grafica_ingresos.barras %}
                 <g class="gr-columna">
                   <rect class="gr-zona" x="{{ b.x }}" y="0" width="{{ b.ancho }}" height="150"/>
-                  <rect class="gr-barra {% if b.pico %}pico{% endif %}" x="{{ b.x }}" y="{{ b.y }}" width="{{ b.ancho }}" height="{{ b.alto }}" rx="3"><title>{{ b.detalle }}: ${{ b.valor|pesos }} ({{ b.cuenta }} ventas)</title></rect>
+                  <rect class="gr-barra {% if b.pico %}pico{% endif %}" x="{{ b.x }}" y="{{ b.y }}" width="{{ b.ancho }}" height="{{ b.alto }}" rx="3"><title>{{ b.detalle }}: ${{ b.valor|pesos }} ({% blocktranslate count n=b.cuenta %}{{ n }} venta{% plural %}{{ n }} ventas{% endblocktranslate %})</title></rect>
                   <text class="gr-valor" x="{{ b.centro }}" y="{{ b.y|add:'-6' }}" text-anchor="middle">${{ b.valor|pesos }}</text>
                   <text class="gr-eje" x="{{ b.centro }}" y="168" text-anchor="middle">{{ b.etiqueta }}</text>
                 </g>
@@ -451,54 +454,54 @@
 
         <div class="panel">
           <div class="panel-cabeza">
-            <div class="panel-titulo">Bruto, comisión y neto</div>
-            <p class="panel-explica">Lo que se cobró frente a lo que realmente llega.</p>
+            <div class="panel-titulo">{% translate "Bruto, comisión y neto" %}</div>
+            <p class="panel-explica">{% translate "Lo que se cobró frente a lo que realmente llega." %}</p>
           </div>
           <div class="panel-cuerpo">
             <div style="display:grid;gap:16px">
-              <div><div style="font-family:var(--ff-display);font-size:1.7rem;font-weight:800;letter-spacing:-.04em;color:var(--text-0)">${{ ingresos.historico.total|pesos }}</div><div style="font-size:.76rem;color:var(--text-3)">Bruto cobrado</div></div>
-              <div><div style="font-family:var(--ff-display);font-size:1.7rem;font-weight:800;letter-spacing:-.04em;color:var(--bad)">−${{ ingresos.historico.comision|pesos }}</div><div style="font-size:.76rem;color:var(--text-3)">Comisión estimada</div></div>
-              <div><div style="font-family:var(--ff-display);font-size:1.7rem;font-weight:800;letter-spacing:-.04em;color:var(--accent)">${{ ingresos.historico.neto|pesos }}</div><div style="font-size:.76rem;color:var(--text-3)">Neto estimado</div></div>
+              <div><div style="font-family:var(--ff-display);font-size:1.7rem;font-weight:800;letter-spacing:-.04em;color:var(--text-0)">${{ ingresos.historico.total|pesos }}</div><div style="font-size:.76rem;color:var(--text-3)">{% translate "Bruto cobrado" %}</div></div>
+              <div><div style="font-family:var(--ff-display);font-size:1.7rem;font-weight:800;letter-spacing:-.04em;color:var(--bad)">−${{ ingresos.historico.comision|pesos }}</div><div style="font-size:.76rem;color:var(--text-3)">{% translate "Comisión estimada" %}</div></div>
+              <div><div style="font-family:var(--ff-display);font-size:1.7rem;font-weight:800;letter-spacing:-.04em;color:var(--accent)">${{ ingresos.historico.neto|pesos }}</div><div style="font-size:.76rem;color:var(--text-3)">{% translate "Neto estimado" %}</div></div>
             </div>
           </div>
-          <div class="panel-pie">La comisión es estimada. Manda el extracto de la pasarela.</div>
+          <div class="panel-pie">{% translate "La comisión es estimada. Manda el extracto de la pasarela." %}</div>
         </div>
       </div>
 
       <div class="seccion">
-        <div class="seccion-cabeza"><div class="seccion-titulo">Suscripciones</div></div>
+        <div class="seccion-cabeza"><div class="seccion-titulo">{% translate "Suscripciones" %}</div></div>
         <div class="kpis kpis-6">
-          <div class="kpi kpi-mini" style="--kpi-color: var(--accent)"><div class="kpi-cabeza"><div class="kpi-nombre">Activas</div></div><div class="kpi-valor">{{ suscripciones.activas }}</div></div>
-          <div class="kpi kpi-mini" style="--kpi-color: var(--text-3)"><div class="kpi-cabeza"><div class="kpi-nombre">Vencidas</div></div><div class="kpi-valor">{{ suscripciones.vencidas }}</div></div>
-          <div class="kpi kpi-mini {% if suscripciones.por_vencer %}alerta{% endif %}" style="--kpi-color: var(--warn)"><div class="kpi-cabeza"><div class="kpi-nombre">Vencen en 5 días</div></div><div class="kpi-valor">{{ suscripciones.por_vencer }}</div></div>
-          <div class="kpi kpi-mini" style="--kpi-color: var(--cian)"><div class="kpi-cabeza"><div class="kpi-nombre">Renovación auto.</div></div><div class="kpi-valor">{{ suscripciones.renovacion_automatica }}</div></div>
-          <div class="kpi kpi-mini" style="--kpi-color: var(--text-3)"><div class="kpi-cabeza"><div class="kpi-nombre">Canceladas</div></div><div class="kpi-valor">{{ suscripciones.canceladas }}</div></div>
-          <div class="kpi kpi-mini" style="--kpi-color: var(--text-3)"><div class="kpi-cabeza"><div class="kpi-nombre">Sin suscripción</div></div><div class="kpi-valor">{{ suscripciones.sin_suscripcion }}</div></div>
+          <div class="kpi kpi-mini" style="--kpi-color: var(--accent)"><div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Activas" %}</div></div><div class="kpi-valor">{{ suscripciones.activas }}</div></div>
+          <div class="kpi kpi-mini" style="--kpi-color: var(--text-3)"><div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Vencidas" %}</div></div><div class="kpi-valor">{{ suscripciones.vencidas }}</div></div>
+          <div class="kpi kpi-mini {% if suscripciones.por_vencer %}alerta{% endif %}" style="--kpi-color: var(--warn)"><div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Vencen en 5 días" %}</div></div><div class="kpi-valor">{{ suscripciones.por_vencer }}</div></div>
+          <div class="kpi kpi-mini" style="--kpi-color: var(--cian)"><div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Renovación auto." %}</div></div><div class="kpi-valor">{{ suscripciones.renovacion_automatica }}</div></div>
+          <div class="kpi kpi-mini" style="--kpi-color: var(--text-3)"><div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Canceladas" %}</div></div><div class="kpi-valor">{{ suscripciones.canceladas }}</div></div>
+          <div class="kpi kpi-mini" style="--kpi-color: var(--text-3)"><div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Sin suscripción" %}</div></div><div class="kpi-valor">{{ suscripciones.sin_suscripcion }}</div></div>
         </div>
       </div>
 
 
       <div class="dos-columnas" style="margin-top:14px">
         <div class="panel">
-          <div class="panel-cabeza"><div class="panel-titulo">Ventas por plan</div></div>
+          <div class="panel-cabeza"><div class="panel-titulo">{% translate "Ventas por plan" %}</div></div>
           <div class="tabla-marco">
             <table class="tabla">
-              <thead><tr><th>Plan</th><th class="td-centro">Ventas</th><th class="td-derecha">Ingreso</th></tr></thead>
+              <thead><tr><th>{% translate "Plan" %}</th><th class="td-centro">{% translate "Ventas" %}</th><th class="td-derecha">{% translate "Ingreso" %}</th></tr></thead>
               <tbody>
-                {% for f in por_plan %}<tr><td>{{ f.plan }}</td><td class="td-num td-centro">{{ f.cuenta }}</td><td class="td-num td-derecha">${{ f.total|pesos }}</td></tr>
-                {% empty %}<tr><td colspan="3"><div class="vacio">Sin ventas aprobadas.</div></td></tr>{% endfor %}
+                {% for f in por_plan %}<tr><td>{% translate f.plan %}</td><td class="td-num td-centro">{{ f.cuenta }}</td><td class="td-num td-derecha">${{ f.total|pesos }}</td></tr>
+                {% empty %}<tr><td colspan="3"><div class="vacio">{% translate "Sin ventas aprobadas." %}</div></td></tr>{% endfor %}
               </tbody>
             </table>
           </div>
         </div>
         <div class="panel">
-          <div class="panel-cabeza"><div class="panel-titulo">Ventas por medio de pago</div></div>
+          <div class="panel-cabeza"><div class="panel-titulo">{% translate "Ventas por medio de pago" %}</div></div>
           <div class="tabla-marco">
             <table class="tabla">
-              <thead><tr><th>Medio</th><th class="td-centro">Ventas</th><th class="td-derecha">Ingreso</th></tr></thead>
+              <thead><tr><th>{% translate "Medio" %}</th><th class="td-centro">{% translate "Ventas" %}</th><th class="td-derecha">{% translate "Ingreso" %}</th></tr></thead>
               <tbody>
-                {% for f in por_metodo %}<tr><td>{{ f.metodo|default:"—" }}</td><td class="td-num td-centro">{{ f.cuenta }}</td><td class="td-num td-derecha">${{ f.total|pesos }}</td></tr>
-                {% empty %}<tr><td colspan="3"><div class="vacio">Sin ventas aprobadas.</div></td></tr>{% endfor %}
+                {% for f in por_metodo %}<tr><td>{% if f.metodo %}{% translate f.metodo %}{% else %}—{% endif %}</td><td class="td-num td-centro">{{ f.cuenta }}</td><td class="td-num td-derecha">${{ f.total|pesos }}</td></tr>
+                {% empty %}<tr><td colspan="3"><div class="vacio">{% translate "Sin ventas aprobadas." %}</div></td></tr>{% endfor %}
               </tbody>
             </table>
           </div>
@@ -506,16 +509,16 @@
       </div>
 
       <div class="panel" style="margin-top:14px">
-          <div class="panel-cabeza"><div class="panel-titulo">Vencen esta semana</div></div>
+          <div class="panel-cabeza"><div class="panel-titulo">{% translate "Vencen esta semana" %}</div></div>
           <div class="tabla-marco">
             <table class="tabla">
-              <thead><tr><th>Usuario</th><th>Plan</th><th class="td-derecha">Vence</th><th class="td-derecha">Renueva sola</th></tr></thead>
+              <thead><tr><th>{% translate "Usuario" %}</th><th>{% translate "Plan" %}</th><th class="td-derecha">{% translate "Vence" %}</th><th class="td-derecha">{% translate "Renueva sola" %}</th></tr></thead>
               <tbody>
                 {% for s in renovaciones %}
-                <tr><td>{{ s.usuario.username }}</td><td>{{ s.plan }}</td>
-                  <td class="td-num td-derecha" style="color:var(--warn)">{{ s.vencimiento|date:"d/m/Y" }}</td>
-                  <td class="td-num td-derecha">{% if s.renovacion_automatica %}Sí{% else %}No{% endif %}</td></tr>
-                {% empty %}<tr><td colspan="4"><div class="vacio">Ninguna vence en 7 días.</div></td></tr>{% endfor %}
+                <tr><td>{{ s.usuario.username }}</td><td>{% translate s.plan %}</td>
+                  <td class="td-num td-derecha" style="color:var(--warn)">{{ s.vencimiento|date:"SHORT_DATE_FORMAT" }}</td>
+                  <td class="td-num td-derecha">{% if s.renovacion_automatica %}{% translate "Sí" %}{% else %}{% translate "No" %}{% endif %}</td></tr>
+                {% empty %}<tr><td colspan="4"><div class="vacio">{% translate "Ninguna vence en 7 días." %}</div></td></tr>{% endfor %}
               </tbody>
             </table>
           </div>
@@ -523,86 +526,86 @@
 
       <div class="panel" style="margin-top:14px">
         <div class="panel-cabeza">
-          <div class="panel-titulo">Historial de transacciones</div>
-          <p class="panel-explica">{{ total_filtrado }} transacciones con los filtros actuales.</p>
+          <div class="panel-titulo">{% translate "Historial de transacciones" %}</div>
+          <p class="panel-explica">{% blocktranslate trimmed count n=total_filtrado %}{{ n }} transacción con los filtros actuales.{% plural %}{{ n }} transacciones con los filtros actuales.{% endblocktranslate %}</p>
         </div>
         <div class="panel-cuerpo">
           <form method="get" class="filtros">
             <input type="hidden" name="tab" value="dinero">
-            <div class="campo"><label for="f-q">Buscar</label><input id="f-q" type="text" name="q" value="{{ filtros.q }}" placeholder="Referencia, factura o usuario" style="min-width:210px"></div>
-            <div class="campo"><label for="f-estado">Estado</label>
+            <div class="campo"><label for="f-q">{% translate "Buscar" %}</label><input id="f-q" type="text" name="q" value="{{ filtros.q }}" placeholder="{% translate 'Referencia, factura o usuario' %}" style="min-width:210px"></div>
+            <div class="campo"><label for="f-estado">{% translate "Estado" %}</label>
               <select id="f-estado" name="estado">
-                <option value="todos">Todos</option>
-                <option value="Aprobado" {% if filtros.estado == "Aprobado" %}selected{% endif %}>Aprobado</option>
-                <option value="Pendiente" {% if filtros.estado == "Pendiente" %}selected{% endif %}>Pendiente</option>
-                <option value="Rechazado" {% if filtros.estado == "Rechazado" %}selected{% endif %}>Rechazado</option>
-                <option value="Anulado" {% if filtros.estado == "Anulado" %}selected{% endif %}>Anulado</option>
-                <option value="Error" {% if filtros.estado == "Error" %}selected{% endif %}>Error</option>
+                <option value="todos">{% translate "Todos" %}</option>
+                <option value="Aprobado" {% if filtros.estado == "Aprobado" %}selected{% endif %}>{% translate "Aprobado" %}</option>
+                <option value="Pendiente" {% if filtros.estado == "Pendiente" %}selected{% endif %}>{% translate "Pendiente" %}</option>
+                <option value="Rechazado" {% if filtros.estado == "Rechazado" %}selected{% endif %}>{% translate "Rechazado" %}</option>
+                <option value="Anulado" {% if filtros.estado == "Anulado" %}selected{% endif %}>{% translate "Anulado" %}</option>
+                <option value="Error" {% if filtros.estado == "Error" %}selected{% endif %}>{% translate "Error" %}</option>
               </select>
             </div>
-            <div class="campo"><label for="f-plan">Plan</label>
+            <div class="campo"><label for="f-plan">{% translate "Plan" %}</label>
               <select id="f-plan" name="plan">
-                <option value="todos">Todos</option>
-                {% for clave, p in planes.items %}<option value="{{ p.nombre }}" {% if filtros.plan == p.nombre %}selected{% endif %}>{{ p.nombre }}</option>{% endfor %}
+                <option value="todos">{% translate "Todos" %}</option>
+                {% for clave, p in planes.items %}<option value="{{ p.nombre }}" {% if filtros.plan == p.nombre %}selected{% endif %}>{% translate p.nombre %}</option>{% endfor %}
               </select>
             </div>
-            <div class="campo"><label for="f-desde">Desde</label><input id="f-desde" type="date" name="desde" value="{{ filtros.desde|date:'Y-m-d' }}"></div>
-            <div class="campo"><label for="f-hasta">Hasta</label><input id="f-hasta" type="date" name="hasta" value="{{ filtros.hasta|date:'Y-m-d' }}"></div>
-            <button type="submit" class="boton boton-acento">Filtrar</button>
-            <a href="{% url 'PanelAdmin' %}?tab=dinero" class="boton">Limpiar</a>
-            <a class="boton" href="{% url 'ExportarFinanzas' %}?formato=pdf&amp;tipo=transacciones&amp;estado={{ filtros.estado }}&amp;plan={{ filtros.plan }}&amp;desde={{ filtros.desde|date:'Y-m-d' }}&amp;hasta={{ filtros.hasta|date:'Y-m-d' }}&amp;q={{ filtros.q|urlencode }}">PDF</a>
-            <a class="boton" href="{% url 'ExportarFinanzas' %}?formato=xlsx&amp;tipo=transacciones&amp;estado={{ filtros.estado }}&amp;plan={{ filtros.plan }}&amp;desde={{ filtros.desde|date:'Y-m-d' }}&amp;hasta={{ filtros.hasta|date:'Y-m-d' }}&amp;q={{ filtros.q|urlencode }}">Excel</a>
+            <div class="campo"><label for="f-desde">{% translate "Desde" %}</label><input id="f-desde" type="date" name="desde" value="{{ filtros.desde|date:'Y-m-d' }}"></div>
+            <div class="campo"><label for="f-hasta">{% translate "Hasta" %}</label><input id="f-hasta" type="date" name="hasta" value="{{ filtros.hasta|date:'Y-m-d' }}"></div>
+            <button type="submit" class="boton boton-acento">{% translate "Filtrar" %}</button>
+            <a href="{% url 'PanelAdmin' %}?tab=dinero" class="boton">{% translate "Limpiar" %}</a>
+            <a class="boton" href="{% url 'ExportarFinanzas' %}?formato=pdf&amp;tipo=transacciones&amp;estado={{ filtros.estado }}&amp;plan={{ filtros.plan }}&amp;desde={{ filtros.desde|date:'Y-m-d' }}&amp;hasta={{ filtros.hasta|date:'Y-m-d' }}&amp;q={{ filtros.q|urlencode }}">{% translate "PDF" %}</a>
+            <a class="boton" href="{% url 'ExportarFinanzas' %}?formato=xlsx&amp;tipo=transacciones&amp;estado={{ filtros.estado }}&amp;plan={{ filtros.plan }}&amp;desde={{ filtros.desde|date:'Y-m-d' }}&amp;hasta={{ filtros.hasta|date:'Y-m-d' }}&amp;q={{ filtros.q|urlencode }}">{% translate "Excel" %}</a>
           </form>
         </div>
         <div class="tabla-marco">
           <table class="tabla">
-            <thead><tr><th>Fecha</th><th>Factura</th><th>Usuario</th><th>Plan</th><th>Medio</th><th>Estado</th><th class="td-derecha">Total</th><th class="td-derecha">Neto</th><th class="td-derecha"></th></tr></thead>
+            <thead><tr><th>{% translate "Fecha" %}</th><th>{% translate "Factura" %}</th><th>{% translate "Usuario" %}</th><th>{% translate "Plan" %}</th><th>{% translate "Medio" %}</th><th>{% translate "Estado" %}</th><th class="td-derecha">{% translate "Total" %}</th><th class="td-derecha">{% translate "Neto" %}</th><th class="td-derecha"></th></tr></thead>
             <tbody>
               {% for p in pagina %}
               <tr>
-                <td class="td-num">{{ p.creado|date:"d/m/Y H:i" }}</td>
+                <td class="td-num">{{ p.creado|date:"SHORT_DATETIME_FORMAT" }}</td>
                 <td class="td-num">{{ p.numero_factura|default:"—" }}</td>
                 <td>{{ p.usuario.username }}</td>
-                <td>{{ p.plan }}</td>
-                <td>{{ p.metodo|default:"—" }}</td>
-                <td><span class="marca {% if p.estado == 'Aprobado' %}marca-ok{% elif p.estado == 'Anulado' %}marca-aviso{% elif p.estado == 'Rechazado' or p.estado == 'Error' %}marca-mala{% else %}marca-gris{% endif %}"><i></i> {{ p.estado }}</span></td>
+                <td>{% translate p.plan %}</td>
+                <td>{% if p.metodo %}{% translate p.metodo %}{% else %}—{% endif %}</td>
+                <td><span class="marca {% if p.estado == 'Aprobado' %}marca-ok{% elif p.estado == 'Anulado' %}marca-aviso{% elif p.estado == 'Rechazado' or p.estado == 'Error' %}marca-mala{% else %}marca-gris{% endif %}"><i></i> {{ p.get_estado_display }}</span></td>
                 <td class="td-num td-derecha">${{ p.monto|pesos }}</td>
                 <td class="td-num td-derecha">{% if p.neto %}${{ p.neto|pesos }}{% else %}—{% endif %}</td>
                 <td class="td-derecha">
                   <div class="acciones">
                   {% if p.estado == "Aprobado" %}
-                    <a href="{% url 'DescargarFactura' p.id %}" class="accion">PDF</a>
+                    <a href="{% url 'DescargarFactura' p.id %}" class="accion">{% translate "PDF" %}</a>
                   {% elif p.pasarela != "manual" %}
                     {# Tenga o no id de la pasarela: sin id se busca por referencia. #}
                     {# Es el caso del cliente que pago y cuyo aviso no llego.         #}
-                    <form action="{% url 'AdminSincronizarPago' p.id %}" method="post" style="display:inline">{% csrf_token %}<button type="submit" class="accion" title="Preguntarle a Wompi el estado real de este pago">Consultar</button></form>
+                    <form action="{% url 'AdminSincronizarPago' p.id %}" method="post" style="display:inline">{% csrf_token %}<button type="submit" class="accion" title="{% translate 'Preguntarle a Wompi el estado real de este pago' %}">{% translate "Consultar" %}</button></form>
                   {% endif %}
                   </div>
                 </td>
               </tr>
-              {% empty %}<tr><td colspan="9"><div class="vacio"><b>Sin coincidencias</b>Ninguna transacción cumple estos filtros.</div></td></tr>{% endfor %}
+              {% empty %}<tr><td colspan="9"><div class="vacio"><b>{% translate "Sin coincidencias" %}</b>{% translate "Ninguna transacción cumple estos filtros." %}</div></td></tr>{% endfor %}
             </tbody>
           </table>
         </div>
         {% if pagina.has_other_pages %}
         <div class="paginacion">
-          {% if pagina.has_previous %}<a class="boton" href="?tab=dinero&amp;pagina={{ pagina.previous_page_number }}&amp;estado={{ filtros.estado }}&amp;plan={{ filtros.plan }}&amp;q={{ filtros.q|urlencode }}">Anterior</a>{% endif %}
-          <span>Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
-          {% if pagina.has_next %}<a class="boton" href="?tab=dinero&amp;pagina={{ pagina.next_page_number }}&amp;estado={{ filtros.estado }}&amp;plan={{ filtros.plan }}&amp;q={{ filtros.q|urlencode }}">Siguiente</a>{% endif %}
+          {% if pagina.has_previous %}<a class="boton" href="?tab=dinero&amp;pagina={{ pagina.previous_page_number }}&amp;estado={{ filtros.estado }}&amp;plan={{ filtros.plan }}&amp;q={{ filtros.q|urlencode }}">{% translate "Anterior" %}</a>{% endif %}
+          <span>{% blocktranslate with a=pagina.number b=pagina.paginator.num_pages %}Página {{ a }} de {{ b }}{% endblocktranslate %}</span>
+          {% if pagina.has_next %}<a class="boton" href="?tab=dinero&amp;pagina={{ pagina.next_page_number }}&amp;estado={{ filtros.estado }}&amp;plan={{ filtros.plan }}&amp;q={{ filtros.q|urlencode }}">{% translate "Siguiente" %}</a>{% endif %}
         </div>
         {% endif %}
       </div>
 
       <div class="panel" style="margin-top:14px">
-        <div class="panel-cabeza"><div class="panel-titulo">Bitácora de suscripciones</div><p class="panel-explica">Por qué cada usuario tiene acceso hasta esa fecha.</p></div>
+        <div class="panel-cabeza"><div class="panel-titulo">{% translate "Bitácora de suscripciones" %}</div><p class="panel-explica">{% translate "Por qué cada usuario tiene acceso hasta esa fecha." %}</p></div>
         <div class="tabla-marco">
           <table class="tabla">
-            <thead><tr><th>Fecha</th><th>Usuario</th><th>Movimiento</th><th class="td-derecha">Días</th><th class="td-derecha">Vence</th></tr></thead>
+            <thead><tr><th>{% translate "Fecha" %}</th><th>{% translate "Usuario" %}</th><th>{% translate "Movimiento" %}</th><th class="td-derecha">{% translate "Días" %}</th><th class="td-derecha">{% translate "Vence" %}</th></tr></thead>
             <tbody>
               {% for m in movimientos %}
-              <tr><td class="td-num">{{ m.creado|date:"d/m/Y H:i" }}</td><td>{{ m.usuario.username }}</td><td>{{ m.tipo }}</td>
-                <td class="td-num td-derecha">{{ m.dias }}</td><td class="td-num td-derecha">{{ m.vencimiento_nuevo|date:"d/m/Y"|default:"—" }}</td></tr>
-              {% empty %}<tr><td colspan="5"><div class="vacio">Sin movimientos.</div></td></tr>{% endfor %}
+              <tr><td class="td-num">{{ m.creado|date:"SHORT_DATETIME_FORMAT" }}</td><td>{{ m.usuario.username }}</td><td>{{ m.get_tipo_display }}</td>
+                <td class="td-num td-derecha">{{ m.dias }}</td><td class="td-num td-derecha">{{ m.vencimiento_nuevo|date:"SHORT_DATE_FORMAT"|default:"—" }}</td></tr>
+              {% empty %}<tr><td colspan="5"><div class="vacio">{% translate "Sin movimientos." %}</div></td></tr>{% endfor %}
             </tbody>
           </table>
         </div>
@@ -612,18 +615,18 @@
     <!-- ======================= USUARIOS ======================= -->
     <section class="vista" id="v-usuarios">
       <div class="vista-cabeza">
-        <h1>Usuarios</h1>
-        <p>Crear cuentas, buscar, y activar o cortar el acceso de cada usuario.</p>
+        <h1>{% translate "Usuarios" %}</h1>
+        <p>{% translate "Crear cuentas, buscar, y activar o cortar el acceso de cada usuario." %}</p>
       </div>
 
       <div>
         <div class="panel">
           <div class="panel-cabeza">
-            <div class="panel-titulo">Registros · 12 meses</div>
-            <p class="panel-explica">Cuentas nuevas por mes.</p>
+            <div class="panel-titulo">{% translate "Registros · 12 meses" %}</div>
+            <p class="panel-explica">{% translate "Cuentas nuevas por mes." %}</p>
           </div>
           <div class="panel-cuerpo">
-            <svg class="gr gr-cian" viewBox="0 0 620 186" role="img" aria-label="Usuarios nuevos por mes">
+            <svg class="gr gr-cian" viewBox="0 0 620 186" role="img" aria-label="{% translate 'Usuarios nuevos por mes' %}">
               <line class="gr-guia" x1="0" y1="0.5" x2="620" y2="0.5"/>
               <line class="gr-guia" x1="0" y1="75.5" x2="620" y2="75.5"/>
               <line class="gr-guia" x1="0" y1="150.5" x2="620" y2="150.5"/>
@@ -644,23 +647,24 @@
       <div class="panel" style="margin-top:14px">
         <div class="panel-cabeza" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
           <div style="flex:1;min-width:200px">
-            <div class="panel-titulo">Todos los usuarios</div>
-            <p class="panel-explica">{{ perfiles|length }} cuentas registradas.</p>
+            <div class="panel-titulo">{% translate "Todos los usuarios" %}</div>
+            <p class="panel-explica">{% blocktranslate count n=perfiles|length %}{{ n }} cuenta registrada.{% plural %}{{ n }} cuentas registradas.{% endblocktranslate %}</p>
           </div>
           <div class="buscador">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.7" y2="16.7"/></svg>
-            <input type="text" id="buscarUsuario" placeholder="Buscar usuario o correo..." oninput="filtrarUsuarios()" autocomplete="off">
+            <input type="text" id="buscarUsuario" placeholder="{% translate 'Buscar usuario o correo...' %}" oninput="filtrarUsuarios()" autocomplete="off">
           </div>
           <a class="boton boton-acento" href="{% url 'AdminCrearUsuario' %}">
             <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Crear usuario
+            {% translate "Crear usuario" %}
           </a>
         </div>
 
         <div class="tabla-marco">
           <table class="tabla">
-            <thead><tr><th>Usuario</th><th>Suscripción</th><th>Vence</th><th>Cuenta</th><th class="td-derecha">Acciones</th></tr></thead>
+            <thead><tr><th>{% translate "Usuario" %}</th><th>{% translate "Suscripción" %}</th><th>{% translate "Vence" %}</th><th>{% translate "Cuenta" %}</th><th class="td-derecha">{% translate "Acciones" %}</th></tr></thead>
             <tbody id="tablaUsuarios">
+              {% translate "sin correo" as sin_correo %}
               {% for i in perfiles %}
               <tr data-buscar="{{ i.usuario.username|lower }} {{ i.usuario.email|lower }} {{ i.documento|default:'' }}">
                 <td>
@@ -668,7 +672,7 @@
                     <div class="avatar-ini">{{ i.usuario.username|slice:":2" }}</div>
                     <div>
                       <div class="usuario-nombre">{{ i.usuario.username }}</div>
-                      <div class="usuario-correo">{{ i.usuario.email|default:"sin correo" }}</div>
+                      <div class="usuario-correo">{{ i.usuario.email|default:sin_correo }}</div>
                       {% comment %}
                         La cedula y la fecha de nacimiento van aqui, bajo el
                         correo, y no en columnas propias: la tabla ya tiene
@@ -678,59 +682,59 @@
                       {% endcomment %}
                       {% if i.documento or i.fecha_nacimiento %}
                         <div class="usuario-doc">
-                          {% if i.documento %}<span title="Número de cédula">CC {{ i.documento }}</span>{% endif %}
+                          {% if i.documento %}<span title="{% translate 'Número de cédula' %}">{% blocktranslate with doc=i.documento %}CC {{ doc }}{% endblocktranslate %}</span>{% endif %}
                           {% if i.documento and i.fecha_nacimiento %}<span class="usuario-doc-sep">&middot;</span>{% endif %}
-                          {% if i.fecha_nacimiento %}<span title="Fecha de nacimiento">{{ i.fecha_nacimiento|date:"d/m/Y" }}</span>{% endif %}
+                          {% if i.fecha_nacimiento %}<span title="{% translate 'Fecha de nacimiento' %}">{{ i.fecha_nacimiento|date:"SHORT_DATE_FORMAT" }}</span>{% endif %}
                         </div>
                       {% endif %}
                     </div>
                   </div>
                 </td>
                 <td>
-                  {% if i.usuario.suscripcion.esta_vigente %}<span class="marca marca-ok"><i></i> {{ i.usuario.suscripcion.plan }}</span>
-                  {% else %}<span class="marca marca-gris"><i></i> Sin suscripción</span>{% endif %}
+                  {% if i.usuario.suscripcion.esta_vigente %}<span class="marca marca-ok"><i></i> {% translate i.usuario.suscripcion.plan %}</span>
+                  {% else %}<span class="marca marca-gris"><i></i> {% translate "Sin suscripción" %}</span>{% endif %}
                 </td>
                 <td class="td-num">
-                  {% if i.usuario.suscripcion.esta_vigente %}{{ i.usuario.suscripcion.vencimiento|date:"d/m/Y" }}
-                  <div class="usuario-correo">{{ i.usuario.suscripcion.dias_restantes }} días</div>
+                  {% if i.usuario.suscripcion.esta_vigente %}{{ i.usuario.suscripcion.vencimiento|date:"SHORT_DATE_FORMAT" }}
+                  <div class="usuario-correo">{% blocktranslate count dias=i.usuario.suscripcion.dias_restantes %}{{ dias }} día{% plural %}{{ dias }} días{% endblocktranslate %}</div>
                   {% else %}—{% endif %}
                 </td>
                 <td>
-                  {% if i.usuario.is_active %}<span class="marca marca-ok"><i></i> Activa</span>
-                  {% else %}<span class="marca marca-mala"><i></i> Bloqueada</span>{% endif %}
+                  {% if i.usuario.is_active %}<span class="marca marca-ok"><i></i> {% translate "Activa" %}</span>
+                  {% else %}<span class="marca marca-mala"><i></i> {% translate "Bloqueada" %}</span>{% endif %}
                 </td>
                 <td>
                   <div class="acciones">
                     {% if i.usuario.suscripcion.esta_vigente %}
                       <form action="{% url 'AdminCancelarSuscripcion' i.usuario.id %}" method="post" style="display:inline"
                             data-confirmar="cancelar" data-usuario="{{ i.usuario.username }}"
-                            data-plan="{{ i.usuario.suscripcion.plan }}"
-                            data-vence="{{ i.usuario.suscripcion.vencimiento|date:'d/m/Y' }}">
-                        {% csrf_token %}<button type="submit" class="accion accion-no">Cancelar sub.</button>
+                            data-plan="{% translate i.usuario.suscripcion.plan %}"
+                            data-vence="{{ i.usuario.suscripcion.vencimiento|date:'SHORT_DATE_FORMAT' }}">
+                        {% csrf_token %}<button type="submit" class="accion accion-no">{% translate "Cancelar sub." %}</button>
                       </form>
                     {% else %}
                       <form action="{% url 'AdminActivarSuscripcion' i.usuario.id %}" method="post" style="display:inline">
                         {% csrf_token %}<input type="hidden" name="plan" value="mensual"><input type="hidden" name="metodo" value="Manual">
-                        <button type="submit" class="accion accion-si">Activar mes</button>
+                        <button type="submit" class="accion accion-si">{% translate "Activar mes" %}</button>
                       </form>
                     {% endif %}
-                    <a href="{% url 'AdminEditarUsuario' i.usuario.id %}" class="accion">Editar</a>
+                    <a href="{% url 'AdminEditarUsuario' i.usuario.id %}" class="accion">{% translate "Editar" %}</a>
                     <form action="{% url 'AdminEstadoUsuario' i.usuario.id %}" method="post" style="display:inline">
                       {% csrf_token %}
                       {% if i.usuario.is_active %}
-                        <button type="submit" class="accion accion-no">Bloquear</button>
+                        <button type="submit" class="accion accion-no">{% translate "Bloquear" %}</button>
                       {% else %}
-                        <button type="submit" class="accion accion-si">Activar</button>
+                        <button type="submit" class="accion accion-si">{% translate "Activar" %}</button>
                       {% endif %}
                     </form>
-                    <a href="{% url 'AdminEliminarUsuario' i.usuario.id %}" class="accion accion-mala">Eliminar</a>
+                    <a href="{% url 'AdminEliminarUsuario' i.usuario.id %}" class="accion accion-mala">{% translate "Eliminar" %}</a>
                   </div>
                 </td>
               </tr>
               {% endfor %}
             </tbody>
           </table>
-          <div class="vacio" id="sinResultados" style="display:none"><b>Ningún usuario coincide</b>Prueba con otra parte del nombre o del correo.</div>
+          <div class="vacio" id="sinResultados" style="display:none"><b>{% translate "Ningún usuario coincide" %}</b>{% translate "Prueba con otra parte del nombre o del correo." %}</div>
         </div>
       </div>
     </section>
@@ -738,22 +742,22 @@
     <!-- ======================= ACCESOS ======================= -->
     <section class="vista" id="v-accesos">
       <div class="vista-cabeza">
-        <h1>Accesos</h1>
-        <p>Quién entró, desde qué IP y cuándo. Sirve para detectar claves compartidas.</p>
+        <h1>{% translate "Accesos" %}</h1>
+        <p>{% translate "Quién entró, desde qué IP y cuándo. Sirve para detectar claves compartidas." %}</p>
       </div>
       <div class="panel">
         <div class="tabla-marco">
           <table class="tabla">
-            <thead><tr><th>Usuario</th><th>Acción</th><th>IP</th><th class="td-derecha">Fecha</th></tr></thead>
+            <thead><tr><th>{% translate "Usuario" %}</th><th>{% translate "Acción" %}</th><th>{% translate "IP" %}</th><th class="td-derecha">{% translate "Fecha" %}</th></tr></thead>
             <tbody>
               {% for i in accesos %}
               <tr>
                 <td><div class="usuario-celda"><div class="avatar-ini">{{ i.usuario.username|slice:":2"|default:"?" }}</div><div class="usuario-nombre">{{ i.usuario.username|default:"—" }}</div></div></td>
-                <td>{{ i.accion }}</td>
+                <td>{% translate i.accion %}</td>
                 <td class="td-num">{{ i.ip|default:"—" }}</td>
-                <td class="td-num td-derecha">{{ i.creado|date:"d/m/Y H:i" }}</td>
+                <td class="td-num td-derecha">{{ i.creado|date:"SHORT_DATETIME_FORMAT" }}</td>
               </tr>
-              {% empty %}<tr><td colspan="4"><div class="vacio"><b>Sin registros</b>Aquí aparecerá cada inicio de sesión.</div></td></tr>{% endfor %}
+              {% empty %}<tr><td colspan="4"><div class="vacio"><b>{% translate "Sin registros" %}</b>{% translate "Aquí aparecerá cada inicio de sesión." %}</div></td></tr>{% endfor %}
             </tbody>
           </table>
         </div>
@@ -764,7 +768,7 @@
 </div>
 
 <script>
-  var TITULOS = { resumen:'Resumen', modelo:'Modelo', dinero:'Dinero', usuarios:'Usuarios', accesos:'Accesos' };
+  var TITULOS = { resumen:gettext('Resumen'), modelo:gettext('Modelo'), dinero:gettext('Dinero'), usuarios:gettext('Usuarios'), accesos:gettext('Accesos') };
 
   window.abrirVista = function(nombre, evento) {
     if (evento) { evento.preventDefault(); }
@@ -776,7 +780,7 @@
     document.querySelectorAll('.rail-link[data-vista]').forEach(function(a) {
       a.classList.toggle('activo', a.getAttribute('data-vista') === nombre);
     });
-    document.getElementById('tituloVista').textContent = TITULOS[nombre] || 'Panel';
+    document.getElementById('tituloVista').textContent = TITULOS[nombre] || gettext('Panel');
     window.scrollTo(0, 0);
     try { localStorage.setItem('xgol-panel-vista', nombre); } catch (e) {}
   };
@@ -802,7 +806,7 @@
   })();
 </script>
 
-<script src="{% static 'js/tour_panel.js' %}?v=5"></script>
+<script src="{% static 'js/tour_panel.js' %}?v=6"></script>
 
 <!-- ============================================================
      CONFIRMAR CANCELACIÓN DE SUSCRIPCIÓN
@@ -816,19 +820,19 @@
     <div class="dlg-icono">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
     </div>
-    <h3 class="dlg-titulo" id="dlgTitulo">¿Cancelar la suscripción?</h3>
+    <h3 class="dlg-titulo" id="dlgTitulo">{% translate "¿Cancelar la suscripción?" %}</h3>
     <p class="dlg-texto">
-      Se le retirará el acceso al analizador a
-      <strong id="dlgUsuario"></strong> de forma inmediata.
+      {% blocktranslate trimmed %}Se le retirará el acceso al analizador a
+      <strong id="dlgUsuario"></strong> de forma inmediata.{% endblocktranslate %}
     </p>
     <div class="dlg-datos" id="dlgDatos">
-      <div class="dlg-dato"><span>Plan actual</span><b id="dlgPlan">—</b></div>
-      <div class="dlg-dato"><span>Vencía el</span><b id="dlgVence">—</b></div>
+      <div class="dlg-dato"><span>{% translate "Plan actual" %}</span><b id="dlgPlan">—</b></div>
+      <div class="dlg-dato"><span>{% translate "Vencía el" %}</span><b id="dlgVence">—</b></div>
     </div>
-    <p class="dlg-nota">Esta acción no genera devolución del dinero.</p>
+    <p class="dlg-nota">{% translate "Esta acción no genera devolución del dinero." %}</p>
     <div class="dlg-botones">
-      <button type="button" class="dlg-btn dlg-btn-no" id="dlgNo">No, dejarla activa</button>
-      <button type="button" class="dlg-btn dlg-btn-si" id="dlgSi">Sí, cancelar</button>
+      <button type="button" class="dlg-btn dlg-btn-no" id="dlgNo">{% translate "No, dejarla activa" %}</button>
+      <button type="button" class="dlg-btn dlg-btn-si" id="dlgSi">{% translate "Sí, cancelar" %}</button>
     </div>
   </div>
 </div>
@@ -842,7 +846,7 @@
 
     function abrir(form) {
       formularioActual = form;
-      document.getElementById('dlgUsuario').textContent = form.dataset.usuario || 'este usuario';
+      document.getElementById('dlgUsuario').textContent = form.dataset.usuario || gettext('este usuario');
       document.getElementById('dlgPlan').textContent = form.dataset.plan || '—';
       document.getElementById('dlgVence').textContent = form.dataset.vence || '—';
       fondo.hidden = false;

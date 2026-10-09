@@ -1,8 +1,9 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% load static %}
 
 {% block Titulo %}
-  Editar usuario
+  {% translate "Editar usuario" %}
 {% endblock %}
 
 {% block estilos %}
@@ -14,10 +15,10 @@
   <div class="admin-banner">
     <div class="admin-icon">✏️</div>
     <div class="admin-text">
-      <div class="admin-tag">Gestión de usuarios</div>
-      <div class="admin-title">Editar a {{ usuario.username }}</div>
+      <div class="admin-tag">{% translate "Gestión de usuarios" %}</div>
+      <div class="admin-title">{% blocktranslate with nombre=usuario.username %}Editar a {{ nombre }}{% endblocktranslate %}</div>
     </div>
-    <div class="admin-badge">ADMINISTRACIÓN</div>
+    <div class="admin-badge">{% translate "ADMINISTRACIÓN" %}</div>
   </div>
 
   {% comment %}
@@ -35,38 +36,38 @@
 
     <!-- FORMULARIO -->
     <section class="eu-card">
-      <h2 class="eu-titulo">Datos de contacto</h2>
-      <p class="eu-sub">A este correo le llegan las facturas y la recuperación de contraseña.</p>
+      <h2 class="eu-titulo">{% translate "Datos de contacto" %}</h2>
+      <p class="eu-sub">{% translate "A este correo le llegan las facturas y la recuperación de contraseña." %}</p>
 
       <form action="{% url 'AdminEditarUsuario' usuario.id %}" method="post">
         {% csrf_token %}
 
         <div class="eu-campo">
-          <label for="eu-usuario">Usuario</label>
+          <label for="eu-usuario">{% translate "Usuario" %}</label>
           <input type="text" id="eu-usuario" value="{{ usuario.username }}" disabled>
-          <span class="eu-pista">El nombre de usuario no se puede cambiar.</span>
+          <span class="eu-pista">{% translate "El nombre de usuario no se puede cambiar." %}</span>
         </div>
 
         <div class="eu-campo">
-          <label for="eu-nombre">Nombre</label>
-          <input type="text" id="eu-nombre" name="nombre" value="{{ usuario.first_name }}" placeholder="Nombre" maxlength="40">
+          <label for="eu-nombre">{% translate "Nombre" %}</label>
+          <input type="text" id="eu-nombre" name="nombre" value="{{ usuario.first_name }}" placeholder="{% translate 'Nombre' %}" maxlength="40">
         </div>
 
         <div class="eu-campo">
-          <label for="eu-correo">Correo</label>
-          <input type="email" id="eu-correo" name="correo" value="{{ usuario.email }}" placeholder="correo@ejemplo.com"
-                 required maxlength="254" title="Aquí se envía la factura. Ej: nombre@correo.com">
+          <label for="eu-correo">{% translate "Correo" %}</label>
+          <input type="email" id="eu-correo" name="correo" value="{{ usuario.email }}" placeholder="{% translate 'correo@ejemplo.com' %}"
+                 required maxlength="254" title="{% translate 'Aquí se envía la factura. Ej: nombre@correo.com' %}">
         </div>
 
         <div class="eu-campo">
-          <label for="eu-telefono">Teléfono <span class="eu-opcional">(opcional)</span></label>
+          <label for="eu-telefono">{% translate "Teléfono" %} <span class="eu-opcional">{% translate "(opcional)" %}</span></label>
           <input type="text" id="eu-telefono" name="telefono" value="{{ perfil.telefono|default:'' }}"
                  placeholder="300 123 4567" maxlength="20" inputmode="tel">
         </div>
 
         <div class="eu-acciones">
-          <button type="submit" class="btn btn-primary">Guardar cambios</button>
-          <a href="{% url 'PanelAdmin' %}" class="btn btn-secondary">Cancelar</a>
+          <button type="submit" class="btn btn-primary">{% translate "Guardar cambios" %}</button>
+          <a href="{% url 'PanelAdmin' %}" class="btn btn-secondary">{% translate "Cancelar" %}</a>
         </div>
       </form>
     </section>
@@ -77,49 +78,51 @@
         <div class="eu-avatar">{{ usuario.username|first|upper }}</div>
         <div>
           <div class="eu-ficha-nombre">{{ usuario.get_full_name|default:usuario.username }}</div>
-          <div class="eu-ficha-correo">{{ usuario.email|default:"Sin correo" }}</div>
+          {% translate "Sin correo" as sin_correo %}
+          <div class="eu-ficha-correo">{{ usuario.email|default:sin_correo }}</div>
         </div>
       </div>
 
       <dl class="eu-datos">
         <div>
-          <dt>Cuenta</dt>
-          <dd>{% if usuario.is_active %}<span class="eu-marca eu-ok">Activa</span>{% else %}<span class="eu-marca eu-mal">Bloqueada</span>{% endif %}</dd>
+          <dt>{% translate "Cuenta" %}</dt>
+          <dd>{% if usuario.is_active %}<span class="eu-marca eu-ok">{% translate "Activa" %}</span>{% else %}<span class="eu-marca eu-mal">{% translate "Bloqueada" %}</span>{% endif %}</dd>
         </div>
         <div>
-          <dt>Suscripción</dt>
+          <dt>{% translate "Suscripción" %}</dt>
           <dd>
             {% if usuario.suscripcion.esta_vigente %}
-              <span class="eu-marca eu-ok">{{ usuario.suscripcion.plan }}</span>
-              <span class="eu-detalle">vence {{ usuario.suscripcion.vencimiento|date:"d/m/Y" }}</span>
+              <span class="eu-marca eu-ok">{% translate usuario.suscripcion.plan %}</span>
+              <span class="eu-detalle">{% blocktranslate with fecha=usuario.suscripcion.vencimiento|date:"SHORT_DATE_FORMAT" %}vence {{ fecha }}{% endblocktranslate %}</span>
             {% else %}
-              <span class="eu-marca">Sin suscripción</span>
+              <span class="eu-marca">{% translate "Sin suscripción" %}</span>
             {% endif %}
           </dd>
         </div>
         <div>
-          <dt>Cédula</dt>
-          <dd>{% if perfil.documento %}<span class="eu-mono">••••{{ perfil.documento|slice:"-4:" }}</span>{% else %}<span class="eu-falta">Sin registrar</span>{% endif %}</dd>
+          <dt>{% translate "Cédula" %}</dt>
+          <dd>{% if perfil.documento %}<span class="eu-mono">••••{{ perfil.documento|slice:"-4:" }}</span>{% else %}<span class="eu-falta">{% translate "Sin registrar" %}</span>{% endif %}</dd>
         </div>
         <div>
-          <dt>Nacimiento</dt>
-          <dd>{% if perfil.fecha_nacimiento %}{{ perfil.fecha_nacimiento|date:"d/m/Y" }}{% else %}<span class="eu-falta">Sin registrar</span>{% endif %}</dd>
+          <dt>{% translate "Nacimiento" %}</dt>
+          <dd>{% if perfil.fecha_nacimiento %}{{ perfil.fecha_nacimiento|date:"d/m/Y" }}{% else %}<span class="eu-falta">{% translate "Sin registrar" %}</span>{% endif %}</dd>
         </div>
         <div>
-          <dt>Acceso</dt>
-          <dd>{% if es_google %}Google{% else %}Usuario y contraseña{% endif %}</dd>
+          <dt>{% translate "Acceso" %}</dt>
+          <dd>{% if es_google %}{% translate "Google" %}{% else %}{% translate "Usuario y contraseña" %}{% endif %}</dd>
         </div>
         <div>
-          <dt>Registrado</dt>
-          <dd>{{ usuario.date_joined|date:"d/m/Y" }}</dd>
+          <dt>{% translate "Registrado" %}</dt>
+          <dd>{{ usuario.date_joined|date:"SHORT_DATE_FORMAT" }}</dd>
         </div>
         <div>
-          <dt>Último ingreso</dt>
-          <dd>{{ usuario.last_login|date:"d/m/Y H:i"|default:"Nunca" }}</dd>
+          <dt>{% translate "Último ingreso" %}</dt>
+          {% translate "Nunca" as nunca %}
+          <dd>{{ usuario.last_login|date:"SHORT_DATETIME_FORMAT"|default:nunca }}</dd>
         </div>
       </dl>
 
-      <p class="eu-nota">La cédula y la fecha de nacimiento no se editan desde aquí: cambiar el documento es la forma clásica de quedarse con una cuenta ajena.</p>
+      <p class="eu-nota">{% translate "La cédula y la fecha de nacimiento no se editan desde aquí: cambiar el documento es la forma clásica de quedarse con una cuenta ajena." %}</p>
     </aside>
 
   </div>

@@ -10,6 +10,7 @@ from django.urls import reverse
 from urllib.parse import urlparse
 from django.core.cache import cache
 from django.conf import settings
+from django.utils.translation import gettext
 
 from suscripciones.models import Suscripcion
 from suscripciones.planes import obtener_plan,nivel_de_plan
@@ -66,11 +67,11 @@ def procesar_pago(request,clave_plan):
 
     plan=obtener_plan(clave_plan)
     if plan is None:
-        messages.error(request,"Ese plan no existe")
+        messages.error(request,gettext("Ese plan no existe"))
         return redirect("Suscripcion")
 
     if not pasarela.configurada():
-        messages.error(request,"Los pagos no están disponibles en este momento. Inténtalo más tarde.")
+        messages.error(request,gettext("Los pagos no están disponibles en este momento. Inténtalo más tarde."))
         return redirect("Suscripcion")
 
     #Mayoria de edad: si al usuario le faltan la cedula o la fecha, vienen en
@@ -92,19 +93,20 @@ def procesar_pago(request,clave_plan):
     suscripcion=Suscripcion.objects.filter(usuario=request.user).first()
     if suscripcion is not None and suscripcion.esta_vigente():
         if plan["nivel"]<=nivel_de_plan(suscripcion.plan):
-            messages.info(request,f"Ya tienes el plan {suscripcion.plan} activo. Solo puedes pasar a un plan superior.")
+            messages.info(request,gettext("Ya tienes el plan %(plan)s activo. Solo puedes pasar a un plan superior.")
+                          % {"plan":gettext(suscripcion.plan)})
             return redirect("Suscripcion")
 
     llave=f"intentos_pago_{request.user.id}"
     intentos=cache.get(llave,0)
     if intentos>=LIMITE_INTENTOS:
-        messages.error(request,"Hiciste demasiados intentos seguidos. Espera un minuto y vuelve a intentarlo.")
+        messages.error(request,gettext("Hiciste demasiados intentos seguidos. Espera un minuto y vuelve a intentarlo."))
         return redirect("Suscripcion")
     cache.set(llave,intentos+1,60)
 
     pago,error=servicios.crear_pago_pendiente(request.user,clave_plan,servicios.obtener_ip(request))
     if error or pago is None:
-        messages.error(request,"No se pudo iniciar el pago. Inténtalo de nuevo.")
+        messages.error(request,gettext("No se pudo iniciar el pago. Inténtalo de nuevo."))
         return redirect("Suscripcion")
 
     #Se marca en la sesion que fue ESTE navegador el que inicio ESTE pago.
@@ -134,8 +136,8 @@ def retorno_pago(request):
     if error or not crudo:
         return render(request,"pago_estado.html",{
             "estado":"Pendiente",
-            "titulo":"Estamos confirmando tu pago",
-            "detalle":"No pudimos consultar el estado en este momento. Si el cobro se hizo, tu acceso se activa solo en unos minutos.",
+            "titulo":gettext("Estamos confirmando tu pago"),
+            "detalle":gettext("No pudimos consultar el estado en este momento. Si el cobro se hizo, tu acceso se activa solo en unos minutos."),
         })
 
     datos=pasarela.leer_transaccion(crudo)
@@ -197,19 +199,19 @@ def retorno_pago(request):
         #botones aqui abajo.
         return render(request,"pago_estado.html",{
             "estado":"Aprobado",
-            "titulo":"¡Pago confirmado!",
-            "detalle":"Tu suscripción ya está activa. Ya puedes entrar al analizador y usar el motor de predicción.",
+            "titulo":gettext("¡Pago confirmado!"),
+            "detalle":gettext("Tu suscripción ya está activa. Ya puedes entrar al analizador y usar el motor de predicción."),
         })
 
     textos={
-        "Pendiente":("Estamos confirmando tu pago",
-                     "Los pagos por PSE y transferencia pueden tardar unos minutos. Te activamos el acceso apenas el banco confirme y te avisamos por correo."),
-        "Rechazado":("El pago fue rechazado",
-                     "Tu banco no autorizó la transacción. Revisa el cupo o los datos e inténtalo con otro medio de pago."),
-        "Anulado":("El pago se anuló",
-                   "La transacción no se completó. Puedes intentarlo de nuevo cuando quieras."),
-        "Error":("Algo falló con el cobro",
-                 "La pasarela reportó un error. No se hizo ningún cobro; inténtalo de nuevo en unos minutos."),
+        "Pendiente":(gettext("Estamos confirmando tu pago"),
+                     gettext("Los pagos por PSE y transferencia pueden tardar unos minutos. Te activamos el acceso apenas el banco confirme y te avisamos por correo.")),
+        "Rechazado":(gettext("El pago fue rechazado"),
+                     gettext("Tu banco no autorizó la transacción. Revisa el cupo o los datos e inténtalo con otro medio de pago.")),
+        "Anulado":(gettext("El pago se anuló"),
+                   gettext("La transacción no se completó. Puedes intentarlo de nuevo cuando quieras.")),
+        "Error":(gettext("Algo falló con el cobro"),
+                 gettext("La pasarela reportó un error. No se hizo ningún cobro; inténtalo de nuevo en unos minutos.")),
     }
     titulo,detalle=textos.get(pago.estado,textos["Pendiente"])
     return render(request,"pago_estado.html",{

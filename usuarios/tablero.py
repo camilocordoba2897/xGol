@@ -5,13 +5,18 @@
 from datetime import timedelta
 from django.db.models import Sum,Count
 from django.utils import timezone
+from django.utils.translation import gettext_noop, pgettext_lazy
 from django.contrib.auth.models import User
 
 from suscripciones.models import Suscripcion
 from pagos.models import Pago
 from analizador.models import RegistroApuesta
 
-MESES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]
+#Se traducen al usarlos (en el idioma de quien mira el panel)
+MESES=[pgettext_lazy("mes corto","ene"),pgettext_lazy("mes corto","feb"),pgettext_lazy("mes corto","mar"),
+       pgettext_lazy("mes corto","abr"),pgettext_lazy("mes corto","may"),pgettext_lazy("mes corto","jun"),
+       pgettext_lazy("mes corto","jul"),pgettext_lazy("mes corto","ago"),pgettext_lazy("mes corto","sep"),
+       pgettext_lazy("mes corto","oct"),pgettext_lazy("mes corto","nov"),pgettext_lazy("mes corto","dic")]
 
 
 # ============================================================
@@ -75,15 +80,16 @@ REFERENCIAS={
 
 def veredicto_global(tasa):
   #Compara nuestro acierto con las referencias publicadas.
+  #Los textos van en español y el panel los muestra traducidos.
   if tasa<=0:
-    return {"texto":"Sin datos","nivel":"vacio"}
+    return {"texto":gettext_noop("Sin datos"),"nivel":"vacio"}
   if tasa<REFERENCIAS["suelo"]:
-    return {"texto":"Bajo el suelo","nivel":"malo"}
+    return {"texto":gettext_noop("Bajo el suelo"),"nivel":"malo"}
   if tasa<REFERENCIAS["tope_1x2"]:
-    return {"texto":"En rango normal","nivel":"normal"}
+    return {"texto":gettext_noop("En rango normal"),"nivel":"normal"}
   if tasa<REFERENCIAS["sospechoso"]:
-    return {"texto":"Sobre la referencia","nivel":"bueno"}
-  return {"texto":"Revisar la muestra","nivel":"alerta"}
+    return {"texto":gettext_noop("Sobre la referencia"),"nivel":"bueno"}
+  return {"texto":gettext_noop("Revisar la muestra"),"nivel":"alerta"}
 
 
 def _variacion(actual,anterior):
@@ -226,7 +232,7 @@ def _ponderado(ligas,campo):
 
 
 def resumen_motor():
-  from analizador.api_datos import LIGAS
+  from analizador.api_datos import nombre_liga
   from analizador.models import PesosMotor,PrediccionMotor
   from analizador.motor import evaluacion
 
@@ -234,7 +240,7 @@ def resumen_motor():
   for f in PesosMotor.objects.all().order_by("-partidos_evaluados","liga"):
     ligas.append({
       "codigo":f.liga,
-      "nombre":LIGAS.get(f.liga,f.liga),
+      "nombre":nombre_liga(f.liga,f.liga),
       "partidos":f.partidos_evaluados or 0,
       "acierto":f.acierto*100 if f.acierto is not None else None,
       "rps":f.rps,
@@ -283,7 +289,7 @@ def resumen_modelo():
   filas=list(RegistroApuesta.objects.all().values("probabilidad","acierto","cuota","propia"))
   total=len(filas)
 
-  vacio={"total":0,"aciertos":0,"tasa":0,"esperado":0,"sesgo":0,"veredicto":"Sin datos",
+  vacio={"total":0,"aciertos":0,"tasa":0,"esperado":0,"sesgo":0,"veredicto":gettext_noop("Sin datos"),
          "con_cuota":0,"ganancia":0,"roi":None,"propias":0,"cuota_media":0,
          "referencias":REFERENCIAS,"comparado":veredicto_global(0)}
   if total==0:
@@ -300,11 +306,11 @@ def resumen_modelo():
 
   sesgo=tasa-esperado
   if abs(sesgo)<=3:
-    veredicto="Calibrado"
+    veredicto=gettext_noop("Calibrado")
   elif sesgo<0:
-    veredicto="Optimista"
+    veredicto=gettext_noop("Optimista")
   else:
-    veredicto="Conservador"
+    veredicto=gettext_noop("Conservador")
 
   return {
     "total":total,
@@ -337,14 +343,16 @@ def calibracion():
     real=sum(1 for d in grupo if d[1])/cuenta*100 if cuenta else 0
     diferencia=real-predicho
 
+    #El panel compara estos textos para el color del sello: se dejan en
+    #español y se traducen solo al mostrarlos
     if cuenta<MINIMO_FIABLE:
-      veredicto="Pocos datos"
+      veredicto=gettext_noop("Pocos datos")
     elif abs(diferencia)<=5:
-      veredicto="Ajustado"
+      veredicto=gettext_noop("Ajustado")
     elif diferencia<0:
-      veredicto="Optimista"
+      veredicto=gettext_noop("Optimista")
     else:
-      veredicto="Conservador"
+      veredicto=gettext_noop("Conservador")
 
     salida.append({
       "etiqueta":f"{int(bajo*100)}–{min(int(alto*100),100)}%",
@@ -363,7 +371,7 @@ def por_mercado():
   #que arriba quede lo que mas se usa, no lo que mejor se ve.
   mapa={}
   for f in RegistroApuesta.objects.all().values("mercado","probabilidad","acierto","cuota"):
-    clave=f["mercado"] or "Sin mercado"
+    clave=f["mercado"] or gettext_noop("Sin mercado")
     fila=mapa.setdefault(clave,{"mercado":clave,"cuenta":0,"aciertos":0,
                                 "con_cuota":0,"ganancia":0.0,"predicho":0.0})
     fila["cuenta"]=fila["cuenta"]+1

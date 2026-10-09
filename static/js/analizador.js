@@ -16,7 +16,7 @@ function getCsrf() {
 //  ESTADO GLOBAL
 // ============================================================
 let state = { team1: null, team2: null };
-let names = { team1: 'Local', team2: 'Visitante' };
+let names = { team1: gettext('Local'), team2: gettext('Visitante') };
 let fifaRankings = {}; // { 'pais': ranking_number }
 
 // ============================================================
@@ -1007,6 +1007,10 @@ function saveBetLog() {
 // son los que se muestran y los que mide seguimiento.js. Corners, tiros,
 // tarjetas y mitades salian de promedios de 15 partidos o de un reparto fijo,
 // no se mostraban en ningun sitio y ya no se calculan.
+// OJO: market y label se guardan en la base y seguimiento.js usa label como
+// llave para cruzar el pronostico con el resultado. Por eso van SIEMPRE en
+// español, sin traducir, sea cual sea el idioma de la pantalla: estos textos
+// no se muestran, solo identifican cada apuesta.
 function buildBetSpecs(s1, s2, model) {
   const specs = [];
   const N = names;

@@ -1,10 +1,11 @@
+{% load i18n %}
 {% load static %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>xGol — Mi perfil</title>
+<title>{% translate "xGol — Mi perfil" %}</title>
 <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
 <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,6 +13,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/perfil.css' %}?v=14">
 <link rel="stylesheet" href="{% static 'css/boton_inicio.css' %}?v=3">
+{# Textos traducidos para los scripts de la pagina (gettext) #}
+<script src="{% url 'TextosJS' %}?idioma={{ LANGUAGE_CODE }}&amp;v={{ VERSION_TEXTOS }}"></script>
 </head>
 <body class="perfil">
 
@@ -20,15 +23,15 @@
   <nav class="ph-nav">
     <a class="btn-inicio" href="{% url 'Inicio' %}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-      Inicio
+      {% translate "Inicio" %}
     </a>
   </nav>
 </header>
 
 <main class="ph-wrap">
   <div class="ph-title-row">
-    <h1 class="ph-title">Mi perfil</h1>
-    <p class="ph-subtitle">Edita tus datos personales y tu contraseña</p>
+    <h1 class="ph-title">{% translate "Mi perfil" %}</h1>
+    <p class="ph-subtitle">{% translate "Edita tus datos personales y tu contraseña" %}</p>
   </div>
 
   {% if messages %}
@@ -53,26 +56,26 @@
       <div class="ph-identidad-cab">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2.2"/><line x1="14" y1="10.5" x2="18" y2="10.5"/><line x1="14" y1="14" x2="18" y2="14"/></svg>
         <div>
-          <h2 class="ph-identidad-titulo">Completa tus datos de identidad</h2>
-          <p class="ph-identidad-sub">Los necesitas para comprar un plan: xGol es solo para mayores de 18 años. Se registran una sola vez.</p>
+          <h2 class="ph-identidad-titulo">{% translate "Completa tus datos de identidad" %}</h2>
+          <p class="ph-identidad-sub">{% translate "Los necesitas para comprar un plan: xGol es solo para mayores de 18 años. Se registran una sola vez." %}</p>
         </div>
       </div>
       <div class="ph-pendiente-campos">
         {% if not perfil.documento %}
         <div class="ph-field">
-          <label for="ph-documento">Cédula</label>
+          <label for="ph-documento">{% translate "Cédula" %}</label>
           <input type="text" name="documento" id="ph-documento" class="ph-input" inputmode="numeric"
                  pattern="[1-9][0-9]{5,9}" minlength="6" maxlength="10" required
-                 placeholder="Solo números" autocomplete="off" title="Entre 6 y 10 dígitos, sin puntos ni letras">
+                 placeholder="{% translate 'Solo números' %}" autocomplete="off" title="{% translate 'Entre 6 y 10 dígitos, sin puntos ni letras' %}">
         </div>
         {% endif %}
         {% if not perfil.fecha_nacimiento %}
         <div class="ph-field">
-          <label for="ph-nacimiento">Fecha de nacimiento</label>
+          <label for="ph-nacimiento">{% translate "Fecha de nacimiento" %}</label>
           <input type="date" name="fecha_nacimiento" id="ph-nacimiento" class="ph-input" required>
         </div>
         {% endif %}
-        <button type="submit" class="ph-btn ph-btn-lima">Guardar</button>
+        <button type="submit" class="ph-btn ph-btn-lima">{% translate "Guardar" %}</button>
       </div>
     </form>
   </section>
@@ -81,7 +84,7 @@
   <div class="ph-grid">
 
     <section class="ph-card">
-      <h2 class="ph-card-title">Datos personales</h2>
+      <h2 class="ph-card-title">{% translate "Datos personales" %}</h2>
 
       <form action="{% url 'EditarPerfil' %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
@@ -93,15 +96,15 @@
             reemplazar la inicial al instante, sin recargar la pagina.
           {% endcomment %}
           {% if perfil.foto_url %}
-            <img class="ph-avatar" id="ph-preview" src="{{ perfil.foto_url }}" alt="Foto de perfil">
+            <img class="ph-avatar" id="ph-preview" src="{{ perfil.foto_url }}" alt="{% translate 'Foto de perfil' %}">
             <div class="ph-avatar-ph" id="ph-inicial" hidden>{{ user.username|first|upper }}</div>
           {% else %}
-            <img class="ph-avatar" id="ph-preview" alt="Foto de perfil" hidden>
+            <img class="ph-avatar" id="ph-preview" alt="{% translate 'Foto de perfil' %}" hidden>
             <div class="ph-avatar-ph" id="ph-inicial">{{ user.username|first|upper }}</div>
           {% endif %}
           <div class="ph-avatar-info">
             <label class="ph-file-btn">
-              <span id="ph-file-txt">{% if perfil.foto_url %}Cambiar foto{% else %}Agregar foto{% endif %}</span>
+              <span id="ph-file-txt">{% if perfil.foto_url %}{% translate "Cambiar foto" %}{% else %}{% translate "Agregar foto" %}{% endif %}</span>
               <input type="file" name="avatar" accept="image/*" id="ph-file" hidden>
             </label>
           </div>
@@ -109,40 +112,40 @@
 
         {% if es_google %}
         <div class="ph-field">
-          <label>Usuario</label>
+          <label>{% translate "Usuario" %}</label>
           <input type="text" value="{{ user.username }}" disabled class="ph-input ph-disabled">
         </div>
         {% else %}
         <div class="ph-field">
-          <label>Usuario</label>
-          <input type="text" name="username" value="{{ user.username }}" placeholder="Tu usuario" class="ph-input">
+          <label>{% translate "Usuario" %}</label>
+          <input type="text" name="username" value="{{ user.username }}" placeholder="{% translate 'Tu usuario' %}" class="ph-input">
         </div>
         {% endif %}
 
         <div class="ph-field">
-          <label>Nombre</label>
-          <input type="text" name="nombre" value="{{ user.first_name }}" placeholder="Tu nombre" class="ph-input">
+          <label>{% translate "Nombre" %}</label>
+          <input type="text" name="nombre" value="{{ user.first_name }}" placeholder="{% translate 'Tu nombre' %}" class="ph-input">
         </div>
 
         {% if es_google %}
         <div class="ph-field">
-          <label>Correo</label>
+          <label>{% translate "Correo" %}</label>
           <input type="email" value="{{ user.email }}" disabled class="ph-input ph-disabled">
         </div>
         {% else %}
         <div class="ph-field">
-          <label>Correo</label>
-          <input type="email" name="correo" value="{{ user.email }}" placeholder="tucorreo@ejemplo.com" class="ph-input"
-                 required maxlength="254" title="Aqui te llega la factura de tu plan">
+          <label>{% translate "Correo" %}</label>
+          <input type="email" name="correo" value="{{ user.email }}" placeholder="{% translate 'tucorreo@ejemplo.com' %}" class="ph-input"
+                 required maxlength="254" title="{% translate 'Aquí te llega la factura de tu plan' %}">
         </div>
         {% endif %}
 
         <div class="ph-field">
-          <label>Teléfono <span class="ph-opcional">(opcional)</span></label>
-          <input type="text" name="telefono" value="{{ perfil.telefono|default:'' }}" placeholder="Tu teléfono" class="ph-input">
+          <label>{% translate "Teléfono" %} <span class="ph-opcional">{% translate "(opcional)" %}</span></label>
+          <input type="text" name="telefono" value="{{ perfil.telefono|default:'' }}" placeholder="{% translate 'Tu teléfono' %}" class="ph-input">
         </div>
 
-        <button type="submit" class="ph-btn ph-btn-lima">Guardar datos</button>
+        <button type="submit" class="ph-btn ph-btn-lima">{% translate "Guardar datos" %}</button>
       </form>
 
       {% comment %}
@@ -165,19 +168,19 @@
         <div class="ph-identidad-cab">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2.2"/><line x1="14" y1="10.5" x2="18" y2="10.5"/><line x1="14" y1="14" x2="18" y2="14"/></svg>
           <div>
-            <h3 class="ph-identidad-titulo">Datos de identidad</h3>
-            <p class="ph-identidad-sub">Se registraron al crear la cuenta y no se pueden editar aquí.</p>
+            <h3 class="ph-identidad-titulo">{% translate "Datos de identidad" %}</h3>
+            <p class="ph-identidad-sub">{% translate "Se registraron al crear la cuenta y no se pueden editar aquí." %}</p>
           </div>
         </div>
 
         {% if perfil.documento %}
         <div class="ph-id-fila">
-          <span class="ph-id-rotulo">Cédula</span>
+          <span class="ph-id-rotulo">{% translate "Cédula" %}</span>
           <span class="ph-id-valor">
             <span id="ph-doc-tapado">&bull;&bull;&bull;&bull;&bull;&bull;{{ perfil.documento|slice:"-4:" }}</span>
             <span id="ph-doc-claro" hidden>{{ perfil.documento }}</span>
           </span>
-          <button type="button" class="ph-id-ojo" id="ph-doc-ojo" aria-pressed="false" aria-label="Mostrar la cédula completa">
+          <button type="button" class="ph-id-ojo" id="ph-doc-ojo" aria-pressed="false" aria-label="{% translate 'Mostrar la cédula completa' %}">
             <svg class="ojo-abierto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
             <svg class="ojo-cerrado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.6 20.6 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a20.6 20.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
           </button>
@@ -186,49 +189,49 @@
 
         {% if perfil.fecha_nacimiento %}
         <div class="ph-id-fila">
-          <span class="ph-id-rotulo">Fecha de nacimiento</span>
-          <span class="ph-id-valor">{{ perfil.fecha_nacimiento|date:"d/m/Y" }}</span>
+          <span class="ph-id-rotulo">{% translate "Fecha de nacimiento" %}</span>
+          <span class="ph-id-valor">{{ perfil.fecha_nacimiento|date:"SHORT_DATE_FORMAT" }}</span>
         </div>
         {% endif %}
 
-        <p class="ph-identidad-nota">Si algún dato quedó mal, escribe a soporte para corregirlo.</p>
+        <p class="ph-identidad-nota">{% translate "Si algún dato quedó mal, escribe a soporte para corregirlo." %}</p>
       </div>
       {% endif %}
     </section>
 
     {% if es_google %}
     <section class="ph-card">
-      <h2 class="ph-card-title">Método de acceso</h2>
-      <p class="ph-card-desc">Así inicias sesión en xGol.</p>
+      <h2 class="ph-card-title">{% translate "Método de acceso" %}</h2>
+      <p class="ph-card-desc">{% translate "Así inicias sesión en xGol." %}</p>
 
       <div class="ph-method">
         <div class="ph-method-icon">
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.76h3.56c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.56-2.76c-.98.66-2.23 1.06-3.72 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.09a6.6 6.6 0 0 1 0-4.18V7.07H2.18a11 11 0 0 0 0 9.86l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
         </div>
         <div class="ph-method-txt">
-          <span class="ph-method-label">Método de acceso</span>
-          <span class="ph-method-value">Google</span>
+          <span class="ph-method-label">{% translate "Método de acceso" %}</span>
+          <span class="ph-method-value">{% translate "Google" %}</span>
         </div>
       </div>
 
       <div class="ph-note">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <p>Tu contraseña se administra desde tu cuenta de Google. Para cambiarla, hazlo directamente desde Google.</p>
+        <p>{% translate "Tu contraseña se administra desde tu cuenta de Google. Para cambiarla, hazlo directamente desde Google." %}</p>
       </div>
     </section>
     {% else %}
     <section class="ph-card">
-      <h2 class="ph-card-title ph-card-title-solo">Cambiar contraseña</h2>
+      <h2 class="ph-card-title ph-card-title-solo">{% translate "Cambiar contraseña" %}</h2>
 
       <form action="{% url 'EditarPerfil' %}" method="post">
         {% csrf_token %}
         <input type="hidden" name="accion" value="clave">
 
         <div class="ph-field">
-          <label>Contraseña actual</label>
+          <label>{% translate "Contraseña actual" %}</label>
           <div class="ph-pass-wrap">
-            <input type="password" name="clave_actual" placeholder="Tu contraseña actual" required class="ph-input">
-            <button type="button" class="ph-pass-ojo" aria-label="Mostrar contraseña" aria-pressed="false">
+            <input type="password" name="clave_actual" placeholder="{% translate 'Tu contraseña actual' %}" required class="ph-input">
+            <button type="button" class="ph-pass-ojo" aria-label="{% translate 'Mostrar contraseña' %}" aria-pressed="false">
               <svg class="ojo-abierto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
               <svg class="ojo-cerrado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.6 20.6 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a20.6 20.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
             </button>
@@ -236,36 +239,36 @@
         </div>
 
         <div class="ph-field">
-          <label>Contraseña nueva</label>
+          <label>{% translate "Contraseña nueva" %}</label>
           <div class="ph-pass-wrap">
-            <input type="password" name="clave_nueva" id="ph-clave-nueva" placeholder="Mínimo 8 caracteres" required class="ph-input">
-            <button type="button" class="ph-pass-ojo" aria-label="Mostrar contraseña" aria-pressed="false">
+            <input type="password" name="clave_nueva" id="ph-clave-nueva" placeholder="{% translate 'Mínimo 8 caracteres' %}" required class="ph-input">
+            <button type="button" class="ph-pass-ojo" aria-label="{% translate 'Mostrar contraseña' %}" aria-pressed="false">
               <svg class="ojo-abierto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
               <svg class="ojo-cerrado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.6 20.6 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a20.6 20.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
             </button>
           </div>
 
           <ul class="ph-reqs" id="ph-reqs" hidden>
-            <li data-regla="longitud">Debe ser de 8 a 16 caracteres</li>
-            <li data-regla="minuscula">Al menos 1 letra minúscula</li>
-            <li data-regla="mayuscula">Al menos 1 letra mayúscula</li>
-            <li data-regla="numero">Al menos 1 número</li>
-            <li data-regla="especial">Al menos 1 carácter especial</li>
+            <li data-regla="longitud">{% translate "Debe ser de 8 a 16 caracteres" %}</li>
+            <li data-regla="minuscula">{% translate "Al menos 1 letra minúscula" %}</li>
+            <li data-regla="mayuscula">{% translate "Al menos 1 letra mayúscula" %}</li>
+            <li data-regla="numero">{% translate "Al menos 1 número" %}</li>
+            <li data-regla="especial">{% translate "Al menos 1 carácter especial" %}</li>
           </ul>
         </div>
 
         <div class="ph-field">
-          <label>Repetir contraseña nueva</label>
+          <label>{% translate "Repetir contraseña nueva" %}</label>
           <div class="ph-pass-wrap">
-            <input type="password" name="clave_confirmar" placeholder="Repite la nueva contraseña" required class="ph-input">
-            <button type="button" class="ph-pass-ojo" aria-label="Mostrar contraseña" aria-pressed="false">
+            <input type="password" name="clave_confirmar" placeholder="{% translate 'Repite la nueva contraseña' %}" required class="ph-input">
+            <button type="button" class="ph-pass-ojo" aria-label="{% translate 'Mostrar contraseña' %}" aria-pressed="false">
               <svg class="ojo-abierto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
               <svg class="ojo-cerrado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.6 20.6 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a20.6 20.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
             </button>
           </div>
         </div>
 
-        <button type="submit" class="ph-btn ph-btn-lima">Cambiar contraseña</button>
+        <button type="submit" class="ph-btn ph-btn-lima">{% translate "Cambiar contraseña" %}</button>
       </form>
     </section>
     {% endif %}
@@ -292,7 +295,7 @@
 
       // Se acepta solo imagen: el accept del input no lo garantiza
       if(archivo.type.indexOf("image/") !== 0){
-        alert("Ese archivo no es una imagen. Elige un JPG, PNG o WEBP.");
+        alert(gettext("Ese archivo no es una imagen. Elige un JPG, PNG o WEBP."));
         this.value = "";
         return;
       }
@@ -304,7 +307,7 @@
       foto.src = urlPrevia;
       foto.hidden = false;
       inicial.hidden = true;
-      if(rotulo) rotulo.textContent = "Cambiar foto";
+      if(rotulo) rotulo.textContent = gettext("Cambiar foto");
     });
 
     // Si la imagen no se puede leer, se vuelve a la inicial
@@ -315,8 +318,8 @@
       foto.hidden = true;
       inicial.hidden = false;
       campo.value = "";
-      if(rotulo) rotulo.textContent = "Agregar foto";
-      alert("No se pudo abrir esa imagen. Prueba con otra.");
+      if(rotulo) rotulo.textContent = gettext("Agregar foto");
+      alert(gettext("No se pudo abrir esa imagen. Prueba con otra."));
     });
   })();
 </script>
@@ -382,7 +385,7 @@
           campo.type = verla ? "text" : "password";
           boton.classList.toggle("mostrando", verla);
           boton.setAttribute("aria-pressed", verla ? "true" : "false");
-          boton.setAttribute("aria-label", verla ? "Ocultar contraseña" : "Mostrar contraseña");
+          boton.setAttribute("aria-label", verla ? gettext("Ocultar contraseña") : gettext("Mostrar contraseña"));
         });
       })(ojos[i]);
     }
@@ -410,7 +413,7 @@
       tapado.hidden = verla;
       claro.hidden  = !verla;
       boton.setAttribute("aria-pressed", verla ? "true" : "false");
-      boton.setAttribute("aria-label", verla ? "Ocultar la cédula" : "Mostrar la cédula completa");
+      boton.setAttribute("aria-label", verla ? gettext("Ocultar la cédula") : gettext("Mostrar la cédula completa"));
     });
   })();
 </script>

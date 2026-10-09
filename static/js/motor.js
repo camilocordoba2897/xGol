@@ -18,6 +18,8 @@
 //  Si el motor no responde, el analizador NO se queda en blanco:
 //  vuelve al calculo local y avisa con un banner bien visible de que
 //  esta en modo limitado. Nunca se muestran numeros peores sin decirlo.
+//
+//  Los textos salen en el idioma elegido en el home (gettext).
 // ============================================================
 (function() {
   var RUTAS = window.XGOL_AUTO || {};
@@ -31,11 +33,16 @@
   }
 
   var MOTIVOS = {
-    sin_datos:         'La liga no está ajustada. Ejecuta: python manage.py ajustar_motor',
-    cuota:             'Se agotó el límite de peticiones por minuto de football-data.org.',
-    red:               'No se pudo conectar con el proveedor de datos.',
-    faltan_parametros: 'La petición salió sin liga o sin equipos.'
+    sin_datos:         gettext('La liga no está ajustada. Ejecuta: python manage.py ajustar_motor'),
+    cuota:             gettext('Se agotó el límite de peticiones por minuto de football-data.org.'),
+    red:               gettext('No se pudo conectar con el proveedor de datos.'),
+    faltan_parametros: gettext('La petición salió sin liga o sin equipos.'),
+    liga_no_cubierta:  gettext('El motor de xGol no cubre esta liga.')
   };
+
+  // El nivel llega como codigo (alta / media / baja), que tambien es la
+  // clase del color: aqui solo se traduce lo que se lee.
+  var NIVELES = { alta: gettext('alta'), media: gettext('media'), baja: gettext('baja') };
 
   var renderOriginal = window.renderAll;
   var buildOriginal  = window.buildModel;
@@ -195,7 +202,7 @@
     var conf = diag.confianza || {};
     var nombreLocal = escapar(d.local), nombreVisit = escapar(d.visitante);
 
-    var nombres = { dixon_coles: 'Modelo de liga', elo: 'Elo', mercado: 'Mercado' };
+    var nombres = { dixon_coles: gettext('Modelo de liga'), elo: 'Elo', mercado: gettext('Mercado') };
     var fuentes = d.fuentes || {}, pesos = d.pesos || {};
     var filas = Object.keys(fuentes).sort().map(function(k) {
       var f = fuentes[k];
@@ -205,8 +212,8 @@
         pct(f.visitante || 0) + '</td></tr>';
     }).join('');
     var tabla = filas
-      ? '<table class="mx-tabla"><thead><tr><th>Fuente</th><th>' + nombreLocal +
-        '</th><th>Empate</th><th>' + nombreVisit + '</th></tr></thead><tbody>' +
+      ? '<table class="mx-tabla"><thead><tr><th>' + gettext('Fuente') + '</th><th>' + nombreLocal +
+        '</th><th>' + gettext('Empate') + '</th><th>' + nombreVisit + '</th></tr></thead><tbody>' +
         filas + '</tbody></table>'
       : '';
 
@@ -214,16 +221,16 @@
     // motor no habia visto: apostar donde el motor veia valor sobre la cuota
     // perdio entre un 21% y un 38% de lo apostado. Anunciar valor sin nada
     // que lo respalde es inventar numeros, asi que se dice la verdad.
-    var bloqueValor = '<div class="mx-nota">xGol no marca apuestas "de valor": en ' +
-      'temporadas que el motor no había visto, apostar donde veía valor sobre la ' +
-      'cuota perdió dinero. El mercado de apuestas es muy difícil de batir.</div>';
+    var bloqueValor = '<div class="mx-nota">' +
+      gettext('xGol no marca apuestas «de valor»: en temporadas que el motor no había visto, apostar donde veía valor sobre la cuota perdió dinero. El mercado de apuestas es muy difícil de batir.') +
+      '</div>';
 
     var rh = d.rendimiento_historico, bloqueRend = '';
     if (rh && rh.partidos > 0 && rh.log_perdida != null) {
-      bloqueRend = '<div class="mx-nota">Historial del motor: <b>' + rh.partidos +
-        '</b> partidos evaluados &middot; log-pérdida <b>' + rh.log_perdida.toFixed(4) +
-        '</b> (menos es mejor &middot; 1.0986 = no saber nada)' +
-        (rh.acierto != null ? ' &middot; acierto <b>' + (rh.acierto * 100).toFixed(1) + '%</b>' : '') +
+      bloqueRend = '<div class="mx-nota">' +
+        interpolate(gettext('Historial del motor: <b>%(partidos)s</b> partidos evaluados &middot; log-pérdida <b>%(perdida)s</b> (menos es mejor &middot; 1.0986 = no saber nada)'),
+                    { partidos: rh.partidos, perdida: rh.log_perdida.toFixed(4) }, true) +
+        (rh.acierto != null ? ' &middot; ' + interpolate(gettext('acierto <b>%s%</b>'), [(rh.acierto * 100).toFixed(1)]) : '') +
         '</div>';
     }
 
@@ -232,25 +239,26 @@
     }).join('');
 
     var etiquetaConf = conf.puntos != null
-      ? '<span class="mx-conf mx-conf-' + escapar(conf.nivel) + '">Confianza ' +
-        conf.puntos + '/100 &middot; ' + escapar(conf.nivel) + '</span>' : '';
+      ? '<span class="mx-conf mx-conf-' + escapar(conf.nivel) + '">' +
+        interpolate(gettext('Confianza %s/100'), [conf.puntos]) + ' &middot; ' +
+        escapar(NIVELES[conf.nivel] || conf.nivel) + '</span>' : '';
 
     return '<div class="pr-card mx-card">' +
-      '<div class="pr-titulo">De dónde sale este pronóstico ' + etiquetaConf + '</div>' +
+      '<div class="pr-titulo">' + gettext('De dónde sale este pronóstico') + ' ' + etiquetaConf + '</div>' +
       tabla + bloqueValor + bloqueRend + avisos +
-      '<div class="mx-nota">Todas las tarjetas de esta pantalla salen de la misma ' +
-      'matriz de marcadores, por eso nunca se contradicen entre sí. ' +
-      'No es una recomendación de apuesta.</div>' +
+      '<div class="mx-nota">' +
+      gettext('Todas las tarjetas de esta pantalla salen de la misma matriz de marcadores, por eso nunca se contradicen entre sí. No es una recomendación de apuesta.') +
+      '</div>' +
     '</div>';
   }
 
   function banderaFallo(motivo) {
     return '<div class="pr-card mx-card mx-degradado">' +
-      '<div class="pr-titulo">Modo limitado</div>' +
-      '<div class="mx-aviso">El motor no respondió, así que estos números salen del ' +
-      'cálculo local (solo los últimos partidos de cada equipo, sin cuotas). ' +
-      'Son menos precisos.</div>' +
-      '<div class="mx-nota">Motivo: ' + escapar(motivo) + '</div>' +
+      '<div class="pr-titulo">' + gettext('Modo limitado') + '</div>' +
+      '<div class="mx-aviso">' +
+      gettext('El motor no respondió, así que estos números salen del cálculo local (solo los últimos partidos de cada equipo, sin cuotas). Son menos precisos.') +
+      '</div>' +
+      '<div class="mx-nota">' + interpolate(gettext('Motivo: %s'), [escapar(motivo)]) + '</div>' +
     '</div>';
   }
 
@@ -283,15 +291,15 @@
     if (!k) {
       console.warn('[xGol motor] Falta liga_codigo o id en window.XGOL_PARTIDO. ' +
                    '¿Actualizaste auto.js?');
-      insertar(banderaFallo('el partido llegó sin identificador'));
+      insertar(banderaFallo(gettext('el partido llegó sin identificador')));
       return;
     }
     if (pidiendo) return;
     pidiendo = true;
     datos = null;
     fallo = null;
-    insertar('<div class="pr-card mx-card"><div class="pr-titulo">Calculando con el motor…</div>' +
-             '<div class="mx-nota">Ajustando la liga completa y consultando el mercado.</div></div>');
+    insertar('<div class="pr-card mx-card"><div class="pr-titulo">' + gettext('Calculando con el motor…') + '</div>' +
+             '<div class="mx-nota">' + gettext('Ajustando la liga completa y consultando el mercado.') + '</div></div>');
 
     var p = window.XGOL_PARTIDO || {};
     var q = 'liga=' + encodeURIComponent(p.liga_codigo) +
@@ -322,7 +330,7 @@
       })
       .catch(function() {
         pidiendo = false;
-        fallo = 'falló la conexión con el backend';
+        fallo = gettext('falló la conexión con el backend');
         console.warn('[xGol motor] ' + fallo);
         insertar(banderaFallo(fallo));
       });

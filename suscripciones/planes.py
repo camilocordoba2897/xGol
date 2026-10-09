@@ -1,6 +1,11 @@
+from django.utils.translation import gettext_noop
+
+#"nombre" es el que se guarda en la base (Suscripcion.plan, Pago.plan), por
+#eso queda en español. gettext_noop solo lo marca para traducirlo al
+#mostrarlo: {% translate plan.nombre %} en las plantillas.
 PLANES = {
   "mensual": {
-    "nombre": "Mensual",
+    "nombre": gettext_noop("Mensual"),
     "precio": 20000,
     "dias": 30,
     "nivel": 1,
@@ -8,13 +13,14 @@ PLANES = {
     "descripcion": "Acceso completo por 30 dias"
   },
   "trimestral": {
-    "nombre": "Trimestral",
+    "nombre": gettext_noop("Trimestral"),
     "precio": 50000,
     "dias": 90,
     "nivel": 2,
     "etiqueta": "Plan Trimestral",
     "descripcion": "Acceso completo por 90 dias",
-    "ahorro": "Ahorras $10.000"
+    #Cuanto se ahorra frente a 3 meses sueltos; el texto lo arma la plantilla
+    "ahorro": 10000
   }
 }
 

@@ -1,14 +1,15 @@
 from django.db import models
+from django.utils.translation import gettext_lazy
 from django.contrib.auth.models import User
 
 class Rol(models.Model):
-  nombre=models.CharField(max_length=30,verbose_name="Rol")
+  nombre=models.CharField(max_length=30,verbose_name=gettext_lazy("Rol"))
   descripcion=models.CharField(max_length=120,blank=True,null=True)
   creado=models.DateTimeField(auto_now_add=True)
 
   class Meta:
-    verbose_name="Rol"
-    verbose_name_plural="Roles"
+    verbose_name=gettext_lazy("Rol")
+    verbose_name_plural=gettext_lazy("Roles")
 
   def __str__(self):
     return self.nombre
@@ -33,11 +34,15 @@ class Perfil(models.Model):
   #como archivo, la foto de perfil desaparecia con cada actualizacion.
   foto=models.TextField(blank=True,default="")
   proveedor=models.CharField(max_length=20,default='local')
+  #Ultimo idioma elegido con las banderas del home (lo guarda
+  #xgol/idioma.py). Sirve para lo que se envia sin que la persona este en
+  #el sitio, como la factura por correo cuando Wompi confirma el pago.
+  idioma=models.CharField(max_length=8,default='es')
   creado=models.DateTimeField(auto_now_add=True)
 
   class Meta:
-    verbose_name='Perfil'
-    verbose_name_plural='Perfiles'
+    verbose_name=gettext_lazy("Perfil")
+    verbose_name_plural=gettext_lazy("Perfiles")
 
   def __str__(self):
     return self.usuario.username
@@ -70,8 +75,8 @@ class Bitacora(models.Model):
   creado=models.DateTimeField(auto_now_add=True)
 
   class Meta:
-    verbose_name="Bitacora"
-    verbose_name_plural="Bitacoras"
+    verbose_name=gettext_lazy("Bitacora")
+    verbose_name_plural=gettext_lazy("Bitacoras")
 
   def __str__(self):
     return f"{self.accion} — {self.usuario}"

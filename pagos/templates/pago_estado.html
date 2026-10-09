@@ -1,7 +1,9 @@
 {% extends 'base.html' %}
+{% load i18n %}
+{% load formato %}
 
 {% block Titulo %}
-  Estado de tu pago
+  {% translate "Estado de tu pago" %}
 {% endblock %}
 
 {% block content %}
@@ -31,21 +33,21 @@
   {% if pago %}
   <div class="card" style="margin-bottom: 20px;">
     <div style="display: flex; justify-content: space-between; padding: 8px 0;">
-      <span style="color: var(--text-3);">Plan</span>
-      <span style="color: var(--text-1);">{{ pago.plan }}</span>
+      <span style="color: var(--text-3);">{% translate "Plan" %}</span>
+      <span style="color: var(--text-1);">{% translate pago.plan %}</span>
     </div>
     <div style="display: flex; justify-content: space-between; padding: 8px 0;">
-      <span style="color: var(--text-3);">Monto</span>
-      <span style="color: var(--text-1); font-family: var(--ff-mono);">${{ pago.monto|floatformat:0 }}</span>
+      <span style="color: var(--text-3);">{% translate "Monto" %}</span>
+      <span style="color: var(--text-1); font-family: var(--ff-mono);">${{ pago.monto|pesos }}</span>
     </div>
     <div style="display: flex; justify-content: space-between; padding: 8px 0;">
-      <span style="color: var(--text-3);">Referencia</span>
+      <span style="color: var(--text-3);">{% translate "Referencia" %}</span>
       <span style="font-family: var(--ff-mono); color: var(--text-2); font-size: .85rem;">{{ pago.referencia }}</span>
     </div>
     {% if pago.mensaje %}
     <div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--line); margin-top: 6px; gap: 16px;">
-      <span style="color: var(--text-3); flex-shrink: 0;">Respuesta del banco</span>
-      <span style="color: var(--text-2); font-size: .86rem; text-align: right;">{{ pago.mensaje }}</span>
+      <span style="color: var(--text-3); flex-shrink: 0;">{% translate "Respuesta del banco" %}</span>
+      <span style="color: var(--text-2); font-size: .86rem; text-align: right;">{% translate pago.mensaje %}</span>
     </div>
     {% endif %}
   </div>
@@ -54,8 +56,8 @@
   {% if estado == "Pendiente" %}
     <div class="card" style="background: var(--bg-2); border-left: 4px solid var(--warn); margin-bottom: 20px;">
       <p style="color: var(--text-1); font-size: .9rem; line-height: 1.6;">
-        No hace falta que hagas nada más. Puedes cerrar esta página: apenas el banco confirme,
-        tu acceso queda activo y te llega el comprobante al correo.
+        {% blocktranslate trimmed %}No hace falta que hagas nada más. Puedes cerrar esta página: apenas el banco confirme,
+        tu acceso queda activo y te llega el comprobante al correo.{% endblocktranslate %}
       </p>
     </div>
   {% endif %}
@@ -66,9 +68,9 @@
   {% if estado != "Aprobado" %}
     <div style="display: flex; gap: 12px; flex-wrap: wrap;">
       {% if estado != "Pendiente" %}
-        <a href="{% url 'Suscripcion' %}" class="btn btn-primary">Intentar de nuevo</a>
+        <a href="{% url 'Suscripcion' %}" class="btn btn-primary">{% translate "Intentar de nuevo" %}</a>
       {% endif %}
-      <a href="{% url 'Inicio' %}" class="btn-inicio">Volver al inicio</a>
+      <a href="{% url 'Inicio' %}" class="btn-inicio">{% translate "Volver al inicio" %}</a>
     </div>
   {% endif %}
 

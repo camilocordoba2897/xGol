@@ -17,6 +17,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView
+from django.utils.translation import gettext, gettext_noop
 from usuarios.formularios import FormularioNuevaContrasena
 
 
@@ -75,7 +76,7 @@ def registro(request):
         #Otro registro gano la carrera. Se valida de nuevo para decir QUE dato
         #quedo tomado (usuario o cedula), no un error generico.
         _,errores=validar_registro(request.POST)
-        for error in errores or ["Alguno de tus datos ya está registrado, revisa el formulario."]:
+        for error in errores or [gettext("Alguno de tus datos ya está registrado, revisa el formulario.")]:
             messages.error(request,error)
         return render(request,"registro.html",{"datos":_datos_escritos(request),"next":siguiente})
 
@@ -85,7 +86,8 @@ def registro(request):
     login(request,usuario,backend="django.contrib.auth.backends.ModelBackend")
     if siguiente:
         return redirect(siguiente)
-    messages.success(request,f"¡Bienvenido a xGol, {usuario.first_name}! Tu cuenta está lista: elige tu plan para empezar.")
+    messages.success(request,gettext("¡Bienvenido a xGol, %(nombre)s! Tu cuenta está lista: elige tu plan para empezar.")
+                     % {"nombre":usuario.first_name})
     return redirect("Suscripcion")
 
 
@@ -111,12 +113,12 @@ def disponible(request):
     llave=f"disponible_{obtener_ip(request)}"
     consultas=cache.get(llave,0)
     if consultas>=TOPE_CONSULTAS:
-        return JsonResponse({"error":"Demasiadas consultas, espera un momento."},status=429)
+        return JsonResponse({"error":gettext("Demasiadas consultas, espera un momento.")},status=429)
     cache.set(llave,consultas+1,60)
 
     validar=VALIDADORES_DISPONIBLES.get(request.POST.get("campo"))
     if validar is None:
-        return JsonResponse({"error":"Campo no válido."},status=400)
+        return JsonResponse({"error":gettext("Campo no válido.")},status=400)
     _,error=validar(request.POST.get("valor"))
     return JsonResponse({"disponible":error is None,"mensaje":error or ""})
 
@@ -160,7 +162,7 @@ def ingresar(request):
 
         llave_cuenta,llave_ip=_llaves_fallos(request,username)
         if cache.get(llave_cuenta,0)>=FALLOS_POR_CUENTA or cache.get(llave_ip,0)>=FALLOS_POR_IP:
-            messages.error(request,"Demasiados intentos fallidos. Espera 15 minutos e inténtalo de nuevo.")
+            messages.error(request,gettext("Demasiados intentos fallidos. Espera 15 minutos e inténtalo de nuevo."))
             return render(request,"ingresar.html",{"next":siguiente})
 
         usuario=authenticate(request,username=username,password=password)
@@ -174,7 +176,8 @@ def ingresar(request):
             #modo estricto rechazaba el guardado, tumbando el inicio de sesion.
             Bitacora.objects.create(
                 usuario=usuario,
-                accion="Inicio de sesión",
+                #Se guarda en español; el panel lo muestra traducido
+                accion=gettext_noop("Inicio de sesión"),
                 ip=obtener_ip(request),
                 agente=(request.META.get("HTTP_USER_AGENT") or "")[:200]
             )
@@ -188,7 +191,7 @@ def ingresar(request):
 
         cache.set(llave_cuenta,cache.get(llave_cuenta,0)+1,BLOQUEO_SEGUNDOS)
         cache.set(llave_ip,cache.get(llave_ip,0)+1,BLOQUEO_SEGUNDOS)
-        messages.error(request,"Usuario o contraseña incorrectos")
+        messages.error(request,gettext("Usuario o contraseña incorrectos"))
         return render(request,"ingresar.html",{"next":siguiente})
 
     return render(request,"ingresar.html",{"next":siguiente})
@@ -290,7 +293,7 @@ def editar_perfil(request):
             #lo que venga escrito; si viene, tiene que ser valido.
             nombre_crudo=(request.POST.get("nombre") or "").strip()
             if nombre_crudo:
-                nombre,e_nombre=validar_nombre(nombre_crudo,"El nombre")
+                nombre,e_nombre=validar_nombre(nombre_crudo,"nombre")
                 if e_nombre:
                     messages.error(request,e_nombre)
                     return redirect("EditarPerfil")
@@ -337,7 +340,7 @@ def editar_perfil(request):
                 perfil.foto=foto_a_data_uri(avatar)
             perfil.save()
 
-            messages.success(request,"Tus datos se actualizaron correctamente")
+            messages.success(request,gettext("Tus datos se actualizaron correctamente"))
             return redirect("EditarPerfil")
 
         if accion=="identidad":
@@ -346,7 +349,7 @@ def editar_perfil(request):
             if error:
                 messages.error(request,error)
             else:
-                messages.success(request,"Tus datos de identidad quedaron registrados")
+                messages.success(request,gettext("Tus datos de identidad quedaron registrados"))
             return redirect("EditarPerfil")
 
         if accion=="clave":
@@ -355,11 +358,11 @@ def editar_perfil(request):
             confirmar=request.POST.get("clave_confirmar") or ""
 
             if not request.user.check_password(actual):
-                messages.error(request,"La contraseña actual no es correcta")
+                messages.error(request,gettext("La contraseña actual no es correcta"))
                 return redirect("EditarPerfil")
 
             if nueva!=confirmar:
-                messages.error(request,"Las contraseñas nuevas no coinciden")
+                messages.error(request,gettext("Las contraseñas nuevas no coinciden"))
                 return redirect("EditarPerfil")
 
             #Las mismas reglas del registro, desde el mismo sitio
@@ -371,7 +374,7 @@ def editar_perfil(request):
             request.user.set_password(nueva)
             request.user.save()
             update_session_auth_hash(request,request.user)
-            messages.success(request,"Tu contraseña se cambió correctamente")
+            messages.success(request,gettext("Tu contraseña se cambió correctamente"))
             return redirect("EditarPerfil")
 
     return render(request,"editar_perfil.html",{"perfil": perfil,"es_google": es_google})
@@ -382,14 +385,14 @@ def admin_eliminar_usuario(request,id):
     usuario=get_object_or_404(User,id=id)
 
     if usuario==request.user:
-        messages.error(request,"No puedes eliminar tu propia cuenta")
+        messages.error(request,gettext("No puedes eliminar tu propia cuenta"))
         return redirect("PanelAdmin")
 
     #Tampoco a OTRO administrador: ya no salen en la lista, pero la URL se
     #puede escribir a mano y sin esto quedaria abierta.
     from usuarios import tablero
     if tablero.es_administrador(usuario):
-        messages.error(request,"No se puede eliminar una cuenta de administración")
+        messages.error(request,gettext("No se puede eliminar una cuenta de administración"))
         return redirect("PanelAdmin")
 
     #Borrar el usuario borra en cascada sus pagos y facturas, y esos registros
@@ -398,14 +401,14 @@ def admin_eliminar_usuario(request,id):
     #activaciones manuales hechas en modo prueba) no movieron dinero real, y
     #sin esta distincion no habia forma de limpiar las cuentas de prueba.
     if usuario.pagos.filter(estado="Aprobado",ambiente="prod").exists():
-        messages.error(request,f"{usuario.username} tiene pagos registrados y sus facturas deben conservarse. "
-                               "Bloquea la cuenta en lugar de eliminarla.")
+        messages.error(request,gettext("%(usuario)s tiene pagos registrados y sus facturas deben conservarse. "
+                                       "Bloquea la cuenta en lugar de eliminarla.") % {"usuario":usuario.username})
         return redirect("PanelAdmin")
 
     if request.method=="POST":
         nombre=usuario.username
         usuario.delete()
-        messages.success(request,f"El usuario {nombre} se elimino correctamente")
+        messages.success(request,gettext("El usuario %(usuario)s se eliminó correctamente") % {"usuario":nombre})
         return redirect("PanelAdmin")
 
     return render(request,"admin_eliminar_usuario.html",{"usuario": usuario})
@@ -426,7 +429,7 @@ def admin_editar_usuario(request,id):
         #solo se revisa cuando viene escrito.
         nombre_crudo=(request.POST.get("nombre") or "").strip()
         if nombre_crudo:
-            nombre,e_nombre=validar_nombre(nombre_crudo,"El nombre")
+            nombre,e_nombre=validar_nombre(nombre_crudo,"nombre")
         else:
             nombre,e_nombre="",None
 
@@ -449,7 +452,7 @@ def admin_editar_usuario(request,id):
         perfil.telefono=telefono
         perfil.save()
 
-        messages.success(request,f"Los datos de {usuario.username} se actualizaron")
+        messages.success(request,gettext("Los datos de %(usuario)s se actualizaron") % {"usuario":usuario.username})
         return redirect("PanelAdmin")
 
     return render(request,"admin_editar_usuario.html",{"usuario": usuario,"perfil": perfil,"es_google": es_google})
@@ -462,20 +465,23 @@ def admin_estado_usuario(request,id):
     usuario=get_object_or_404(User,id=id)
 
     if usuario==request.user:
-        messages.error(request,"No puedes desactivar tu propia cuenta")
+        messages.error(request,gettext("No puedes desactivar tu propia cuenta"))
         return redirect("PanelAdmin")
 
     #Ni bloquear a otro administrador: dejaria el panel sin quien lo maneje
     from usuarios import tablero
     if tablero.es_administrador(usuario):
-        messages.error(request,"No se puede bloquear una cuenta de administración")
+        messages.error(request,gettext("No se puede bloquear una cuenta de administración"))
         return redirect("PanelAdmin")
 
     usuario.is_active=not usuario.is_active
     usuario.save()
 
-    estado="activada" if usuario.is_active else "desactivada"
-    messages.success(request,f"La cuenta de {usuario.username} fue {estado}")
+    if usuario.is_active:
+        aviso=gettext("La cuenta de %(usuario)s fue activada")
+    else:
+        aviso=gettext("La cuenta de %(usuario)s fue desactivada")
+    messages.success(request,aviso % {"usuario":usuario.username})
     return redirect("PanelAdmin")
 
 
@@ -506,7 +512,7 @@ def admin_crear_usuario(request):
         rol=Rol.objects.filter(nombre="usuario").first()
         Perfil.objects.create(usuario=usuario,rol=rol,proveedor="local")
 
-        messages.success(request,f"El usuario {username} se creo correctamente")
+        messages.success(request,gettext("El usuario %(usuario)s se creó correctamente") % {"usuario":username})
         return redirect("PanelAdmin")
 
     return render(request,"admin_crear_usuario.html")

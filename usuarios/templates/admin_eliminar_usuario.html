@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
 {% block Titulo %}
-  Eliminar usuario
+  {% translate "Eliminar usuario" %}
 {% endblock %}
 
 {% block content %}
@@ -21,8 +22,8 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </div>
       <div>
-        <div class="elim-aviso-tag">Acción irreversible</div>
-        <div class="elim-aviso-titulo">Eliminar usuario</div>
+        <div class="elim-aviso-tag">{% translate "Acción irreversible" %}</div>
+        <div class="elim-aviso-titulo">{% translate "Eliminar usuario" %}</div>
       </div>
     </div>
 
@@ -31,24 +32,25 @@
         <div class="elim-avatar">{{ usuario.username|first|upper }}</div>
         <div class="elim-usuario-datos">
           <div class="elim-usuario-nombre">{{ usuario.username }}</div>
-          <div class="elim-usuario-correo">{{ usuario.email|default:"Sin correo registrado" }}</div>
+          {% translate "Sin correo registrado" as sin_correo %}
+          <div class="elim-usuario-correo">{{ usuario.email|default:sin_correo }}</div>
         </div>
       </div>
 
-      <h2 class="elim-pregunta">¿Eliminar esta cuenta?</h2>
+      <h2 class="elim-pregunta">{% translate "¿Eliminar esta cuenta?" %}</h2>
 
       <ul class="elim-lista">
-        <li>Se borrará la cuenta y su perfil de forma permanente.</li>
-        <li>Se perderá su historial y su suscripción si tenía una.</li>
-        <li>Esta acción no se puede deshacer.</li>
+        <li>{% translate "Se borrará la cuenta y su perfil de forma permanente." %}</li>
+        <li>{% translate "Se perderá su historial y su suscripción si tenía una." %}</li>
+        <li>{% translate "Esta acción no se puede deshacer." %}</li>
       </ul>
 
       <form action="{% url 'AdminEliminarUsuario' usuario.id %}" method="post" class="elim-form">
         {% csrf_token %}
-        <a href="{% url 'PanelAdmin' %}" class="elim-btn elim-btn-no">Cancelar</a>
+        <a href="{% url 'PanelAdmin' %}" class="elim-btn elim-btn-no">{% translate "Cancelar" %}</a>
         <button type="submit" class="elim-btn elim-btn-si">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-          Sí, eliminar
+          {% translate "Sí, eliminar" %}
         </button>
       </form>
     </div>

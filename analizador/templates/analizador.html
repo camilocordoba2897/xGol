@@ -1,10 +1,11 @@
+{% load i18n %}
 {% load static %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Analizador de Predicciones de Fútbol</title>
+<title>{% translate "Analizador de Predicciones de Fútbol" %}</title>
 <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
 <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,6 +15,8 @@
 <link rel="stylesheet" href="{% static 'css/calendario.css' %}?v=5">
 <link rel="stylesheet" href="{% static 'css/analisis.css' %}?v=22">
 <link rel="stylesheet" href="{% static 'css/boton_inicio.css' %}?v=3">
+{# Textos traducidos para los scripts del analizador (gettext) #}
+<script src="{% url 'TextosJS' %}?idioma={{ LANGUAGE_CODE }}&amp;v={{ VERSION_TEXTOS }}"></script>
 <script>
   // Aplicamos el modo guardado ANTES de pintar para que no parpadee
   (function(){
@@ -45,11 +48,11 @@ reconoce y la imprime tal cual encima de la pagina.
 {% endcomment %}
 <a class="volver-inicio btn-inicio" id="btn-inicio" href="{% url 'Inicio' %}">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-  Inicio
+  {% translate "Inicio" %}
 </a>
 
 {% if es_admin %}
-<a class="panel-admin" href="{% url 'PanelAdmin' %}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6 4.6 5.8v5.4c0 4.6 3.1 8.8 7.4 10.2 4.3-1.4 7.4-5.6 7.4-10.2V5.8z"/><path d="M9.2 12.1 11.3 14.2 15 10.4"/></svg><span class="pa-texto">Panel admin</span></a>
+<a class="panel-admin" href="{% url 'PanelAdmin' %}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6 4.6 5.8v5.4c0 4.6 3.1 8.8 7.4 10.2 4.3-1.4 7.4-5.6 7.4-10.2V5.8z"/><path d="M9.2 12.1 11.3 14.2 15 10.4"/></svg><span class="pa-texto">{% translate "Panel admin" %}</span></a>
 {% endif %}
 
 {% csrf_token %}
@@ -64,11 +67,11 @@ reconoce y la imprime tal cual encima de la pagina.
   <header class="lab-bar">
     <div class="lab-marca">
       <span class="lab-marca-nombre"><img src="{% static 'img/logo.png' %}" alt="xGol" style="height:70px;width:auto;display:block;margin:-7px 0;"></span>
-      <i>Pronóstico</i>
+      <i>{% translate "Pronóstico" %}</i>
     </div>
     <div class="lab-acciones">
-      <button class="guia-btn" onclick="abrirGuiaAnalizador()" title="Ver la guía paso a paso" aria-label="Ver la guía paso a paso">?</button>
-      <button class="modo-btn" onclick="alternarModo()" title="Cambiar entre modo claro y oscuro" aria-label="Cambiar entre modo claro y oscuro">
+      <button class="guia-btn" onclick="abrirGuiaAnalizador()" title="{% translate 'Ver la guía paso a paso' %}" aria-label="{% translate 'Ver la guía paso a paso' %}">?</button>
+      <button class="modo-btn" onclick="alternarModo()" title="{% translate 'Cambiar entre modo claro y oscuro' %}" aria-label="{% translate 'Cambiar entre modo claro y oscuro' %}">
         <svg class="ic-sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><line x1="12" y1="1.6" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22.4"/><line x1="4.2" y1="4.2" x2="5.9" y2="5.9"/><line x1="18.1" y1="18.1" x2="19.8" y2="19.8"/><line x1="1.6" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22.4" y2="12"/><line x1="4.2" y1="19.8" x2="5.9" y2="18.1"/><line x1="18.1" y1="5.9" x2="19.8" y2="4.2"/></svg>
         <svg class="ic-luna" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.4A8.6 8.6 0 0 1 9.6 3.5a8.6 8.6 0 1 0 10.9 10.9z"/></svg>
       </button>
@@ -81,42 +84,42 @@ reconoce y la imprime tal cual encima de la pagina.
   <div class="pantalla activa" id="pantalla-lista">
 
     <div class="lab-intro">
-      <h1>Elige un partido</h1>
-      <p>Toca cualquier partido que aún no se juegue y xGol calcula el pronóstico.</p>
+      <h1>{% translate "Elige un partido" %}</h1>
+      <p>{% translate "Toca cualquier partido que aún no se juegue y xGol calcula el pronóstico." %}</p>
     </div>
 
     <div class="auto-box" id="auto-box">
       <!-- Ligas como fichas. El <select> sigue existiendo oculto porque es de
            donde lee auto.js: las fichas solo escriben su valor y lanzan el
            evento change, asi que la logica no cambia en nada. -->
-      <nav class="lab-ligas" aria-label="Competencias">
-        <button class="lab-liga activa" data-liga="BSA">Brasileirão</button>
-        <button class="lab-liga" data-liga="PL">Premier League</button>
-        <button class="lab-liga" data-liga="PD">LaLiga</button>
-        <button class="lab-liga" data-liga="SA">Serie A</button>
-        <button class="lab-liga" data-liga="BL1">Bundesliga</button>
-        <button class="lab-liga" data-liga="FL1">Ligue 1</button>
-        <button class="lab-liga" data-liga="DED">Eredivisie</button>
-        <button class="lab-liga" data-liga="PPL">Primeira Liga</button>
-        <button class="lab-liga" data-liga="CL">Champions</button>
+      <nav class="lab-ligas" aria-label="{% translate 'Competencias' %}">
+        <button class="lab-liga activa" data-liga="BSA">{% translate "Brasileirão" %}</button>
+        <button class="lab-liga" data-liga="PL">{% translate "Premier League" %}</button>
+        <button class="lab-liga" data-liga="PD">{% translate "LaLiga" %}</button>
+        <button class="lab-liga" data-liga="SA">{% translate "Serie A" %}</button>
+        <button class="lab-liga" data-liga="BL1">{% translate "Bundesliga" %}</button>
+        <button class="lab-liga" data-liga="FL1">{% translate "Ligue 1" %}</button>
+        <button class="lab-liga" data-liga="DED">{% translate "Eredivisie" %}</button>
+        <button class="lab-liga" data-liga="PPL">{% translate "Primeira Liga" %}</button>
+        <button class="lab-liga" data-liga="CL">{% translate "Champions" %}</button>
       </nav>
 
       <select class="auto-liga" id="auto-liga" aria-hidden="true" tabindex="-1">
-        <option value="BSA">Brasileirão</option>
-        <option value="PL">Premier League</option>
-        <option value="PD">LaLiga</option>
-        <option value="SA">Serie A</option>
-        <option value="BL1">Bundesliga</option>
-        <option value="FL1">Ligue 1</option>
-        <option value="DED">Eredivisie</option>
-        <option value="PPL">Primeira Liga</option>
-        <option value="CL">Champions League</option>
+        <option value="BSA">{% translate "Brasileirão" %}</option>
+        <option value="PL">{% translate "Premier League" %}</option>
+        <option value="PD">{% translate "LaLiga" %}</option>
+        <option value="SA">{% translate "Serie A" %}</option>
+        <option value="BL1">{% translate "Bundesliga" %}</option>
+        <option value="FL1">{% translate "Ligue 1" %}</option>
+        <option value="DED">{% translate "Eredivisie" %}</option>
+        <option value="PPL">{% translate "Primeira Liga" %}</option>
+        <option value="CL">{% translate "Champions League" %}</option>
       </select>
 
       <div class="lab-fecha">
-        <button type="button" class="auto-fecha-btn" id="auto-fecha-btn" onclick="abrirCalendario()" aria-label="Elegir fecha" title="Elegir fecha">
+        <button type="button" class="auto-fecha-btn" id="auto-fecha-btn" onclick="abrirCalendario()" aria-label="{% translate 'Elegir fecha' %}" title="{% translate 'Elegir fecha' %}">
           <svg class="auto-fecha-ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></svg>
-          <span class="auto-fecha-etq" id="auto-fecha-etq">Fecha</span>
+          <span class="auto-fecha-etq" id="auto-fecha-etq">{% translate "Fecha" %}</span>
           <svg class="auto-fecha-caret" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9.5 12 15.5 18 9.5"/></svg>
         </button>
       </div>
@@ -125,14 +128,14 @@ reconoce y la imprime tal cual encima de la pagina.
     </div>
 
 
-    <p class="lab-nota">Probabilidades del motor xGol: cuotas del mercado, modelo de liga y Elo, calibrados con miles de partidos. No garantizan resultados. Apuesta responsablemente.</p>
+    <p class="lab-nota">{% translate "Probabilidades del motor xGol: cuotas del mercado, modelo de liga y Elo, calibrados con miles de partidos. No garantizan resultados. Apuesta responsablemente." %}</p>
   </div>
 
   <!-- ============================================================
        PANTALLA 2 — PRONOSTICO DEL PARTIDO
        ============================================================ -->
   <div class="pantalla" id="pantalla-pronostico">
-    <button class="pr-volver" onclick="volverALista()">Volver a los partidos</button>
+    <button class="pr-volver" onclick="volverALista()">{% translate "Volver a los partidos" %}</button>
     <div id="pronostico-contenido"></div>
   </div>
 
@@ -142,24 +145,24 @@ reconoce y la imprime tal cual encima de la pagina.
 <div class="fecha-modal-bg" id="fecha-modal-bg">
   <div class="fecha-modal">
     <div class="fecha-modal-year" id="fecha-modal-year">2026</div>
-    <div class="fecha-modal-fecha" id="fecha-modal-fecha">Hoy</div>
+    <div class="fecha-modal-fecha" id="fecha-modal-fecha">{% translate "Hoy" %}</div>
     <div class="fecha-nav">
-      <button onclick="fechaMesAnterior()" aria-label="Mes anterior">‹</button>
-      <span id="fecha-mes-nombre">Agosto de 2026</span>
-      <button onclick="fechaMesSiguiente()" aria-label="Mes siguiente">›</button>
+      <button onclick="fechaMesAnterior()" aria-label="{% translate 'Mes anterior' %}">‹</button>
+      <span id="fecha-mes-nombre">{% translate "Agosto de 2026" %}</span>
+      <button onclick="fechaMesSiguiente()" aria-label="{% translate 'Mes siguiente' %}">›</button>
     </div>
-    <div class="fecha-dias-semana"><span>D</span><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span></div>
+    <div class="fecha-dias-semana"><span>{% translate "D" context "inicial de domingo" %}</span><span>{% translate "L" context "inicial de lunes" %}</span><span>{% translate "M" context "inicial de martes" %}</span><span>{% translate "M" context "inicial de miércoles" %}</span><span>{% translate "J" context "inicial de jueves" %}</span><span>{% translate "V" context "inicial de viernes" %}</span><span>{% translate "S" context "inicial de sábado" %}</span></div>
     <div class="fecha-grid" id="fecha-grid"></div>
     <div class="fecha-modal-btns">
-      <button class="fecha-btn-establecer" onclick="fechaEstablecer()">Establecer</button>
-      <button class="fecha-btn-cancelar" onclick="fechaCerrar()">Cancelar</button>
-      <button class="fecha-btn-borrar" onclick="fechaBorrar()">Borrar</button>
+      <button class="fecha-btn-establecer" onclick="fechaEstablecer()">{% translate "Establecer" %}</button>
+      <button class="fecha-btn-cancelar" onclick="fechaCerrar()">{% translate "Cancelar" %}</button>
+      <button class="fecha-btn-borrar" onclick="fechaBorrar()">{% translate "Borrar" %}</button>
     </div>
   </div>
 </div>
 
-<script src="{% static 'js/analizador.js' %}?v=15"></script>
-<script src="{% static 'js/vista.js' %}?v=7"></script>
+<script src="{% static 'js/analizador.js' %}?v=16"></script>
+<script src="{% static 'js/vista.js' %}?v=8"></script>
 <script>
   window.XGOL_AUTO = {
     partidos: "{% url 'AutoPartidos' %}",
@@ -169,9 +172,9 @@ reconoce y la imprime tal cual encima de la pagina.
     motor: "{% url 'MotorPronostico' %}"
   };
 </script>
-<script src="{% static 'js/auto.js' %}?v=22"></script>
+<script src="{% static 'js/auto.js' %}?v=23"></script>
 <script src="{% static 'js/seguimiento.js' %}?v=6"></script>
-<script src="{% static 'js/motor.js' %}?v=8"></script>
+<script src="{% static 'js/motor.js' %}?v=9"></script>
 <script>
   // Puente fichas -> <select>: escribe el valor y lanza 'change'.
   // auto.js sigue leyendo el select exactamente igual que antes.
@@ -194,7 +197,7 @@ reconoce y la imprime tal cual encima de la pagina.
     marcar();
   })();
 </script>
-<script src="{% static 'js/tour.js' %}?v=7"></script>
-<script src="{% static 'js/subir.js' %}?v=1"></script>
+<script src="{% static 'js/tour.js' %}?v=8"></script>
+<script src="{% static 'js/subir.js' %}?v=2"></script>
 </body>
 </html>

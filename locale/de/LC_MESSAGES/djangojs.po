@@ -1,0 +1,1358 @@
+# Traducciones de xGol. El texto original (msgid) es el español del sitio.
+# Se actualiza con: python manage.py textos
+msgid ""
+msgstr ""
+"Project-Id-Version: xGol\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: templates/registration/password_reset_confirm.html:107
+msgid "Las dos contraseñas no coinciden."
+msgstr "Die beiden Passwörter stimmen nicht überein."
+
+#: inicio/templates/inicio.html:481
+msgid "Inglaterra"
+msgstr "England"
+
+#: inicio/templates/inicio.html:482
+msgid "España"
+msgstr "Spanien"
+
+#: inicio/templates/inicio.html:483
+msgid "Italia"
+msgstr "Italien"
+
+#: inicio/templates/inicio.html:484
+msgid "Alemania"
+msgstr "Deutschland"
+
+#: inicio/templates/inicio.html:485
+msgid "Francia"
+msgstr "Frankreich"
+
+#: inicio/templates/inicio.html:486
+msgid "Champions League"
+msgstr "Champions League"
+
+#: inicio/templates/inicio.html:486
+msgid "Europa"
+msgstr "Europa"
+
+#: inicio/templates/inicio.html:487
+msgid "Países Bajos"
+msgstr "Niederlande"
+
+#: inicio/templates/inicio.html:488
+msgid "Portugal"
+msgstr "Portugal"
+
+#: inicio/templates/inicio.html:489
+msgid "Brasil"
+msgstr "Brasilien"
+
+#: inicio/templates/inicio.html:536
+msgid "%s equipo"
+msgid_plural "%s equipos"
+msgstr[0] "%s Team"
+msgstr[1] "%s Teams"
+
+#: inicio/templates/inicio.html:558
+msgid "Sin resultados para «%s»."
+msgstr "Keine Ergebnisse für „%s“."
+
+#: inicio/templates/inicio.html:568
+msgid "Cargando equipos…"
+msgstr "Teams werden geladen…"
+
+#: inicio/templates/inicio.html:570
+msgid "No se pudieron cargar los equipos."
+msgstr "Die Teams konnten nicht geladen werden."
+
+#: inicio/templates/inicio.html:570
+msgid "Reintentar"
+msgstr "Erneut versuchen"
+
+#: inicio/templates/inicio.html:711 inicio/templates/inicio.html:756
+msgid "Ver análisis"
+msgstr "Analyse ansehen"
+
+#: inicio/templates/inicio.html:724
+msgid "EN VIVO"
+msgstr "LIVE"
+
+#: inicio/templates/inicio.html:725 inicio/templates/inicio.html:729 inicio/templates/inicio.html:738
+msgid "DESCANSO"
+msgstr "HALBZEIT"
+
+#: inicio/templates/inicio.html:734
+#, python-format
+msgid "1ª parte %(local)s–%(visitante)s"
+msgstr "Halbzeit %(local)s:%(visitante)s"
+
+#: inicio/templates/inicio.html:738
+msgid "EN DIRECTO"
+msgstr "LIVE"
+
+#: inicio/templates/inicio.html:755
+msgid "Primera parte"
+msgstr "1. Halbzeit"
+
+#: inicio/templates/inicio.html:755
+msgid "Segunda parte"
+msgstr "2. Halbzeit"
+
+#: inicio/templates/inicio.html:755
+msgid "En juego"
+msgstr "Läuft"
+
+#: inicio/templates/inicio.html:831
+msgid "Forma"
+msgstr "Form"
+
+#: inicio/templates/inicio.html:832
+#, python-format
+msgid "%(puesto)s.º · <b>%(puntos)s pts</b>"
+msgstr "%(puesto)s. Platz · <b>%(puntos)s Pkt.</b>"
+
+#: inicio/templates/inicio.html:844 inicio/templates/inicio.html:859 inicio/templates/inicio.html:868
+msgid "Cargando…"
+msgstr "Wird geladen…"
+
+#: inicio/templates/inicio.html:847
+msgid "No hay partidos hoy en las ligas seguidas"
+msgstr "Heute keine Spiele in den verfolgten Ligen"
+
+#: inicio/templates/inicio.html:848 inicio/templates/inicio.html:863
+msgid "No se pudieron cargar los partidos"
+msgstr "Die Spiele konnten nicht geladen werden"
+
+#: inicio/templates/inicio.html:862
+msgid "No hay próximos partidos en las ligas seguidas"
+msgstr "Keine anstehenden Spiele in den verfolgten Ligen"
+
+#: inicio/templates/inicio.html:871
+msgid "No hay partidos en vivo en este momento"
+msgstr "Derzeit keine Live-Spiele"
+
+#: inicio/templates/inicio.html:877
+msgid "No se pudo cargar el directo"
+msgstr "Die Live-Daten konnten nicht geladen werden"
+
+#: inicio/templates/inicio.html:885
+msgid "Tabla no disponible"
+msgstr "Tabelle nicht verfügbar"
+
+#: inicio/templates/inicio.html:886 inicio/templates/inicio.html:917
+msgid "No se pudo cargar la tabla"
+msgstr "Die Tabelle konnte nicht geladen werden"
+
+#: inicio/templates/inicio.html:916
+msgid "Tabla no disponible para esta competición"
+msgstr "Für diesen Wettbewerb ist keine Tabelle verfügbar"
+
+#: usuarios/templates/admin_crear_usuario.html:119
+msgid "@usuario"
+msgstr "@benutzer"
+
+#: usuarios/templates/admin_crear_usuario.html:120
+msgid "sin correo"
+msgstr "keine E-Mail"
+
+#: usuarios/templates/editar_perfil.html:298
+msgid "Ese archivo no es una imagen. Elige un JPG, PNG o WEBP."
+msgstr "Diese Datei ist kein Bild. Wählen Sie ein JPG, PNG oder WEBP."
+
+#: usuarios/templates/editar_perfil.html:310
+msgid "Cambiar foto"
+msgstr "Foto ändern"
+
+#: usuarios/templates/editar_perfil.html:321
+msgid "Agregar foto"
+msgstr "Foto hinzufügen"
+
+#: usuarios/templates/editar_perfil.html:322
+msgid "No se pudo abrir esa imagen. Prueba con otra."
+msgstr "Dieses Bild konnte nicht geöffnet werden. Versuchen Sie ein anderes."
+
+#: usuarios/templates/editar_perfil.html:388 usuarios/templates/registro.html:176
+msgid "Ocultar contraseña"
+msgstr "Passwort verbergen"
+
+#: usuarios/templates/editar_perfil.html:388 usuarios/templates/registro.html:176
+msgid "Mostrar contraseña"
+msgstr "Passwort anzeigen"
+
+#: usuarios/templates/editar_perfil.html:416
+msgid "Ocultar la cédula"
+msgstr "Ausweisnummer verbergen"
+
+#: usuarios/templates/editar_perfil.html:416
+msgid "Mostrar la cédula completa"
+msgstr "Vollständige Ausweisnummer anzeigen"
+
+#: usuarios/templates/panel_admin.html:771
+msgid "Resumen"
+msgstr "Übersicht"
+
+#: usuarios/templates/panel_admin.html:771
+msgid "Modelo"
+msgstr "Modell"
+
+#: usuarios/templates/panel_admin.html:771
+msgid "Dinero"
+msgstr "Finanzen"
+
+#: usuarios/templates/panel_admin.html:771
+msgid "Usuarios"
+msgstr "Benutzer"
+
+#: usuarios/templates/panel_admin.html:771
+msgid "Accesos"
+msgstr "Zugriffe"
+
+#: usuarios/templates/panel_admin.html:783
+msgid "Panel"
+msgstr "Bereich"
+
+#: usuarios/templates/panel_admin.html:849
+msgid "este usuario"
+msgstr "diesem Benutzer"
+
+#: usuarios/templates/registro.html:216
+msgid "El nombre debe tener al menos 2 letras."
+msgstr "Der Name muss mindestens 2 Buchstaben haben."
+
+#: usuarios/templates/registro.html:217
+msgid "El nombre solo puede tener letras."
+msgstr "Der Name darf nur Buchstaben enthalten."
+
+#: usuarios/templates/registro.html:218
+msgid "El nombre no parece un nombre válido."
+msgstr "Der Name scheint kein gültiger Name zu sein."
+
+#: usuarios/templates/registro.html:221
+msgid "Los apellidos deben tener al menos 2 letras."
+msgstr "Der Nachname muss mindestens 2 Buchstaben haben."
+
+#: usuarios/templates/registro.html:222
+msgid "Los apellidos solo pueden tener letras."
+msgstr "Der Nachname darf nur Buchstaben enthalten."
+
+#: usuarios/templates/registro.html:223
+msgid "Los apellidos no parecen válidos."
+msgstr "Der Nachname scheint ungültig zu sein."
+
+#: usuarios/templates/registro.html:239
+msgid "Debe tener al menos 3 caracteres."
+msgstr "Muss mindestens 3 Zeichen haben."
+
+#: usuarios/templates/registro.html:240
+msgid "Solo letras y números, sin espacios ni símbolos."
+msgstr "Nur Buchstaben und Zahlen, ohne Leerzeichen oder Symbole."
+
+#: usuarios/templates/registro.html:241
+msgid "Debe tener al menos una letra."
+msgstr "Muss mindestens einen Buchstaben enthalten."
+
+#: usuarios/templates/registro.html:248
+msgid "Escribe un correo válido. Ej: nombre@correo.com"
+msgstr "Geben Sie eine gültige E-Mail ein. z. B.: name@email.de"
+
+#: usuarios/templates/registro.html:329
+msgid "No puede empezar por cero."
+msgstr "Darf nicht mit Null beginnen."
+
+#: usuarios/templates/registro.html:330
+msgid "La cédula debe tener al menos 6 dígitos."
+msgstr "Die Ausweisnummer muss mindestens 6 Ziffern haben."
+
+#: usuarios/templates/registro.html:331
+msgid "Ese número de cédula no es válido."
+msgstr "Diese Ausweisnummer ist ungültig."
+
+#: usuarios/templates/registro.html:367 usuarios/templates/registro.html:369
+msgid "Escribe una fecha válida."
+msgstr "Geben Sie ein gültiges Datum ein."
+
+#: usuarios/templates/registro.html:370
+msgid "La fecha no puede ser futura."
+msgstr "Das Datum darf nicht in der Zukunft liegen."
+
+#: usuarios/templates/registro.html:372
+msgid "Revisa la fecha, no parece correcta."
+msgstr "Prüfen Sie das Datum, es scheint nicht zu stimmen."
+
+#: usuarios/templates/registro.html:373
+msgid "Debes ser mayor de 18 años para registrarte."
+msgstr "Sie müssen über 18 Jahre alt sein, um sich zu registrieren."
+
+#: suscripciones/templates/checkout.html:207
+msgid "Abriendo la pasarela…"
+msgstr "Zahlungsseite wird geöffnet…"
+
+#: static/js/analizador.js:19
+msgid "Local"
+msgstr "Heim"
+
+#: static/js/analizador.js:19
+msgid "Visitante"
+msgstr "Gast"
+
+#: static/js/auto.js:83
+msgid "Primero carga el historial de los dos equipos."
+msgstr "Laden Sie zuerst den Verlauf beider Teams."
+
+#: static/js/auto.js:179
+msgid "Buscando partidos…"
+msgstr "Spiele werden gesucht…"
+
+#: static/js/auto.js:183
+msgid "Se alcanzó el límite de consultas por minuto."
+msgstr "Das Anfragelimit pro Minute wurde erreicht."
+
+#: static/js/auto.js:184
+msgid "Espera un momento y vuelve a elegir la liga."
+msgstr "Warten Sie einen Moment und wählen Sie die Liga erneut."
+
+#: static/js/auto.js:188 static/js/motor.js:38 static/js/prediccion.js:210
+msgid "No se pudo conectar con el proveedor de datos."
+msgstr "Keine Verbindung zum Datenanbieter möglich."
+
+#: static/js/auto.js:189
+msgid "Inténtalo de nuevo en unos segundos."
+msgstr "Versuchen Sie es in einigen Sekunden erneut."
+
+#: static/js/auto.js:196
+msgid "No se pudieron cargar los partidos."
+msgstr "Die Spiele konnten nicht geladen werden."
+
+#: static/js/auto.js:197
+msgid "Revisa tu conexión e inténtalo de nuevo."
+msgstr "Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+
+#: static/js/auto.js:203
+msgctxt "día corto"
+msgid "dom"
+msgstr "So"
+
+#: static/js/auto.js:203
+msgctxt "día corto"
+msgid "lun"
+msgstr "Mo"
+
+#: static/js/auto.js:203
+msgctxt "día corto"
+msgid "mar"
+msgstr "Di"
+
+#: static/js/auto.js:204
+msgctxt "día corto"
+msgid "mié"
+msgstr "Mi"
+
+#: static/js/auto.js:204
+msgctxt "día corto"
+msgid "jue"
+msgstr "Do"
+
+#: static/js/auto.js:204
+msgctxt "día corto"
+msgid "vie"
+msgstr "Fr"
+
+#: static/js/auto.js:205
+msgctxt "día corto"
+msgid "sáb"
+msgstr "Sa"
+
+#: static/js/auto.js:206 static/js/prediccion.js:64
+msgctxt "mes corto"
+msgid "ene"
+msgstr "Jan."
+
+#: static/js/auto.js:206 static/js/prediccion.js:64
+msgctxt "mes corto"
+msgid "feb"
+msgstr "Feb."
+
+#: static/js/auto.js:206 static/js/prediccion.js:64
+msgctxt "mes corto"
+msgid "mar"
+msgstr "März"
+
+#: static/js/auto.js:207 static/js/prediccion.js:65
+msgctxt "mes corto"
+msgid "abr"
+msgstr "Apr."
+
+#: static/js/auto.js:207 static/js/prediccion.js:65
+msgctxt "mes corto"
+msgid "may"
+msgstr "Mai"
+
+#: static/js/auto.js:207 static/js/prediccion.js:65
+msgctxt "mes corto"
+msgid "jun"
+msgstr "Juni"
+
+#: static/js/auto.js:208 static/js/prediccion.js:66
+msgctxt "mes corto"
+msgid "jul"
+msgstr "Juli"
+
+#: static/js/auto.js:208 static/js/prediccion.js:66
+msgctxt "mes corto"
+msgid "ago"
+msgstr "Aug."
+
+#: static/js/auto.js:208 static/js/prediccion.js:66
+msgctxt "mes corto"
+msgid "sep"
+msgstr "Sept."
+
+#: static/js/auto.js:209 static/js/prediccion.js:67
+msgctxt "mes corto"
+msgid "oct"
+msgstr "Okt."
+
+#: static/js/auto.js:209 static/js/prediccion.js:67
+msgctxt "mes corto"
+msgid "nov"
+msgstr "Nov."
+
+#: static/js/auto.js:209 static/js/prediccion.js:67
+msgctxt "mes corto"
+msgid "dic"
+msgstr "Dez."
+
+#: static/js/auto.js:216 static/js/prediccion.js:70
+#, python-format
+msgid "%(dia)s %(mes)s"
+msgstr "%(dia)s. %(mes)s"
+
+#: static/js/auto.js:219
+msgid "Fin"
+msgstr "Ende"
+
+#: static/js/auto.js:229 static/js/prediccion.js:76
+msgid "hoy"
+msgstr "heute"
+
+#: static/js/auto.js:230
+#, python-format
+msgid "%(dia_semana)s %(dia)s"
+msgstr "%(dia_semana)s %(dia)s."
+
+#: static/js/auto.js:265 static/js/auto.js:370
+msgid "Pronóstico"
+msgstr "Prognose"
+
+#: static/js/auto.js:284
+msgid "Esta liga no tiene partidos ese día."
+msgstr "Diese Liga hat an diesem Tag keine Spiele."
+
+#: static/js/auto.js:285
+msgid "Prueba con otra fecha o pulsa Borrar en el calendario."
+msgstr "Versuchen Sie ein anderes Datum oder tippen Sie im Kalender auf Löschen."
+
+#: static/js/auto.js:288
+msgid "Esta liga no tiene partidos en la ventana disponible."
+msgstr "Diese Liga hat im verfügbaren Zeitraum keine Spiele."
+
+#: static/js/auto.js:290
+msgid "Las ligas europeas descansan de mayo a agosto. Mientras tanto el <strong>Brasileirão</strong> juega todo el año —"
+msgstr "Die europäischen Ligen pausieren von Mai bis August. Der <strong>Brasileirão</strong> spielt dagegen das ganze Jahr —"
+
+#: static/js/auto.js:291
+msgid "ver sus partidos"
+msgstr "Spiele ansehen"
+
+#: static/js/auto.js:328
+msgid "Partidos que puedes pronosticar"
+msgstr "Spiele, die Sie prognostizieren können"
+
+#: static/js/auto.js:329
+msgid "Toca Pronóstico y xGol calcula las probabilidades del encuentro."
+msgstr "Tippen Sie auf Prognose und xGol berechnet die Wahrscheinlichkeiten des Spiels."
+
+#: static/js/auto.js:334
+msgid "Esta liga no tiene partidos por jugar en este momento. Prueba con otra liga arriba."
+msgstr "Diese Liga hat derzeit keine anstehenden Spiele. Versuchen Sie oben eine andere Liga."
+
+#: static/js/auto.js:342
+msgid "Resultados recientes"
+msgstr "Letzte Ergebnisse"
+
+#: static/js/auto.js:343
+msgid "Partidos ya jugados. No se pueden pronosticar."
+msgstr "Bereits gespielte Spiele. Sie können nicht prognostiziert werden."
+
+#: static/js/auto.js:386
+msgid "Se alcanzó el límite de consultas por minuto del proveedor. Espera unos segundos y vuelve a intentarlo."
+msgstr "Das Anfragelimit pro Minute des Anbieters wurde erreicht. Warten Sie einige Sekunden und versuchen Sie es erneut."
+
+#: static/js/auto.js:390
+msgid "No se pudo traer el historial. Inténtalo de nuevo en un momento."
+msgstr "Der Verlauf konnte nicht geladen werden. Versuchen Sie es gleich noch einmal."
+
+#: static/js/auto.js:412
+msgid "No se pudo traer el historial de estos equipos. Inténtalo de nuevo en un momento."
+msgstr "Der Verlauf dieser Teams konnte nicht geladen werden. Versuchen Sie es gleich noch einmal."
+
+#: static/js/auto.js:443
+msgid "No se pudo calcular el pronóstico de este partido. Prueba con otro."
+msgstr "Die Prognose für dieses Spiel konnte nicht berechnet werden. Versuchen Sie ein anderes."
+
+#: static/js/auto.js:463
+msgid "Falló la conexión. Revisa tu internet y vuelve a intentarlo."
+msgstr "Die Verbindung ist fehlgeschlagen. Prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut."
+
+#: static/js/auto.js:513 static/js/vista.js:37
+msgctxt "mes"
+msgid "enero"
+msgstr "Januar"
+
+#: static/js/auto.js:513 static/js/vista.js:37
+msgctxt "mes"
+msgid "febrero"
+msgstr "Februar"
+
+#: static/js/auto.js:513 static/js/vista.js:37
+msgctxt "mes"
+msgid "marzo"
+msgstr "März"
+
+#: static/js/auto.js:514 static/js/vista.js:38
+msgctxt "mes"
+msgid "abril"
+msgstr "April"
+
+#: static/js/auto.js:514 static/js/vista.js:38
+msgctxt "mes"
+msgid "mayo"
+msgstr "Mai"
+
+#: static/js/auto.js:514 static/js/vista.js:38
+msgctxt "mes"
+msgid "junio"
+msgstr "Juni"
+
+#: static/js/auto.js:515 static/js/vista.js:39
+msgctxt "mes"
+msgid "julio"
+msgstr "Juli"
+
+#: static/js/auto.js:515 static/js/vista.js:39
+msgctxt "mes"
+msgid "agosto"
+msgstr "August"
+
+#: static/js/auto.js:515 static/js/vista.js:39
+msgctxt "mes"
+msgid "septiembre"
+msgstr "September"
+
+#: static/js/auto.js:516 static/js/vista.js:40
+msgctxt "mes"
+msgid "octubre"
+msgstr "Oktober"
+
+#: static/js/auto.js:516 static/js/vista.js:40
+msgctxt "mes"
+msgid "noviembre"
+msgstr "November"
+
+#: static/js/auto.js:516 static/js/vista.js:40
+msgctxt "mes"
+msgid "diciembre"
+msgstr "Dezember"
+
+#: static/js/auto.js:517
+msgctxt "día de la semana"
+msgid "domingo"
+msgstr "Sonntag"
+
+#: static/js/auto.js:517
+msgctxt "día de la semana"
+msgid "lunes"
+msgstr "Montag"
+
+#: static/js/auto.js:518
+msgctxt "día de la semana"
+msgid "martes"
+msgstr "Dienstag"
+
+#: static/js/auto.js:518
+msgctxt "día de la semana"
+msgid "miércoles"
+msgstr "Mittwoch"
+
+#: static/js/auto.js:519
+msgctxt "día de la semana"
+msgid "jueves"
+msgstr "Donnerstag"
+
+#: static/js/auto.js:519
+msgctxt "día de la semana"
+msgid "viernes"
+msgstr "Freitag"
+
+#: static/js/auto.js:520
+msgctxt "día de la semana"
+msgid "sábado"
+msgstr "Samstag"
+
+#: static/js/auto.js:559
+msgid "Fecha"
+msgstr "Datum"
+
+#: static/js/auto.js:568
+#, python-format
+msgid "%(dia_semana)s %(dia)s de %(mes)s"
+msgstr "%(dia_semana)s, %(dia)s. %(mes)s"
+
+#: static/js/auto.js:574
+#, python-format
+msgid "%(mes)s de %(anio)s"
+msgstr "%(mes)s %(anio)s"
+
+#: static/js/motor.js:36
+msgid "La liga no está ajustada. Ejecuta: python manage.py ajustar_motor"
+msgstr "Die Liga ist noch nicht angepasst. Führen Sie aus: python manage.py ajustar_motor"
+
+#: static/js/motor.js:37
+msgid "Se agotó el límite de peticiones por minuto de football-data.org."
+msgstr "Das Anfragelimit pro Minute von football-data.org ist ausgeschöpft."
+
+#: static/js/motor.js:39
+msgid "La petición salió sin liga o sin equipos."
+msgstr "Die Anfrage wurde ohne Liga oder Teams gesendet."
+
+#: static/js/motor.js:40
+msgid "El motor de xGol no cubre esta liga."
+msgstr "Die xGol-Engine deckt diese Liga nicht ab."
+
+#: static/js/motor.js:45
+msgid "alta"
+msgstr "hoch"
+
+#: static/js/motor.js:45
+msgid "media"
+msgstr "mittel"
+
+#: static/js/motor.js:45
+msgid "baja"
+msgstr "niedrig"
+
+#: static/js/motor.js:205
+msgid "Modelo de liga"
+msgstr "Ligamodell"
+
+#: static/js/motor.js:205
+msgid "Mercado"
+msgstr "Markt"
+
+#: static/js/motor.js:215
+msgid "Fuente"
+msgstr "Quelle"
+
+#: static/js/motor.js:216 static/js/prediccion.js:154 static/js/vista.js:105
+msgid "Empate"
+msgstr "Unentschieden"
+
+#: static/js/motor.js:225
+msgid "xGol no marca apuestas «de valor»: en temporadas que el motor no había visto, apostar donde veía valor sobre la cuota perdió dinero. El mercado de apuestas es muy difícil de batir."
+msgstr "xGol markiert keine „Value“-Wetten: In Saisons, die die Engine nicht kannte, verlor das Wetten dort, wo sie Wert gegenüber der Quote sah, Geld. Der Wettmarkt ist sehr schwer zu schlagen."
+
+#: static/js/motor.js:231
+#, python-format
+msgid "Historial del motor: <b>%(partidos)s</b> partidos evaluados &middot; log-pérdida <b>%(perdida)s</b> (menos es mejor &middot; 1.0986 = no saber nada)"
+msgstr "Bilanz der Engine: <b>%(partidos)s</b> ausgewertete Spiele &middot; Log-Loss <b>%(perdida)s</b> (niedriger ist besser &middot; 1.0986 = nichts wissen)"
+
+#: static/js/motor.js:233
+msgid "acierto <b>%s%</b>"
+msgstr "Trefferquote <b>%s%</b>"
+
+#: static/js/motor.js:243
+msgid "Confianza %s/100"
+msgstr "Vertrauen %s/100"
+
+#: static/js/motor.js:247
+msgid "De dónde sale este pronóstico"
+msgstr "Woher diese Prognose stammt"
+
+#: static/js/motor.js:250
+msgid "Todas las tarjetas de esta pantalla salen de la misma matriz de marcadores, por eso nunca se contradicen entre sí. No es una recomendación de apuesta."
+msgstr "Alle Karten auf diesem Bildschirm stammen aus derselben Ergebnismatrix und widersprechen sich daher nie. Dies ist keine Wettempfehlung."
+
+#: static/js/motor.js:257
+msgid "Modo limitado"
+msgstr "Eingeschränkter Modus"
+
+#: static/js/motor.js:259
+msgid "El motor no respondió, así que estos números salen del cálculo local (solo los últimos partidos de cada equipo, sin cuotas). Son menos precisos."
+msgstr "Die Engine hat nicht geantwortet, daher stammen diese Zahlen aus der lokalen Berechnung (nur die letzten Spiele jedes Teams, ohne Quoten). Sie sind weniger genau."
+
+#: static/js/motor.js:261
+msgid "Motivo: %s"
+msgstr "Grund: %s"
+
+#: static/js/motor.js:294
+msgid "el partido llegó sin identificador"
+msgstr "das Spiel kam ohne Kennung an"
+
+#: static/js/motor.js:301
+msgid "Calculando con el motor…"
+msgstr "Berechnung mit der Engine…"
+
+#: static/js/motor.js:302
+msgid "Ajustando la liga completa y consultando el mercado."
+msgstr "Die gesamte Liga wird angepasst und der Markt abgefragt."
+
+#: static/js/motor.js:333
+msgid "falló la conexión con el backend"
+msgstr "die Verbindung zum Server ist fehlgeschlagen"
+
+#: static/js/prediccion.js:37
+msgid "Ver pronóstico completo"
+msgstr "Vollständige Prognose ansehen"
+
+#: static/js/prediccion.js:37
+msgid "🔒 Pronóstico completo"
+msgstr "🔒 Vollständige Prognose"
+
+#: static/js/prediccion.js:77
+msgid "ayer"
+msgstr "gestern"
+
+#: static/js/prediccion.js:78
+msgid "hace %s día"
+msgid_plural "hace %s días"
+msgstr[0] "vor %s Tag"
+msgstr[1] "vor %s Tagen"
+
+#: static/js/prediccion.js:81
+msgid "hace %s semana"
+msgid_plural "hace %s semanas"
+msgstr[0] "vor %s Woche"
+msgstr[1] "vor %s Wochen"
+
+#: static/js/prediccion.js:83
+msgid "hace más de un mes"
+msgstr "vor über einem Monat"
+
+#: static/js/prediccion.js:110
+msgid "Fuentes cruzadas"
+msgstr "Kombinierte Quellen"
+
+#: static/js/prediccion.js:111
+msgid "Mercados"
+msgstr "Märkte"
+
+#: static/js/prediccion.js:116
+msgid "Partidos verificados"
+msgstr "Geprüfte Spiele"
+
+#: static/js/prediccion.js:118
+msgid "Acierto real"
+msgstr "Echte Trefferquote"
+
+#: static/js/prediccion.js:148
+msgid "✓ Acertado"
+msgstr "✓ Getroffen"
+
+#: static/js/prediccion.js:149
+msgid "✗ Fallado"
+msgstr "✗ Daneben"
+
+#: static/js/prediccion.js:155 static/js/prediccion.js:156
+msgid "Gana %s"
+msgstr "Sieg %s"
+
+#: static/js/prediccion.js:159
+msgid "Pronóstico verificado"
+msgstr "Geprüfte Prognose"
+
+#: static/js/prediccion.js:168
+msgid "xGol anticipó"
+msgstr "xGol tippte"
+
+#: static/js/prediccion.js:180
+msgid "En vivo"
+msgstr "Live"
+
+#: static/js/prediccion.js:183
+msgid "Próximo análisis"
+msgstr "Nächste Analyse"
+
+#: static/js/prediccion.js:195 static/js/prediccion.js:224
+msgid "Ganador · goles · marcador"
+msgstr "Sieger · Tore · Ergebnis"
+
+#: static/js/prediccion.js:208
+msgid "No hay partidos programados en este momento."
+msgstr "Derzeit sind keine Spiele angesetzt."
+
+#: static/js/prediccion.js:209
+msgid "No hay partidos de las ligas que analiza xGol ahora mismo."
+msgstr "Derzeit gibt es keine Spiele in den Ligen, die xGol analysiert."
+
+#: static/js/prediccion.js:211
+msgid "No hay partidos disponibles en este momento."
+msgstr "Derzeit sind keine Spiele verfügbar."
+
+#: static/js/prediccion.js:215
+msgid "IA en vivo"
+msgstr "KI live"
+
+#: static/js/prediccion.js:219
+msgid "Vuelve en unos minutos: la agenda se actualiza sola."
+msgstr "Schauen Sie in ein paar Minuten wieder vorbei: Der Spielplan aktualisiert sich selbst."
+
+#: static/js/prediccion.js:223
+msgid "Analiza cualquier partido"
+msgstr "Jedes Spiel analysieren"
+
+#: static/js/subir.js:42 static/js/subir.js:43
+msgid "Volver arriba"
+msgstr "Nach oben"
+
+#: static/js/tour.js:98
+msgid "Bienvenido a xGol"
+msgstr "Willkommen bei xGol"
+
+#: static/js/tour.js:99
+msgid "Te explico en {n} pasos para qué sirve cada parte de esta pantalla. Dura menos de un minuto y puedes salir cuando quieras con la <strong>×</strong> o tocando fuera."
+msgstr "In {n} Schritten erkläre ich Ihnen, wozu jeder Teil dieses Bildschirms dient. Das dauert weniger als eine Minute, und Sie können jederzeit mit dem <strong>×</strong> oder durch Tippen außerhalb beenden."
+
+#: static/js/tour.js:103
+msgid "Elige la competencia"
+msgstr "Wählen Sie den Wettbewerb"
+
+#: static/js/tour.js:104
+msgid "Cada ficha es una liga. Al tocarla se traen sus partidos al instante. El <strong>Brasileirão</strong> juega todo el año; las ligas europeas descansan de mayo a agosto y en esos meses aparecen vacías."
+msgstr "Jeder Chip ist eine Liga. Antippen lädt sofort ihre Spiele. Der <strong>Brasileirão</strong> spielt das ganze Jahr; die europäischen Ligen pausieren von Mai bis August und sind in diesen Monaten leer."
+
+#: static/js/tour.js:108
+msgid "Filtra por día"
+msgstr "Nach Tag filtern"
+
+#: static/js/tour.js:109
+msgid "Este botón abre el calendario: los días que tienen partido salen marcados. Al elegir uno, la lista se queda solo con los de ese día y el botón te recuerda cuál es. <strong>Borrar</strong> te devuelve todos los partidos de la liga."
+msgstr "Diese Schaltfläche öffnet den Kalender: Tage mit Spielen sind markiert. Wenn Sie einen wählen, zeigt die Liste nur die Spiele dieses Tages und die Schaltfläche zeigt, welcher es ist. <strong>Löschen</strong> zeigt wieder alle Spiele der Liga."
+
+#: static/js/tour.js:113
+msgid "Los partidos"
+msgstr "Die Spiele"
+
+#: static/js/tour.js:114
+msgid "Cada tarjeta es un encuentro. A la izquierda, la <strong>hora</strong> a la que empieza (o <strong>Fin</strong> con el día si ya terminó). En el centro, los dos equipos con su escudo; si ya se jugó, el marcador va a la derecha y el ganador queda resaltado."
+msgstr "Jede Karte ist ein Spiel. Links die <strong>Uhrzeit</strong> des Anstoßes (oder <strong>Ende</strong> mit dem Tag, wenn es vorbei ist). In der Mitte beide Teams mit Wappen; wurde es schon gespielt, steht das Ergebnis rechts und der Sieger ist hervorgehoben."
+
+#: static/js/tour.js:118
+msgid "Calcula el pronóstico"
+msgstr "Prognose berechnen"
+
+#: static/js/tour.js:119
+msgid "Los partidos que aún no se juegan traen este botón. Al tocarlo xGol descarga los últimos partidos de cada equipo y calcula todo. Tarda un par de segundos y te lleva solo a la pantalla del pronóstico."
+msgstr "Spiele, die noch nicht gespielt wurden, haben diese Schaltfläche. Beim Antippen lädt xGol die letzten Spiele jedes Teams und berechnet alles. Das dauert ein paar Sekunden und bringt Sie direkt zur Prognose."
+
+#: static/js/tour.js:123
+msgid "Esta guía"
+msgstr "Diese Anleitung"
+
+#: static/js/tour.js:124
+msgid "Este botón vuelve a abrirla cuando quieras. Y ojo: en la pantalla del pronóstico te explica <strong>otras cosas distintas</strong>, las de esa pantalla."
+msgstr "Diese Schaltfläche öffnet sie jederzeit wieder. Und beachten Sie: Auf dem Prognose-Bildschirm erklärt sie <strong>andere Dinge</strong>, nämlich die jenes Bildschirms."
+
+#: static/js/tour.js:128
+msgid "Modo claro u oscuro"
+msgstr "Heller oder dunkler Modus"
+
+#: static/js/tour.js:129
+msgid "Alterna entre los dos temas. Tu elección se guarda para la próxima vez."
+msgstr "Wechselt zwischen den beiden Designs. Ihre Wahl wird für das nächste Mal gespeichert."
+
+#: static/js/tour.js:133
+msgid "Listo para empezar"
+msgstr "Bereit zum Start"
+
+#: static/js/tour.js:134
+msgid "Elige una liga, toca <strong>Pronóstico</strong> en cualquier partido y listo.<br><br>Recuerda que las probabilidades son <strong>estimaciones estadísticas</strong>, no certezas: un 70% significa que se cumple unas 7 de cada 10 veces."
+msgstr "Wählen Sie eine Liga, tippen Sie bei einem Spiel auf <strong>Prognose</strong> und fertig.<br><br>Denken Sie daran: Wahrscheinlichkeiten sind <strong>statistische Schätzungen</strong>, keine Gewissheiten. 70% bedeutet, dass es etwa 7 von 10 Mal eintritt."
+
+#: static/js/tour.js:144
+msgid "Cómo leer el pronóstico"
+msgstr "So lesen Sie die Prognose"
+
+#: static/js/tour.js:145
+msgid "Te explico en {n} pasos qué significa cada tarjeta de esta pantalla y de dónde sale cada número."
+msgstr "In {n} Schritten erkläre ich, was jede Karte auf diesem Bildschirm bedeutet und woher jede Zahl stammt."
+
+#: static/js/tour.js:149
+msgid "El partido"
+msgstr "Das Spiel"
+
+#: static/js/tour.js:150
+msgid "Quién juega, con la <strong>hora en tu zona horaria</strong>, la fecha y el estado del encuentro. Arriba, la competencia y la jornada. El equipo de la izquierda es siempre el <strong>local</strong>."
+msgstr "Wer spielt, mit der <strong>Uhrzeit in Ihrer Zeitzone</strong>, dem Datum und dem Spielstatus. Oben der Wettbewerb und der Spieltag. Das linke Team ist immer die <strong>Heimmannschaft</strong>."
+
+#: static/js/tour.js:154
+msgid "¿Quién ganará?"
+msgstr "Wer gewinnt?"
+
+#: static/js/tour.js:155
+msgid "El resultado más probable en grande, y debajo el reparto completo: local, empate y visitante. La barra de colores muestra ese mismo reparto a escala, así ves de un vistazo si el partido está parejo o hay un favorito claro."
+msgstr "Das wahrscheinlichste Ergebnis groß, darunter die vollständige Verteilung: Heim, Unentschieden und Gast. Der farbige Balken zeigt diese Verteilung maßstabsgetreu, so sehen Sie auf einen Blick, ob das Spiel ausgeglichen ist oder es einen klaren Favoriten gibt."
+
+#: static/js/tour.js:159
+msgid "Cuotas reales"
+msgstr "Echte Quoten"
+
+#: static/js/tour.js:160
+msgid "La mejor cuota que paga cada resultado y en qué casa está. Es información, no una recomendación de apuesta."
+msgstr "Die beste Quote für jedes Ergebnis und bei welchem Anbieter. Das ist eine Information, keine Wettempfehlung."
+
+#: static/js/tour.js:164
+msgid "Goles del partido"
+msgstr "Tore im Spiel"
+
+#: static/js/tour.js:165
+msgid "La línea de <strong>2.5 goles</strong>, que es la más usada: por encima significa 3 o más goles en total entre los dos equipos; por debajo, 2 o menos."
+msgstr "Die <strong>2.5-Tore</strong>-Linie, die gebräuchlichste: Über bedeutet insgesamt 3 oder mehr Tore beider Teams; unter, 2 oder weniger."
+
+#: static/js/tour.js:169
+msgid "Marcadores exactos"
+msgstr "Genaue Ergebnisse"
+
+#: static/js/tour.js:170
+msgid "El marcador con más probabilidad, y debajo los <strong>12 más probables</strong> ordenados. El color indica quién gana con ese resultado. Ninguno pasa de un porcentaje bajo: acertar el marcador exacto es lo más difícil que hay."
+msgstr "Das wahrscheinlichste Ergebnis und darunter die <strong>12 wahrscheinlichsten</strong> der Reihe nach. Die Farbe zeigt, wer mit diesem Ergebnis gewinnt. Keines kommt über einen niedrigen Prozentsatz hinaus: Das genaue Ergebnis zu treffen ist das Schwierigste überhaupt."
+
+#: static/js/tour.js:174
+msgid "Historial entre los dos"
+msgstr "Direkter Vergleich"
+
+#: static/js/tour.js:175
+msgid "Cuántas veces ganó cada uno cuando se han cruzado antes, con el detalle partido a partido. Sale del historial largo del local, así que a veces son pocos encuentros: tómalo como contexto, no como dato decisivo."
+msgstr "Wie oft jedes Team bei früheren Duellen gewann, mit Details zu jedem Spiel. Die Daten stammen aus dem langen Verlauf der Heimmannschaft, daher sind es manchmal wenige Duelle: Betrachten Sie es als Kontext, nicht als entscheidende Angabe."
+
+#: static/js/tour.js:179
+msgid "Forma reciente"
+msgstr "Aktuelle Form"
+
+#: static/js/tour.js:180
+msgid "Los últimos resultados de cada equipo. Las pestañas <strong>Casa</strong> y <strong>Fuera</strong> filtran solo esos partidos, que es donde suelen verse las diferencias grandes entre un equipo y otro."
+msgstr "Die letzten Ergebnisse jedes Teams. Die Reiter <strong>Heim</strong> und <strong>Auswärts</strong> filtern nur diese Spiele, denn dort zeigen sich meist die großen Unterschiede zwischen den Teams."
+
+#: static/js/tour.js:184 static/js/vista.js:482
+msgid "Ajustes del partido"
+msgstr "Spieleinstellungen"
+
+#: static/js/tour.js:185
+msgid "Ábrelo si hay algo que el historial no sabe. <strong>Cancha neutral</strong> quita la ventaja de local (útil en finales), y dentro puedes marcar bajas o contexto. Todo se <strong>recalcula al instante</strong>."
+msgstr "Öffnen Sie sie, wenn es etwas gibt, das der Verlauf nicht weiß. <strong>Neutraler Platz</strong> entfernt den Heimvorteil (nützlich bei Finals), und darin können Sie Ausfälle oder Kontext markieren. Alles wird <strong>sofort neu berechnet</strong>."
+
+#: static/js/tour.js:189
+msgid "De dónde salen los números"
+msgstr "Woher die Zahlen kommen"
+
+#: static/js/tour.js:190
+msgid "Los <strong>goles esperados</strong> de cada equipo y con cuántos partidos se calcularon. El modelo es Poisson con corrección Dixon-Coles: más partidos en el historial, resultado más fiable."
+msgstr "Die <strong>erwarteten Tore</strong> jedes Teams und aus wie vielen Spielen sie berechnet wurden. Das Modell ist Poisson mit Dixon-Coles-Korrektur: Je mehr Spiele im Verlauf, desto verlässlicher das Ergebnis."
+
+#: static/js/tour.js:194
+msgid "Volver atrás"
+msgstr "Zurück"
+
+#: static/js/tour.js:195
+msgid "Te devuelve a la lista sin perder nada: la liga y la fecha que tenías siguen puestas."
+msgstr "Bringt Sie zurück zur Liste, ohne etwas zu verlieren: Liga und Datum bleiben eingestellt."
+
+#: static/js/tour.js:199
+msgid "Eso es todo"
+msgstr "Das war's"
+
+#: static/js/tour.js:200
+msgid "Un último recordatorio: esto son <strong>probabilidades</strong>, no predicciones seguras. Ningún modelo acierta siempre. Apuesta responsablemente."
+msgstr "Eine letzte Erinnerung: Das sind <strong>Wahrscheinlichkeiten</strong>, keine sicheren Vorhersagen. Kein Modell liegt immer richtig. Wetten Sie verantwortungsvoll."
+
+#: static/js/tour.js:271 static/js/tour_panel.js:128
+msgid "Cerrar guía"
+msgstr "Anleitung schließen"
+
+#: static/js/tour.js:277 static/js/tour_panel.js:134
+msgid "Atrás"
+msgstr "Zurück"
+
+#: static/js/tour.js:278 static/js/tour.js:455 static/js/tour_panel.js:135
+msgid "Siguiente"
+msgstr "Weiter"
+
+#: static/js/tour.js:455 static/js/tour_panel.js:302
+msgid "Entendido"
+msgstr "Verstanden"
+
+#: static/js/tour.js:494
+msgid "Guía no disponible"
+msgstr "Anleitung nicht verfügbar"
+
+#: static/js/tour.js:495
+msgid "Esta pantalla todavía se está cargando. Vuelve a tocar el botón <strong>?</strong> en un momento."
+msgstr "Dieser Bildschirm lädt noch. Tippen Sie gleich noch einmal auf die Schaltfläche <strong>?</strong>."
+
+#: static/js/tour_panel.js:22
+msgid "Bienvenido al panel"
+msgstr "Willkommen im Admin-Bereich"
+
+#: static/js/tour_panel.js:23
+msgid "Te muestro en 10 pasos qué hace cada parte. Dura menos de un minuto y puedes salir cuando quieras."
+msgstr "In 10 Schritten zeige ich Ihnen, was jeder Teil macht. Das dauert weniger als eine Minute, und Sie können jederzeit beenden."
+
+#: static/js/tour_panel.js:27
+msgid "1 · El menú lateral"
+msgstr "1 · Das Seitenmenü"
+
+#: static/js/tour_panel.js:28
+msgid "Cinco vistas <strong>independientes</strong>: Resumen, Modelo, Dinero, Usuarios y Accesos. Cada una muestra solo lo suyo. Abajo del todo están volver al sitio y cerrar sesión."
+msgstr "Fünf <strong>unabhängige</strong> Ansichten: Übersicht, Modell, Finanzen, Benutzer und Zugriffe. Jede zeigt nur ihre eigenen Daten. Ganz unten finden Sie „Zurück zur Website“ und „Abmelden“."
+
+#: static/js/tour_panel.js:32
+msgid "2 · Las cuatro cifras"
+msgstr "2 · Die vier Kennzahlen"
+
+#: static/js/tour_panel.js:33
+msgid "El estado del negocio hoy. La etiqueta verde o roja compara contra el periodo anterior: verde subió, rojo bajó."
+msgstr "Der heutige Stand des Geschäfts. Das grüne oder rote Etikett vergleicht mit dem vorherigen Zeitraum: Grün ist gestiegen, Rot gefallen."
+
+#: static/js/tour_panel.js:37
+msgid "3 · Estado de la base"
+msgstr "3 · Stand der Nutzerbasis"
+
+#: static/js/tour_panel.js:38
+msgid "Reparte a todos los registrados en tres grupos. El bloque del medio (<strong>registrados sin pagar</strong>) es tu venta pendiente."
+msgstr "Teilt alle registrierten Nutzer in drei Gruppen. Der mittlere Block (<strong>registriert, nicht zahlend</strong>) ist Ihr offener Verkauf."
+
+#: static/js/tour_panel.js:42
+msgid "4 · Dónde cae el modelo"
+msgstr "4 · Wo das Modell liegt"
+
+#: static/js/tour_panel.js:43
+msgid "La marca blanca es el acierto 1X2 del motor, medido en partidos que no había visto. Rojo = por debajo de acertar siempre al local. Azul = rango normal. Verde = sobre el mejor 1X2 documentado. Ámbar = revisar la muestra."
+msgstr "Die weiße Markierung ist die 1X2-Trefferquote der Engine, gemessen an Spielen, die sie nicht kannte. Rot = unter „immer auf das Heimteam tippen“. Blau = normaler Bereich. Grün = über dem besten dokumentierten 1X2. Bernstein = Stichprobe prüfen."
+
+#: static/js/tour_panel.js:47
+msgid "5 · Calibración"
+msgstr "5 · Kalibrierung"
+
+#: static/js/tour_panel.js:48
+msgid "Si el modelo dijo 70%, debería acertar 7 de cada 10. La barra gris es lo que prometió y la verde lo que pasó. <strong>Optimista</strong> promete de más, <strong>Conservador</strong> se queda corto."
+msgstr "Wenn das Modell 70% sagte, sollte es 7 von 10 Mal richtig liegen. Der graue Balken ist das Versprechen, der grüne das Ergebnis. <strong>Optimistisch</strong> verspricht zu viel, <strong>Konservativ</strong> bleibt darunter."
+
+#: static/js/tour_panel.js:52
+msgid "6 · Mercados y ROI"
+msgstr "6 · Märkte und ROI"
+
+#: static/js/tour_panel.js:53
+msgid "Qué tipo de apuesta deja plata. Ojo: un mercado puede acertar mucho y aún así <strong>perder dinero</strong> si la cuota es baja. Por eso manda el ROI, no el porcentaje."
+msgstr "Welche Wettart Geld einbringt. Achtung: Ein Markt kann oft treffen und trotzdem <strong>Geld verlieren</strong>, wenn die Quote niedrig ist. Deshalb zählt der ROI, nicht der Prozentsatz."
+
+#: static/js/tour_panel.js:57
+msgid "7 · Ingresos por periodo"
+msgstr "7 · Umsatz nach Zeitraum"
+
+#: static/js/tour_panel.js:58
+msgid "Hoy, semana, mes, trimestre, año e histórico. Solo cuenta <strong>pagos aprobados</strong>: un pendiente o rechazado no es una venta."
+msgstr "Heute, Woche, Monat, Quartal, Jahr und gesamt. Es zählen nur <strong>genehmigte Zahlungen</strong>: Eine ausstehende oder abgelehnte ist kein Verkauf."
+
+#: static/js/tour_panel.js:62
+msgid "8 · Historial y exportación"
+msgstr "8 · Verlauf und Export"
+
+#: static/js/tour_panel.js:63
+msgid "Filtra por estado, plan o fecha y busca por referencia, factura o usuario. Con <strong>CSV</strong> o <strong>Excel</strong> te llevas exactamente lo que estás viendo filtrado."
+msgstr "Filtern Sie nach Status, Plan oder Datum und suchen Sie nach Referenz, Rechnung oder Benutzer. Mit <strong>CSV</strong> oder <strong>Excel</strong> exportieren Sie genau das, was Sie gefiltert sehen."
+
+#: static/js/tour_panel.js:67
+msgid "9 · Buscar y administrar"
+msgstr "9 · Suchen und verwalten"
+
+#: static/js/tour_panel.js:68
+msgid "Busca por nombre o correo. En cada fila puedes activar o cancelar la suscripción, editar, bloquear o eliminar la cuenta."
+msgstr "Suchen Sie nach Name oder E-Mail. In jeder Zeile können Sie das Abonnement aktivieren oder kündigen sowie das Konto bearbeiten, sperren oder löschen."
+
+#: static/js/tour_panel.js:72
+msgid "10 · Guía y tema"
+msgstr "10 · Anleitung und Design"
+
+#: static/js/tour_panel.js:73
+msgid "El botón <strong>?</strong> vuelve a abrir esta guía cuando quieras. El de al lado alterna entre modo claro y oscuro, y recuerda tu elección."
+msgstr "Die Schaltfläche <strong>?</strong> öffnet diese Anleitung jederzeit wieder. Die daneben wechselt zwischen hellem und dunklem Modus und merkt sich Ihre Wahl."
+
+#: static/js/tour_panel.js:77
+msgid "Listo"
+msgstr "Fertig"
+
+#: static/js/tour_panel.js:78
+msgid "Un recordatorio: las probabilidades son <strong>estimaciones estadísticas</strong>, no certezas. Y en apuestas, el ROI importa más que el porcentaje de acierto."
+msgstr "Zur Erinnerung: Wahrscheinlichkeiten sind <strong>statistische Schätzungen</strong>, keine Gewissheiten. Und bei Wetten zählt der ROI mehr als die Trefferquote."
+
+#: static/js/vista.js:23
+msgctxt "mes en fecha corta"
+msgid "ene"
+msgstr "01"
+
+#: static/js/vista.js:23
+msgctxt "mes en fecha corta"
+msgid "feb"
+msgstr "02"
+
+#: static/js/vista.js:23
+msgctxt "mes en fecha corta"
+msgid "mar"
+msgstr "03"
+
+#: static/js/vista.js:24
+msgctxt "mes en fecha corta"
+msgid "abr"
+msgstr "04"
+
+#: static/js/vista.js:24
+msgctxt "mes en fecha corta"
+msgid "may"
+msgstr "05"
+
+#: static/js/vista.js:24
+msgctxt "mes en fecha corta"
+msgid "jun"
+msgstr "06"
+
+#: static/js/vista.js:25
+msgctxt "mes en fecha corta"
+msgid "jul"
+msgstr "07"
+
+#: static/js/vista.js:25
+msgctxt "mes en fecha corta"
+msgid "ago"
+msgstr "08"
+
+#: static/js/vista.js:25
+msgctxt "mes en fecha corta"
+msgid "sep"
+msgstr "09"
+
+#: static/js/vista.js:26
+msgctxt "mes en fecha corta"
+msgid "oct"
+msgstr "10"
+
+#: static/js/vista.js:26
+msgctxt "mes en fecha corta"
+msgid "nov"
+msgstr "11"
+
+#: static/js/vista.js:26
+msgctxt "mes en fecha corta"
+msgid "dic"
+msgstr "12"
+
+#: static/js/vista.js:45
+#, python-format
+msgid "%(dia)s de %(mes)s de %(anio)s"
+msgstr "%(dia)s. %(mes)s %(anio)s"
+
+#: static/js/vista.js:51 static/js/vista.js:72
+msgid "finalizado"
+msgstr "beendet"
+
+#: static/js/vista.js:52
+msgid "en juego"
+msgstr "läuft"
+
+#: static/js/vista.js:53
+msgid "no iniciado"
+msgstr "nicht begonnen"
+
+#: static/js/vista.js:79
+msgid "datos propios"
+msgstr "eigene Daten"
+
+#: static/js/vista.js:84
+msgid "jornada %s"
+msgstr "Spieltag %s"
+
+#: static/js/vista.js:130
+msgid "¿Quién ganará el partido?"
+msgstr "Wer gewinnt das Spiel?"
+
+#: static/js/vista.js:132 static/js/vista.js:165
+msgid "%s% de probabilidad"
+msgstr "%s% Wahrscheinlichkeit"
+
+#: static/js/vista.js:163
+msgid "¿Cuántos goles se marcarán?"
+msgstr "Wie viele Tore fallen?"
+
+#: static/js/vista.js:164 static/js/vista.js:167
+msgid "+2.5 Goles"
+msgstr "Über 2.5 Tore"
+
+#: static/js/vista.js:164 static/js/vista.js:168
+msgid "-2.5 Goles"
+msgstr "Unter 2.5 Tore"
+
+#: static/js/vista.js:206
+msgid "Resultado más probable"
+msgstr "Wahrscheinlichstes Ergebnis"
+
+#: static/js/vista.js:208
+msgid "con %s% de probabilidad"
+msgstr "mit %s% Wahrscheinlichkeit"
+
+#: static/js/vista.js:209
+msgid "Los 12 marcadores más probables, de mayor a menor"
+msgstr "Die 12 wahrscheinlichsten Ergebnisse, absteigend"
+
+#: static/js/vista.js:245
+msgid "Cuotas de las casas de apuestas"
+msgstr "Quoten der Wettanbieter"
+
+#: static/js/vista.js:247
+msgid "Mejor cuota disponible por resultado"
+msgstr "Beste verfügbare Quote pro Ergebnis"
+
+#: static/js/vista.js:248
+msgid "actualizado %s"
+msgstr "aktualisiert %s"
+
+#: static/js/vista.js:249
+msgid "No es una recomendación de apuesta."
+msgstr "Dies ist keine Wettempfehlung."
+
+#: static/js/vista.js:261
+#, python-format
+msgid "%(dia)s/%(mes)s/%(anio)s"
+msgstr "%(dia)s.%(mes)s.%(anio)s"
+
+#: static/js/vista.js:295
+msgid "Enfrentamientos"
+msgstr "Direkte Duelle"
+
+#: static/js/vista.js:298
+msgid "%s partido"
+msgid_plural "%s partidos"
+msgstr[0] "%s Spiel"
+msgstr[1] "%s Spiele"
+
+#: static/js/vista.js:299
+msgid "Desde %s"
+msgstr "Seit %s"
+
+#: static/js/vista.js:304 static/js/vista.js:306 static/js/vista.js:362
+msgid "%s victoria"
+msgid_plural "%s victorias"
+msgstr[0] "%s Sieg"
+msgstr[1] "%s Siege"
+
+#: static/js/vista.js:305 static/js/vista.js:365
+msgid "%s empate"
+msgid_plural "%s empates"
+msgstr[0] "%s Unentschieden"
+msgstr[1] "%s Unentschieden"
+
+#: static/js/vista.js:368
+msgid "%s derrota"
+msgid_plural "%s derrotas"
+msgstr[0] "%s Niederlage"
+msgstr[1] "%s Niederlagen"
+
+#: static/js/vista.js:372
+msgid "Casa"
+msgstr "Heim"
+
+#: static/js/vista.js:372
+msgid "Todos"
+msgstr "Alle"
+
+#: static/js/vista.js:372
+msgid "Fuera"
+msgstr "Auswärts"
+
+#: static/js/vista.js:380
+msgctxt "inicial de ganado"
+msgid "G"
+msgstr "S"
+
+#: static/js/vista.js:381
+msgctxt "inicial de empate"
+msgid "E"
+msgstr "U"
+
+#: static/js/vista.js:382
+msgctxt "inicial de perdido"
+msgid "P"
+msgstr "N"
+
+#: static/js/vista.js:403
+msgid "Sin partidos como local en el historial."
+msgstr "Keine Heimspiele im Verlauf."
+
+#: static/js/vista.js:404
+msgid "Sin partidos como visitante en el historial."
+msgstr "Keine Auswärtsspiele im Verlauf."
+
+#: static/js/vista.js:412
+msgid "Últimos resultados <strong>%s</strong>"
+msgstr "Letzte Ergebnisse <strong>%s</strong>"
+
+#: static/js/vista.js:426
+msgid "Goles esperados:"
+msgstr "Erwartete Tore:"
+
+#: static/js/vista.js:431
+msgid "modelo de liga"
+msgstr "Ligamodell"
+
+#: static/js/vista.js:431
+msgid "mercado"
+msgstr "Markt"
+
+#: static/js/vista.js:436
+msgid "Motor xGol"
+msgstr "xGol-Engine"
+
+#: static/js/vista.js:437
+msgid "%s, ponderados"
+msgstr "%s, gewichtet"
+
+#: static/js/vista.js:437
+msgid "sin fuentes"
+msgstr "keine Quellen"
+
+#: static/js/vista.js:438
+msgid "sobre %s partidos de la liga"
+msgstr "über %s Ligaspiele"
+
+#: static/js/vista.js:440 static/js/vista.js:453
+msgid "sede neutral"
+msgstr "neutraler Platz"
+
+#: static/js/vista.js:450
+msgid "Cálculo local"
+msgstr "Lokale Berechnung"
+
+#: static/js/vista.js:451
+msgid "Poisson + Dixon-Coles sobre los últimos %s partidos de cada equipo"
+msgstr "Poisson + Dixon-Coles über die letzten %s Spiele jedes Teams"
+
+#: static/js/vista.js:483
+msgid "Actívalo para finales o partidos en sede única: no se aplica ventaja local a ningún equipo."
+msgstr "Aktivieren Sie dies für Finals oder Spiele an einem neutralen Ort: Kein Team erhält einen Heimvorteil."
+
+#: static/js/vista.js:486
+msgid "Cancha neutral"
+msgstr "Neutraler Platz"

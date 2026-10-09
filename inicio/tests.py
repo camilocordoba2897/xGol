@@ -223,3 +223,23 @@ class PaginasSinError500Tests(TestCase):
         for formato in ("pdf", "xlsx", "csv"):
             r = self.client.get(reverse("ExportarFinanzas") + "?formato=" + formato)
             self.assertEqual(r.status_code, 200, formato)
+
+
+class TarjetaResueltaTests(TestCase):
+
+    def test_la_tarjeta_resuelta_manda_signo_y_dias(self):
+        #Con el signo y los dias el home dice "Gana Arsenal · hace 2 días"
+        #en el idioma elegido, no solo en español. Estas tarjetas estan
+        #apagadas (MAX_RESUELTOS = 0): se piden a mano para que, si algun dia
+        #se encienden, salgan bien traducidas.
+        from django.utils import timezone as zona
+        from analizador.models import PrediccionMotor
+        PrediccionMotor.objects.create(
+            liga="PL", id_partido="1", fecha=(zona.localdate() - timedelta(days=2)).isoformat(),
+            equipo_local="Arsenal", equipo_visitante="Chelsea",
+            prob_local=.6, prob_empate=.25, prob_visitante=.15,
+            goles_local=2, goles_visitante=0, resultado="local", evaluado=True)
+        with mock.patch.object(api_partidos, "equipos_liga", return_value=[]):
+            tarjeta = api_partidos._resueltos(limite=5)[0]
+        self.assertEqual((tarjeta["signo"], tarjeta["dijo"]), ("local", "Gana Arsenal"))
+        self.assertEqual((tarjeta["dias"], tarjeta["cuando"]), (2, "hace 2 días"))

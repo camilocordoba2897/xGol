@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext_lazy
 from django.contrib.auth.models import User
 
 #Partido registrado en el historial de apuestas (datos crudos para poder editarlo)
@@ -13,8 +14,8 @@ class PartidoRegistrado(models.Model):
   creado=models.DateTimeField(auto_now_add=True)
 
   class Meta:
-    verbose_name="partido registrado"
-    verbose_name_plural="partidos registrados"
+    verbose_name=gettext_lazy("partido registrado")
+    verbose_name_plural=gettext_lazy("partidos registrados")
     unique_together=("usuario","referencia")
 
   def __str__(self):
@@ -39,8 +40,8 @@ class RegistroApuesta(models.Model):
   creado=models.DateTimeField(auto_now_add=True)
 
   class Meta:
-    verbose_name="apuesta registrada"
-    verbose_name_plural="apuestas registradas"
+    verbose_name=gettext_lazy("apuesta registrada")
+    verbose_name_plural=gettext_lazy("apuestas registradas")
     ordering=["-creado"]
 
   def __str__(self):
@@ -65,8 +66,8 @@ class AjusteMotor(models.Model):
   actualizado=models.DateTimeField(auto_now=True)
 
   class Meta:
-    verbose_name="ajuste del motor"
-    verbose_name_plural="ajustes del motor"
+    verbose_name=gettext_lazy("ajuste del motor")
+    verbose_name_plural=gettext_lazy("ajustes del motor")
 
   def __str__(self):
     return self.liga
@@ -99,8 +100,8 @@ class PrediccionMotor(models.Model):
   creado=models.DateTimeField(auto_now_add=True)
 
   class Meta:
-    verbose_name="prediccion del motor"
-    verbose_name_plural="predicciones del motor"
+    verbose_name=gettext_lazy("prediccion del motor")
+    verbose_name_plural=gettext_lazy("predicciones del motor")
     unique_together=("liga","id_partido")
     ordering=["-creado"]
 
@@ -130,8 +131,8 @@ class PesosMotor(models.Model):
   actualizado=models.DateTimeField(auto_now=True)
 
   class Meta:
-    verbose_name="pesos del motor"
-    verbose_name_plural="pesos del motor"
+    verbose_name=gettext_lazy("pesos del motor")
+    verbose_name_plural=gettext_lazy("pesos del motor")
 
   def __str__(self):
     return self.liga
