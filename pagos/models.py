@@ -1,15 +1,17 @@
 from django.db import models
 from django.db.models import F
 from django.contrib.auth.models import User
+from django.utils.translation import gettext_lazy
 
 #Estados canonicos de un pago. Se dejan capitalizados como estaban antes para
 #no tener que reescribir las filas que ya existen en la base de datos.
+#El valor queda en español en la base; lo que se muestra va traducido.
 ESTADOS_PAGO=[
-  ("Pendiente","Pendiente"),
-  ("Aprobado","Aprobado"),
-  ("Rechazado","Rechazado"),
-  ("Anulado","Anulado"),
-  ("Error","Error"),
+  ("Pendiente",gettext_lazy("Pendiente")),
+  ("Aprobado",gettext_lazy("Aprobado")),
+  ("Rechazado",gettext_lazy("Rechazado")),
+  ("Anulado",gettext_lazy("Anulado")),
+  ("Error",gettext_lazy("Error")),
 ]
 
 #Estados que la pasarela considera finales: ya no van a cambiar solos
@@ -26,8 +28,8 @@ class Consecutivo(models.Model):
   actualizado=models.DateTimeField(auto_now=True)
 
   class Meta:
-    verbose_name="Consecutivo"
-    verbose_name_plural="Consecutivos"
+    verbose_name=gettext_lazy("Consecutivo")
+    verbose_name_plural=gettext_lazy("Consecutivos")
 
   def __str__(self):
     return f"{self.nombre}: {self.valor}"
@@ -93,8 +95,8 @@ class Pago(models.Model):
   actualizado=models.DateTimeField(auto_now=True)
 
   class Meta:
-    verbose_name='Pago'
-    verbose_name_plural='Pagos'
+    verbose_name=gettext_lazy("Pago")
+    verbose_name_plural=gettext_lazy("Pagos")
     ordering=['-creado']
     indexes=[
       models.Index(fields=["estado","creado"]),
@@ -133,8 +135,8 @@ class EventoPasarela(models.Model):
   creado=models.DateTimeField(auto_now_add=True)
 
   class Meta:
-    verbose_name="Evento de pasarela"
-    verbose_name_plural="Eventos de pasarela"
+    verbose_name=gettext_lazy("Evento de pasarela")
+    verbose_name_plural=gettext_lazy("Eventos de pasarela")
     ordering=["-creado"]
 
   def __str__(self):
@@ -144,12 +146,14 @@ class EventoPasarela(models.Model):
 class MovimientoSuscripcion(models.Model):
   #Historia de cada cambio de estado de una suscripcion. Sin esto no hay forma
   #de responder "por que este usuario tiene acceso hasta el 30 de septiembre".
+  #El valor (sin tildes) es el de siempre en la base; el nombre que se ve
+  #lleva sus tildes y va traducido. "AjusteAdmin" ya no sale tal cual.
   TIPOS=[
-    ("Activacion","Activacion"),
-    ("Renovacion","Renovacion"),
-    ("Cancelacion","Cancelacion"),
-    ("Vencimiento","Vencimiento"),
-    ("AjusteAdmin","AjusteAdmin"),
+    ("Activacion",gettext_lazy("Activación")),
+    ("Renovacion",gettext_lazy("Renovación")),
+    ("Cancelacion",gettext_lazy("Cancelación")),
+    ("Vencimiento",gettext_lazy("Vencimiento")),
+    ("AjusteAdmin",gettext_lazy("Ajuste del administrador")),
   ]
 
   usuario=models.ForeignKey(User,on_delete=models.CASCADE,related_name="movimientos_suscripcion")
@@ -164,8 +168,8 @@ class MovimientoSuscripcion(models.Model):
   creado=models.DateTimeField(auto_now_add=True)
 
   class Meta:
-    verbose_name="Movimiento de suscripcion"
-    verbose_name_plural="Movimientos de suscripcion"
+    verbose_name=gettext_lazy("Movimiento de suscripcion")
+    verbose_name_plural=gettext_lazy("Movimientos de suscripcion")
     ordering=["-creado"]
 
   def __str__(self):

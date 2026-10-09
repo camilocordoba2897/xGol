@@ -17,22 +17,33 @@ import requests
 from datetime import date, datetime, timedelta, timezone
 from django.conf import settings
 from django.core.cache import cache
+from django.utils.translation import gettext, gettext_noop
 
 PROVEEDOR = "football-data"
 BASE_FD = "https://api.football-data.org/v4"
 
 #Competencias del plan gratuito de football-data.org
+#Nombre oficial de cada liga en el sitio. Casi todas se llaman igual en
+#todos los idiomas (Primeira Liga es el nombre oficial en portugues y asi se
+#dice tambien en ingles, aleman y español); la Champions en portugues es
+#"Liga dos Campeões". gettext_noop las marca para traducir; el nombre en el
+#idioma de quien mira lo da nombre_liga().
 LIGAS = {
-    "PL":  "Premier League",
-    "PD":  "LaLiga",
-    "SA":  "Serie A",
-    "BL1": "Bundesliga",
-    "FL1": "Ligue 1",
-    "DED": "Eredivisie",
-    "PPL": "Primeira Liga",
-    "BSA": "Brasileirao",
-    "CL":  "Champions League",
+    "PL":  gettext_noop("Premier League"),
+    "PD":  gettext_noop("LaLiga"),
+    "SA":  gettext_noop("Serie A"),
+    "BL1": gettext_noop("Bundesliga"),
+    "FL1": gettext_noop("Ligue 1"),
+    "DED": gettext_noop("Eredivisie"),
+    "PPL": gettext_noop("Primeira Liga"),
+    "BSA": gettext_noop("Brasileirão"),
+    "CL":  gettext_noop("Champions League"),
 }
+
+
+def nombre_liga(codigo, por_defecto=""):
+    nombre = LIGAS.get(codigo)
+    return gettext(nombre) if nombre else por_defecto
 
 PARTIDOS_HISTORIAL = 15   #cuantos partidos previos se piden por equipo
 DIAS_ADELANTE = 45        #ventana de proximos partidos que se ofrece.
@@ -371,7 +382,7 @@ def _filas_desde_historico(liga, nombre_equipo, limite, fechas_ocupadas=None,
 #  API PUBLICA — lo unico que consume el resto del proyecto
 # ============================================================
 def ligas_disponibles():
-    return [{"codigo": c, "nombre": n} for c, n in LIGAS.items()]
+    return [{"codigo": c, "nombre": nombre_liga(c)} for c in LIGAS]
 
 
 def partidos_liga(liga):

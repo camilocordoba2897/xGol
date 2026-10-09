@@ -1,5 +1,6 @@
 from django.shortcuts import redirect
 from django.contrib import messages
+from django.utils.translation import gettext
 from usuarios.roles import ROL_ADMIN,es_administrador
 
 def rol_requerido(nombre_rol):
@@ -21,7 +22,7 @@ def rol_requerido(nombre_rol):
             if perfil is not None and perfil.rol is not None and perfil.rol.nombre==nombre_rol:
                 return vista(request,*args,**kwargs)
 
-            messages.error(request,"No tienes permisos para entrar a esa zona")
+            messages.error(request,gettext("No tienes permisos para entrar a esa zona"))
             return redirect("Inicio")
 
         return revisar

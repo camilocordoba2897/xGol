@@ -7,6 +7,9 @@ from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone as hora_local
 
+#codigo -> nombre oficial de la liga en el sitio
+from analizador.api_datos import LIGAS as LIGAS_SITIO
+
 BASE = "https://api.football-data.org/v4"
 ZONA = ZoneInfo("America/Bogota")
 
@@ -119,7 +122,10 @@ def _partido(m):
     reloj = _reloj(m.get("utcDate", ""), m.get("status", ""), m.get("minute"))
     parcial = (m.get("score", {}) or {}).get("halfTime", {}) or {}
     return {
-        "liga": comp.get("name", ""),
+        #El nombre oficial del sitio (en español), no el de football-data
+        #("Primera Division", "UEFA Champions League"...). Se traduce al
+        #responder: estas listas se guardan en cache para todos los idiomas.
+        "liga": LIGAS_SITIO.get(comp.get("code", ""), comp.get("name", "")),
         "liga_codigo": comp.get("code", ""),
         "liga_logo": comp.get("emblem", ""),
         "local": local.get("shortName") or local.get("name", ""),
@@ -148,11 +154,11 @@ def _partidos_rango(desde, hasta):
     return [_partido(m) for m in datos.get("matches", []) if _cubierta(m)]
 
 def partidos_hoy():
-    datos = cache.get("partidos_hoy_v2")
+    datos = cache.get("partidos_hoy_v3")
     if datos is None:
         hoy = hora_local.localdate().isoformat()
         datos = _partidos_rango(hoy, hoy)
-        cache.set("partidos_hoy_v2", datos, 180)
+        cache.set("partidos_hoy_v3", datos, 180)
     return datos
 
 def partidos_proximos():
@@ -168,7 +174,7 @@ def partidos_proximos():
     #flotante, que sale de aqui) se quedaba vacia. Si la semana no trae nada,
     #se sigue buscando hacia adelante en bloques de 10 dias, que es el rango
     #maximo que acepta football-data, y se para en el primero con partidos.
-    datos = cache.get("partidos_proximos_v4")
+    datos = cache.get("partidos_proximos_v5")
     if datos is None:
         hoy = hora_local.localdate()
         hasta = hoy + timedelta(days=7)
@@ -178,7 +184,7 @@ def partidos_proximos():
             hasta = desde + timedelta(days=9)
             datos = _pendientes(_partidos_rango(desde.isoformat(), hasta.isoformat()))
             desde = hasta + timedelta(days=1)
-        cache.set("partidos_proximos_v4", datos, 600)
+        cache.set("partidos_proximos_v5", datos, 600)
     return datos
 
 #Dias hacia adelante que se buscan como mucho cuando la semana viene vacia.
@@ -189,7 +195,7 @@ def _pendientes(partidos):
     return [p for p in partidos if p.get("estado") != "FINISHED"]
 
 def partidos_vivo():
-    datos = cache.get("partidos_vivo_v2")
+    datos = cache.get("partidos_vivo_v3")
     if datos is None:
         #Ventana de 3 dias, no solo hoy: football-data fecha los partidos en UTC.
         #Un partido de las 22:30 UTC del domingo cae en lunes para un servidor
@@ -202,7 +208,7 @@ def partidos_vivo():
         vivos = {"IN_PLAY", "PAUSED"}
         datos = [_partido(m) for m in crudo.get("matches", [])
                  if m.get("status") in vivos and _cubierta(m)]
-        cache.set("partidos_vivo_v2", datos, 30)
+        cache.set("partidos_vivo_v3", datos, 30)
     return datos
 
 #Cache de las tablas y los equipos.
@@ -332,14 +338,20 @@ def _partidos_crudos(desde, hasta):
         cache.set(llave, datos, 180)
     return datos
 
-def _hace(fecha_txt):
-    #"hace 3 dias" a partir de una fecha YYYY-MM-DD
+def _dias_desde(fecha_txt):
+    #Dias entre una fecha YYYY-MM-DD y hoy (hora de Colombia), o None
     if not fecha_txt:
-        return ""
+        return None
     try:
         a, m, d = (int(x) for x in str(fecha_txt)[:10].split("-"))
-        dias = (hora_local.localdate() - date(a, m, d)).days
+        return (hora_local.localdate() - date(a, m, d)).days
     except (ValueError, TypeError):
+        return None
+
+def _hace(fecha_txt):
+    #"hace 3 dias" a partir de una fecha YYYY-MM-DD
+    dias = _dias_desde(fecha_txt)
+    if dias is None:
         return ""
     if dias <= 0:
         return "hoy"
@@ -395,10 +407,7 @@ def _escudos_de(codigos):
 
 
 def _nombre_liga(codigo):
-    for nombre, c in LIGAS.items():
-        if c == codigo:
-            return nombre
-    return codigo or ""
+    return LIGAS_SITIO.get(codigo, codigo or "")
 
 
 def _resueltos(limite=MAX_RESUELTOS):
@@ -433,10 +442,14 @@ def _resueltos(limite=MAX_RESUELTOS):
             "visitante_escudo": escudos.get((f.equipo_visitante or "").lower(), ""),
             "liga": _nombre_liga(f.liga),
             "dijo": etiqueta,
+            #signo y dias son lo mismo que dijo y cuando, sin el español:
+            #el home los usa para decirlo en ingles, portugues o aleman.
+            "signo": signo,
             "acerto": signo == f.resultado,
             "marcador": (f"{f.goles_local} - {f.goles_visitante}"
                          if f.goles_local is not None else ""),
             "cuando": _hace(f.fecha),
+            "dias": _dias_desde(f.fecha),
         })
     return salida
 
@@ -521,7 +534,7 @@ def _proximos_bloqueados(limite):
 
 
 def predicciones_destacadas():
-    datos = cache.get("tarjeta_home_v3")
+    datos = cache.get("tarjeta_home_v4")
     if datos is not None:
         return datos
 
@@ -547,5 +560,5 @@ def predicciones_destacadas():
     }
     #Sin datos se cachea solo 60 segundos: si el problema era pasajero, la
     #tarjeta se arregla sola en un minuto en vez de quedarse mal cinco.
-    cache.set("tarjeta_home_v3", datos, 300 if tarjetas else 60)
+    cache.set("tarjeta_home_v4", datos, 300 if tarjetas else 60)
     return datos

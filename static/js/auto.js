@@ -11,6 +11,10 @@
 //    3. la envuelve para pintar los escudos despues
 //
 //  Las rutas llegan en window.XGOL_AUTO desde la plantilla.
+//
+//  Los textos salen en el idioma elegido en el home (gettext, del catalogo
+//  que carga la plantilla). Los nombres de dias y meses y el orden de la
+//  fecha ("domingo 11 de octubre" / "Sunday, October 11") tambien.
 // ============================================================
 (function() {
   var RUTAS = window.XGOL_AUTO || {};
@@ -76,7 +80,7 @@
   // Lo usa el modo manual: tras cargar los CSV, saltar al pronostico
   window.verPronostico = function() {
     if (!window.state || !state.team1 || !state.team2) {
-      alert('Primero carga el historial de los dos equipos.');
+      alert(gettext('Primero carga el historial de los dos equipos.'));
       return;
     }
     window.XGOL_PARTIDO = null;   // sin partido de la API: cabecera sin hora
@@ -172,42 +176,47 @@
   function cargarPartidos(liga) {
     ligaActual = liga;
     marcarFicha(liga);
-    mensaje('Buscando partidos…');
+    mensaje(gettext('Buscando partidos…'));
     pedirJSON(RUTAS.partidos + '?liga=' + encodeURIComponent(liga))
       .then(function(d) {
         if (d.error === 'cuota') {
-          mensaje('Se alcanzó el límite de consultas por minuto.<br>' +
-                  '<span class="auto-pista">Espera un momento y vuelve a elegir la liga.</span>', 'lista-error');
+          mensaje(gettext('Se alcanzó el límite de consultas por minuto.') + '<br>' +
+                  '<span class="auto-pista">' + gettext('Espera un momento y vuelve a elegir la liga.') + '</span>', 'lista-error');
           return;
         }
         if (d.error) {
-          mensaje('No se pudo conectar con el proveedor de datos.<br>' +
-                  '<span class="auto-pista">Inténtalo de nuevo en unos segundos.</span>', 'lista-error');
+          mensaje(gettext('No se pudo conectar con el proveedor de datos.') + '<br>' +
+                  '<span class="auto-pista">' + gettext('Inténtalo de nuevo en unos segundos.') + '</span>', 'lista-error');
           return;
         }
         partidosActuales = d.partidos || [];
         pintarLista(filtrarPorFecha(partidosActuales));
       })
       .catch(function() {
-        mensaje('No se pudieron cargar los partidos.<br>' +
-                '<span class="auto-pista">Revisa tu conexión e inténtalo de nuevo.</span>', 'lista-error');
+        mensaje(gettext('No se pudieron cargar los partidos.') + '<br>' +
+                '<span class="auto-pista">' + gettext('Revisa tu conexión e inténtalo de nuevo.') + '</span>', 'lista-error');
       });
   }
 
   // Bloque de hora: es una pieza propia de la tarjeta, no una columna
   // de texto. Si el partido ya se jugo muestra "Fin" y el dia.
-  var DIAS_CORTO = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
-  var MESES_CORTO = ['ene', 'feb', 'mar', 'abr', 'may', 'jun',
-                     'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  var DIAS_CORTO = [pgettext('día corto', 'dom'), pgettext('día corto', 'lun'), pgettext('día corto', 'mar'),
+                    pgettext('día corto', 'mié'), pgettext('día corto', 'jue'), pgettext('día corto', 'vie'),
+                    pgettext('día corto', 'sáb')];
+  var MESES_CORTO = [pgettext('mes corto', 'ene'), pgettext('mes corto', 'feb'), pgettext('mes corto', 'mar'),
+                     pgettext('mes corto', 'abr'), pgettext('mes corto', 'may'), pgettext('mes corto', 'jun'),
+                     pgettext('mes corto', 'jul'), pgettext('mes corto', 'ago'), pgettext('mes corto', 'sep'),
+                     pgettext('mes corto', 'oct'), pgettext('mes corto', 'nov'), pgettext('mes corto', 'dic')];
 
   function bloqueHora(p) {
     var d = new Date(p.utc);
     var valida = !isNaN(d);
 
     if (p.jugado) {
-      var dia = valida ? d.getDate() + ' ' + MESES_CORTO[d.getMonth()] : '';
+      var dia = valida ? interpolate(gettext('%(dia)s %(mes)s'),
+                                     { dia: d.getDate(), mes: MESES_CORTO[d.getMonth()] }, true) : '';
       return '<div class="tp-hora es-fin">' +
-               '<span class="tp-hora-num">Fin</span>' +
+               '<span class="tp-hora-num">' + gettext('Fin') + '</span>' +
                (dia ? '<span class="tp-hora-dia">' + dia + '</span>' : '') +
              '</div>';
     }
@@ -217,7 +226,8 @@
     var mm = String(d.getMinutes()).padStart(2, '0');
     var hoy = new Date();
     var etiqueta = (d.toDateString() === hoy.toDateString())
-      ? 'hoy' : DIAS_CORTO[d.getDay()] + ' ' + d.getDate();
+      ? gettext('hoy')
+      : interpolate(gettext('%(dia_semana)s %(dia)s'), { dia_semana: DIAS_CORTO[d.getDay()], dia: d.getDate() }, true);
     return '<div class="tp-hora">' +
              '<span class="tp-hora-num">' + hh + ':' + mm + '</span>' +
              '<span class="tp-hora-dia">' + etiqueta + '</span>' +
@@ -252,7 +262,7 @@
 
     var accion = jugado ? '' :
       '<div class="tp-accion">' +
-        '<button class="fp-pronostico" data-i="' + idx + '">Pronóstico</button>' +
+        '<button class="fp-pronostico" data-i="' + idx + '">' + gettext('Pronóstico') + '</button>' +
       '</div>';
 
     return '<article class="tarjeta-partido' + (jugado ? ' es-jugado' : '') + '">' +
@@ -271,14 +281,14 @@
 
     if (!partidos.length) {
       if (fechaFiltro) {
-        mensaje('Esta liga no tiene partidos ese día.<br>' +
-                '<span class="auto-pista">Prueba con otra fecha o pulsa Borrar en el calendario.</span>');
+        mensaje(gettext('Esta liga no tiene partidos ese día.') + '<br>' +
+                '<span class="auto-pista">' + gettext('Prueba con otra fecha o pulsa Borrar en el calendario.') + '</span>');
         return;
       }
-      mensaje('Esta liga no tiene partidos en la ventana disponible.<br>' +
-              '<span class="auto-pista">Las ligas europeas descansan de mayo a agosto. ' +
-              'Mientras tanto el <strong>Brasileirão</strong> juega todo el año — ' +
-              '<button class="auto-enlace" onclick="irBrasileirao()">ver sus partidos</button></span>');
+      mensaje(gettext('Esta liga no tiene partidos en la ventana disponible.') + '<br>' +
+              '<span class="auto-pista">' +
+              gettext('Las ligas europeas descansan de mayo a agosto. Mientras tanto el <strong>Brasileirão</strong> juega todo el año —') +
+              ' <button class="auto-enlace" onclick="irBrasileirao()">' + gettext('ver sus partidos') + '</button></span>');
       return;
     }
 
@@ -315,21 +325,22 @@
     var html = '';
 
     if (porJugar.length) {
-      html += encabezado('lp-por-jugar', 'Partidos que puedes pronosticar',
-                         'Toca Pronóstico y xGol calcula las probabilidades del encuentro.',
+      html += encabezado('lp-por-jugar', gettext('Partidos que puedes pronosticar'),
+                         gettext('Toca Pronóstico y xGol calcula las probabilidades del encuentro.'),
                          porJugar.length);
       html += grupo(porJugar);
     } else if (jugados.length) {
-      html += '<div class="lp-vacio">Esta liga no tiene partidos por jugar en este momento. ' +
-              'Prueba con otra liga arriba.</div>';
+      html += '<div class="lp-vacio">' +
+              gettext('Esta liga no tiene partidos por jugar en este momento. Prueba con otra liga arriba.') +
+              '</div>';
     }
 
     // Los ya jugados solo sirven de consulta: van al final y plegados.
     if (jugados.length) {
       html += '<details class="lp-jugados">' +
                 '<summary>' +
-                  encabezado('', 'Resultados recientes',
-                             'Partidos ya jugados. No se pueden pronosticar.',
+                  encabezado('', gettext('Resultados recientes'),
+                             gettext('Partidos ya jugados. No se pueden pronosticar.'),
                              jugados.length) +
                 '</summary>' +
                 grupo(jugados) +
@@ -352,11 +363,11 @@
   function abrirPronostico(p, boton) {
     if (cargando || !p) return;
     cargando = true;
-    if (boton) { boton.disabled = true; boton.textContent = 'Cargando…'; }
+    if (boton) { boton.disabled = true; boton.textContent = gettext('Cargando…'); }
 
     var liberar = function() {
       cargando = false;
-      if (boton) { boton.disabled = false; boton.textContent = 'Pronóstico'; }
+      if (boton) { boton.disabled = false; boton.textContent = gettext('Pronóstico'); }
     };
 
     // La liga viaja para que el backend pueda completar el historial desde
@@ -372,11 +383,11 @@
       .then(function(d) {
         liberar();
         if (d.error === 'cuota') {
-          alert('Se alcanzó el límite de consultas por minuto del proveedor. Espera unos segundos y vuelve a intentarlo.');
+          alert(gettext('Se alcanzó el límite de consultas por minuto del proveedor. Espera unos segundos y vuelve a intentarlo.'));
           return;
         }
         if (d.error) {
-          alert('No se pudo traer el historial. Inténtalo de nuevo en un momento.');
+          alert(gettext('No se pudo traer el historial. Inténtalo de nuevo en un momento.'));
           return;
         }
         var fl = (d.local && d.local.filas) || [];
@@ -398,7 +409,7 @@
         // Solo se avisa si NO hay absolutamente nada de ninguno de los dos,
         // que con el respaldo del historico local ya casi no puede pasar.
         if (!fl.length && !fv.length) {
-          alert('No se pudo traer el historial de estos equipos. Inténtalo de nuevo en un momento.');
+          alert(gettext('No se pudo traer el historial de estos equipos. Inténtalo de nuevo en un momento.'));
           return;
         }
 
@@ -429,7 +440,7 @@
         try {
           renderAll();
         } catch (err) {
-          alert('No se pudo calcular el pronóstico de este partido. Prueba con otro.');
+          alert(gettext('No se pudo calcular el pronóstico de este partido. Prueba con otro.'));
           return;
         }
 
@@ -449,7 +460,7 @@
       })
       .catch(function() {
         liberar();
-        alert('Falló la conexión. Revisa tu internet y vuelve a intentarlo.');
+        alert(gettext('Falló la conexión. Revisa tu internet y vuelve a intentarlo.'));
       });
   }
 
@@ -459,6 +470,7 @@
   //  Si algo falla la tarjeta no se pinta, pero SIEMPRE se explica
   //  el motivo por consola: si no, es imposible saber que pasa.
   // ============================================================
+  // Solo para la consola del desarrollador (no salen en pantalla)
   var MOTIVOS = {
     sin_clave:   'Falta ODDS_API_KEY en .env y en settings.py. Mientras no este, no hay cuotas.',
     cuota:       'Se agotaron los creditos del plan de the-odds-api (500/mes en el gratuito).',
@@ -498,9 +510,14 @@
   // ============================================================
   //  CALENDARIO — filtra por fecha lo que ya se trajo de la liga
   // ============================================================
-  var MESES = ['enero','febrero','marzo','abril','mayo','junio','julio',
-               'agosto','septiembre','octubre','noviembre','diciembre'];
-  var DIAS_LARGO = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  var MESES = [pgettext('mes', 'enero'), pgettext('mes', 'febrero'), pgettext('mes', 'marzo'),
+               pgettext('mes', 'abril'), pgettext('mes', 'mayo'), pgettext('mes', 'junio'),
+               pgettext('mes', 'julio'), pgettext('mes', 'agosto'), pgettext('mes', 'septiembre'),
+               pgettext('mes', 'octubre'), pgettext('mes', 'noviembre'), pgettext('mes', 'diciembre')];
+  var DIAS_LARGO = [pgettext('día de la semana', 'domingo'), pgettext('día de la semana', 'lunes'),
+                    pgettext('día de la semana', 'martes'), pgettext('día de la semana', 'miércoles'),
+                    pgettext('día de la semana', 'jueves'), pgettext('día de la semana', 'viernes'),
+                    pgettext('día de la semana', 'sábado')];
 
   window.abrirCalendario = function() {
     calMes = fechaFiltro ? new Date(fechaFiltro + 'T00:00:00') : new Date();
@@ -539,20 +556,23 @@
     if (etq) {
       etq.textContent = fechaFiltro
         ? formatoLargo(new Date(fechaFiltro + 'T00:00:00'))
-        : 'Fecha';
+        : gettext('Fecha');
     }
 
     var btn = el('auto-fecha-btn');
     if (btn) btn.classList.toggle('tiene-fecha', !!fechaFiltro);
   }
 
+  // "domingo 11 de octubre" (el orden lo da la traduccion de cada idioma)
   function formatoLargo(d) {
-    return DIAS_LARGO[d.getDay()] + ' ' + d.getDate() + ' de ' + MESES[d.getMonth()];
+    return interpolate(gettext('%(dia_semana)s %(dia)s de %(mes)s'),
+                       { dia_semana: DIAS_LARGO[d.getDay()], dia: d.getDate(), mes: MESES[d.getMonth()] }, true);
   }
 
   function pintarCalendario() {
     el('fecha-modal-year').textContent = calMes.getFullYear();
-    el('fecha-mes-nombre').textContent = MESES[calMes.getMonth()] + ' de ' + calMes.getFullYear();
+    el('fecha-mes-nombre').textContent = interpolate(gettext('%(mes)s de %(anio)s'),
+                                                     { mes: MESES[calMes.getMonth()], anio: calMes.getFullYear() }, true);
     var pend = calDiaPendiente ? new Date(calDiaPendiente + 'T00:00:00') : new Date();
     el('fecha-modal-fecha').textContent = formatoLargo(pend);
 

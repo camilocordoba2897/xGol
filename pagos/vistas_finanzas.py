@@ -10,6 +10,8 @@ from django.http import HttpResponse
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 from django.conf import settings
+from django.utils.formats import date_format
+from django.utils.translation import gettext, gettext_lazy
 
 from usuarios.decoradores import rol_requerido
 from suscripciones.planes import PLANES
@@ -73,8 +75,9 @@ def exportar_finanzas(request):
         cabeceras=exportar.CABECERAS_RESUMEN
         filas=list(exportar.filas_resumen(reportes.resumen_ingresos()))
         nombre=f"xgol_resumen_{marca}"
-        titulo="Resumen financiero"
-        subtitulo="Acumulados por periodo · Generado el "+timezone.localtime().strftime("%d/%m/%Y %H:%M")
+        titulo=gettext("Resumen financiero")
+        subtitulo=gettext("Acumulados por periodo · Generado el %(fecha)s") % {
+            "fecha":date_format(timezone.localtime(),"SHORT_DATETIME_FORMAT")}
         moneda=exportar.MONEDA_RESUMEN
         totalizar=exportar.TOTALIZAR_RESUMEN
         columna_estado=None
@@ -83,9 +86,10 @@ def exportar_finanzas(request):
         filas=list(exportar.filas_transacciones(
             reportes.transacciones(filtros).select_related("usuario").iterator()))
         nombre=f"xgol_transacciones_{marca}"
-        titulo="Historial de transacciones"
-        subtitulo=(reporte_pdf._linea_filtros(filtros)+" · Generado el "
-                   +timezone.localtime().strftime("%d/%m/%Y %H:%M"))
+        titulo=gettext("Historial de transacciones")
+        subtitulo=gettext("%(filtros)s · Generado el %(fecha)s") % {
+            "filtros":reporte_pdf._linea_filtros(filtros),
+            "fecha":date_format(timezone.localtime(),"SHORT_DATETIME_FORMAT")}
         moneda=exportar.MONEDA_TRANSACCIONES
         totalizar=exportar.TOTALIZAR_TRANSACCIONES
         columna_estado=exportar.COLUMNA_ESTADO_TRANSACCIONES
@@ -95,7 +99,8 @@ def exportar_finanzas(request):
         tipo_mime="text/csv; charset=utf-8"
         extension="csv"
     else:
-        contenido=exportar.a_xlsx(cabeceras,filas,hoja=tipo[:31].capitalize(),
+        hoja=gettext("Resumen") if tipo=="resumen" else gettext("Transacciones")
+        contenido=exportar.a_xlsx(cabeceras,filas,hoja=hoja[:31],
                                   titulo=titulo,subtitulo=subtitulo,
                                   columnas_moneda=moneda,totalizar=totalizar,
                                   columna_estado=columna_estado)
@@ -120,26 +125,27 @@ def admin_sincronizar_pago(request,id):
     else:
         crudo,error=pasarela.buscar_por_referencia(pago.referencia)
     if error==pasarela.ERROR_NO_ENCONTRADA:
-        messages.error(request,"Ese intento nunca llegó a la pasarela, no hay nada que consultar")
+        messages.error(request,gettext("Ese intento nunca llegó a la pasarela, no hay nada que consultar"))
         return _volver_al_dinero()
     if error or not crudo:
-        messages.error(request,f"No se pudo consultar la pasarela ({error})")
+        messages.error(request,gettext("No se pudo consultar la pasarela (%(error)s)") % {"error":error})
         return _volver_al_dinero()
 
     pago_actualizado,resultado=servicios.aplicar_transaccion(
         pasarela.leer_transaccion(crudo),
         ambiente_evento=settings.WOMPI_AMBIENTE,
         actor=request.user)
-    messages.success(request,f"Pago {pago.referencia} consultado en la pasarela: {_RESULTADOS.get(resultado,resultado)}")
+    messages.success(request,gettext("Pago %(referencia)s consultado en la pasarela: %(resultado)s")
+                     % {"referencia":pago.referencia,"resultado":_RESULTADOS.get(resultado,resultado)})
     return _volver_al_dinero()
 
 
 #Lo que devuelve aplicar_transaccion, dicho para el administrador
 _RESULTADOS={
-    "aplicado":"estaba aprobado y ya se le dio el acceso al cliente",
-    "ya_aplicado":"ya estaba aplicado, no hubo que hacer nada",
-    "actualizado_sin_otorgar":"se actualizo el estado, la pasarela no lo reporta aprobado",
-    "monto_no_coincide":"el monto cobrado no coincide con el del plan, NO se dio acceso",
-    "moneda_no_coincide":"la moneda no coincide, NO se dio acceso",
-    "plan_desconocido":"el plan del pago ya no existe, revisarlo a mano",
+    "aplicado":gettext_lazy("estaba aprobado y ya se le dio el acceso al cliente"),
+    "ya_aplicado":gettext_lazy("ya estaba aplicado, no hubo que hacer nada"),
+    "actualizado_sin_otorgar":gettext_lazy("se actualizó el estado, la pasarela no lo reporta aprobado"),
+    "monto_no_coincide":gettext_lazy("el monto cobrado no coincide con el del plan, NO se dio acceso"),
+    "moneda_no_coincide":gettext_lazy("la moneda no coincide, NO se dio acceso"),
+    "plan_desconocido":gettext_lazy("el plan del pago ya no existe, revisarlo a mano"),
 }

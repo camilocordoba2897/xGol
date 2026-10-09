@@ -46,10 +46,6 @@
     try { return document.querySelector(sel); } catch (e) { return null; }
   }
 
-  function qq(sel) {
-    try { return document.querySelectorAll(sel); } catch (e) { return []; }
-  }
-
   // Un elemento sirve si existe y ocupa espacio de verdad en pantalla
   function sirve(n) {
     if (!n || !n.getBoundingClientRect) return false;
@@ -57,26 +53,12 @@
     return r.width >= MINIMO && r.height >= MINIMO;
   }
 
-  function normalizar(t) {
-    var s = String(t == null ? '' : t).toLowerCase();
-    try { s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch (e) {}
-    return s;
-  }
-
-  // Busca una tarjeta del pronostico por el texto de su titulo.
-  // Es lo unico estable: el orden cambia segun haya cuotas o no.
-  function tarjeta(titulo) {
-    var buscado = normalizar(titulo);
-    var cards = qq('#pronostico-contenido .pr-card');
-    for (var i = 0; i < cards.length; i++) {
-      var t = cards[i].querySelector('.pr-titulo');
-      if (t && normalizar(t.textContent).indexOf(buscado) >= 0) return cards[i];
-    }
-    return null;
-  }
-
-  function porTitulo(titulo) {
-    return function () { return tarjeta(titulo); };
+  // Busca una tarjeta del pronostico por su marca data-tarjeta (la pone
+  // vista.js). El orden cambia segun haya cuotas o no, y el titulo cambia
+  // con el idioma: antes se buscaba por el texto del titulo en español y
+  // en otro idioma la guia se habria saltado esas tarjetas.
+  function porTarjeta(clave) {
+    return function () { return q('#pronostico-contenido .pr-card[data-tarjeta="' + clave + '"]'); };
   }
 
   // El contenedor de un elemento conocido, cuando la clase del
@@ -108,62 +90,48 @@
   // ============================================================
   //  RECORRIDO 1 — PANTALLA "ELIGE UN PARTIDO"
   // ============================================================
+  //  Cada texto va completo dentro de gettext (no en pedazos sumados):
+  //  asi se puede traducir entero. {n} es el numero de pasos.
   var GUIA_LISTA = [
     {
       donde: null,
-      titulo: 'Bienvenido a xGol',
-      texto: 'Te explico en {n} pasos para qué sirve cada parte de esta pantalla. ' +
-             'Dura menos de un minuto y puedes salir cuando quieras con la <strong>×</strong> ' +
-             'o tocando fuera.'
+      titulo: gettext('Bienvenido a xGol'),
+      texto: gettext('Te explico en {n} pasos para qué sirve cada parte de esta pantalla. Dura menos de un minuto y puedes salir cuando quieras con la <strong>×</strong> o tocando fuera.')
     },
     {
-      donde: ['.lab-ligas', 'nav[aria-label="Competencias"]', padreDe('.lab-liga')],
-      titulo: 'Elige la competencia',
-      texto: 'Cada ficha es una liga. Al tocarla se traen sus partidos al instante. ' +
-             'El <strong>Brasileirão</strong> juega todo el año; las ligas europeas ' +
-             'descansan de mayo a agosto y en esos meses aparecen vacías.'
+      donde: ['.lab-ligas', padreDe('.lab-liga')],
+      titulo: gettext('Elige la competencia'),
+      texto: gettext('Cada ficha es una liga. Al tocarla se traen sus partidos al instante. El <strong>Brasileirão</strong> juega todo el año; las ligas europeas descansan de mayo a agosto y en esos meses aparecen vacías.')
     },
     {
       donde: ['#auto-fecha-btn', '.auto-fecha-btn'],
-      titulo: 'Filtra por día',
-      texto: 'Este botón abre el calendario: los días que tienen partido salen ' +
-             'marcados. Al elegir uno, la lista se queda solo con los de ese día ' +
-             'y el botón te recuerda cuál es. <strong>Borrar</strong> te devuelve ' +
-             'todos los partidos de la liga.'
+      titulo: gettext('Filtra por día'),
+      texto: gettext('Este botón abre el calendario: los días que tienen partido salen marcados. Al elegir uno, la lista se queda solo con los de ese día y el botón te recuerda cuál es. <strong>Borrar</strong> te devuelve todos los partidos de la liga.')
     },
     {
       donde: ['#lista-partidos', '.lista-partidos'],
-      titulo: 'Los partidos',
-      texto: 'Cada tarjeta es un encuentro. A la izquierda, la <strong>hora</strong> a la ' +
-             'que empieza (o <strong>Fin</strong> con el día si ya terminó). En el centro, ' +
-             'los dos equipos con su escudo; si ya se jugó, el marcador va a la derecha y ' +
-             'el ganador queda resaltado.'
+      titulo: gettext('Los partidos'),
+      texto: gettext('Cada tarjeta es un encuentro. A la izquierda, la <strong>hora</strong> a la que empieza (o <strong>Fin</strong> con el día si ya terminó). En el centro, los dos equipos con su escudo; si ya se jugó, el marcador va a la derecha y el ganador queda resaltado.')
     },
     {
       donde: ['.fp-pronostico'],
-      titulo: 'Calcula el pronóstico',
-      texto: 'Los partidos que aún no se juegan traen este botón. Al tocarlo xGol descarga ' +
-             'los últimos partidos de cada equipo y calcula todo. Tarda un par de segundos ' +
-             'y te lleva solo a la pantalla del pronóstico.'
+      titulo: gettext('Calcula el pronóstico'),
+      texto: gettext('Los partidos que aún no se juegan traen este botón. Al tocarlo xGol descarga los últimos partidos de cada equipo y calcula todo. Tarda un par de segundos y te lleva solo a la pantalla del pronóstico.')
     },
     {
       donde: ['.guia-btn', 'button[onclick*="abrirGuia"]'],
-      titulo: 'Esta guía',
-      texto: 'Este botón vuelve a abrirla cuando quieras. Y ojo: en la pantalla del ' +
-             'pronóstico te explica <strong>otras cosas distintas</strong>, las de esa pantalla.'
+      titulo: gettext('Esta guía'),
+      texto: gettext('Este botón vuelve a abrirla cuando quieras. Y ojo: en la pantalla del pronóstico te explica <strong>otras cosas distintas</strong>, las de esa pantalla.')
     },
     {
       donde: ['.modo-btn', 'button[onclick*="alternarModo"]'],
-      titulo: 'Modo claro u oscuro',
-      texto: 'Alterna entre los dos temas. Tu elección se guarda para la próxima vez.'
+      titulo: gettext('Modo claro u oscuro'),
+      texto: gettext('Alterna entre los dos temas. Tu elección se guarda para la próxima vez.')
     },
     {
       donde: null,
-      titulo: 'Listo para empezar',
-      texto: 'Elige una liga, toca <strong>Pronóstico</strong> en cualquier partido y ' +
-             'listo.<br><br>Recuerda que las probabilidades son ' +
-             '<strong>estimaciones estadísticas</strong>, no certezas: un 70% significa ' +
-             'que se cumple unas 7 de cada 10 veces.'
+      titulo: gettext('Listo para empezar'),
+      texto: gettext('Elige una liga, toca <strong>Pronóstico</strong> en cualquier partido y listo.<br><br>Recuerda que las probabilidades son <strong>estimaciones estadísticas</strong>, no certezas: un 70% significa que se cumple unas 7 de cada 10 veces.')
     }
   ];
 
@@ -173,82 +141,63 @@
   var GUIA_PRONOSTICO = [
     {
       donde: null,
-      titulo: 'Cómo leer el pronóstico',
-      texto: 'Te explico en {n} pasos qué significa cada tarjeta de esta pantalla y ' +
-             'de dónde sale cada número.'
+      titulo: gettext('Cómo leer el pronóstico'),
+      texto: gettext('Te explico en {n} pasos qué significa cada tarjeta de esta pantalla y de dónde sale cada número.')
     },
     {
       donde: ['.pr-header', '.match-header', '.pr-liga'],
-      titulo: 'El partido',
-      texto: 'Quién juega, con la <strong>hora en tu zona horaria</strong>, la fecha y el ' +
-             'estado del encuentro. Arriba, la competencia y la jornada. El equipo de la ' +
-             'izquierda es siempre el <strong>local</strong>.'
+      titulo: gettext('El partido'),
+      texto: gettext('Quién juega, con la <strong>hora en tu zona horaria</strong>, la fecha y el estado del encuentro. Arriba, la competencia y la jornada. El equipo de la izquierda es siempre el <strong>local</strong>.')
     },
     {
-      donde: [porTitulo('quien ganara')],
-      titulo: '¿Quién ganará?',
-      texto: 'El resultado más probable en grande, y debajo el reparto completo: local, ' +
-             'empate y visitante. La barra de colores muestra ese mismo reparto a escala, ' +
-             'así ves de un vistazo si el partido está parejo o hay un favorito claro.'
+      donde: [porTarjeta('ganador')],
+      titulo: gettext('¿Quién ganará?'),
+      texto: gettext('El resultado más probable en grande, y debajo el reparto completo: local, empate y visitante. La barra de colores muestra ese mismo reparto a escala, así ves de un vistazo si el partido está parejo o hay un favorito claro.')
     },
     {
-      donde: [porTitulo('cuotas')],
-      titulo: 'Cuotas reales',
-      texto: 'La mejor cuota que paga cada resultado y en qué casa está. Es información, ' +
-             'no una recomendación de apuesta.'
+      donde: [porTarjeta('cuotas')],
+      titulo: gettext('Cuotas reales'),
+      texto: gettext('La mejor cuota que paga cada resultado y en qué casa está. Es información, no una recomendación de apuesta.')
     },
     {
-      donde: [porTitulo('cuantos goles')],
-      titulo: 'Goles del partido',
-      texto: 'La línea de <strong>2.5 goles</strong>, que es la más usada: por encima ' +
-             'significa 3 o más goles en total entre los dos equipos; por debajo, 2 o menos.'
+      donde: [porTarjeta('goles')],
+      titulo: gettext('Goles del partido'),
+      texto: gettext('La línea de <strong>2.5 goles</strong>, que es la más usada: por encima significa 3 o más goles en total entre los dos equipos; por debajo, 2 o menos.')
     },
     {
-      donde: [porTitulo('resultado mas probable')],
-      titulo: 'Marcadores exactos',
-      texto: 'El marcador con más probabilidad, y debajo los <strong>12 más probables</strong> ' +
-             'ordenados. El color indica quién gana con ese resultado. Ninguno pasa de un ' +
-             'porcentaje bajo: acertar el marcador exacto es lo más difícil que hay.'
+      donde: [porTarjeta('marcador')],
+      titulo: gettext('Marcadores exactos'),
+      texto: gettext('El marcador con más probabilidad, y debajo los <strong>12 más probables</strong> ordenados. El color indica quién gana con ese resultado. Ninguno pasa de un porcentaje bajo: acertar el marcador exacto es lo más difícil que hay.')
     },
     {
-      donde: [porTitulo('enfrentamientos')],
-      titulo: 'Historial entre los dos',
-      texto: 'Cuántas veces ganó cada uno cuando se han cruzado antes, con el detalle partido ' +
-             'a partido. Sale del historial largo del local, así que a veces son pocos ' +
-             'encuentros: tómalo como contexto, no como dato decisivo.'
+      donde: [porTarjeta('enfrentamientos')],
+      titulo: gettext('Historial entre los dos'),
+      texto: gettext('Cuántas veces ganó cada uno cuando se han cruzado antes, con el detalle partido a partido. Sale del historial largo del local, así que a veces son pocos encuentros: tómalo como contexto, no como dato decisivo.')
     },
     {
       donde: ['.pr-forma', '#forma-team1'],
-      titulo: 'Forma reciente',
-      texto: 'Los últimos resultados de cada equipo. Las pestañas <strong>Casa</strong> y ' +
-             '<strong>Fuera</strong> filtran solo esos partidos, que es donde suelen verse ' +
-             'las diferencias grandes entre un equipo y otro.'
+      titulo: gettext('Forma reciente'),
+      texto: gettext('Los últimos resultados de cada equipo. Las pestañas <strong>Casa</strong> y <strong>Fuera</strong> filtran solo esos partidos, que es donde suelen verse las diferencias grandes entre un equipo y otro.')
     },
     {
       donde: ['.pr-ajustes'],
-      titulo: 'Ajustes del partido',
-      texto: 'Ábrelo si hay algo que el historial no sabe. <strong>Cancha neutral</strong> ' +
-             'quita la ventaja de local (útil en finales), y dentro puedes marcar bajas o ' +
-             'contexto. Todo se <strong>recalcula al instante</strong>.'
+      titulo: gettext('Ajustes del partido'),
+      texto: gettext('Ábrelo si hay algo que el historial no sabe. <strong>Cancha neutral</strong> quita la ventaja de local (útil en finales), y dentro puedes marcar bajas o contexto. Todo se <strong>recalcula al instante</strong>.')
     },
     {
       donde: ['.pr-modelo'],
-      titulo: 'De dónde salen los números',
-      texto: 'Los <strong>goles esperados</strong> de cada equipo y con cuántos partidos se ' +
-             'calcularon. El modelo es Poisson con corrección Dixon-Coles: más partidos en ' +
-             'el historial, resultado más fiable.'
+      titulo: gettext('De dónde salen los números'),
+      texto: gettext('Los <strong>goles esperados</strong> de cada equipo y con cuántos partidos se calcularon. El modelo es Poisson con corrección Dixon-Coles: más partidos en el historial, resultado más fiable.')
     },
     {
       donde: ['.pr-volver'],
-      titulo: 'Volver atrás',
-      texto: 'Te devuelve a la lista sin perder nada: la liga y la fecha que tenías siguen ' +
-             'puestas.'
+      titulo: gettext('Volver atrás'),
+      texto: gettext('Te devuelve a la lista sin perder nada: la liga y la fecha que tenías siguen puestas.')
     },
     {
       donde: null,
-      titulo: 'Eso es todo',
-      texto: 'Un último recordatorio: esto son <strong>probabilidades</strong>, no ' +
-             'predicciones seguras. Ningún modelo acierta siempre. Apuesta responsablemente.'
+      titulo: gettext('Eso es todo'),
+      texto: gettext('Un último recordatorio: esto son <strong>probabilidades</strong>, no predicciones seguras. Ningún modelo acierta siempre. Apuesta responsablemente.')
     }
   ];
 
@@ -319,14 +268,14 @@
       '<div class="tour-velo tour-velo-der"></div>' +
       '<div class="tour-foco"></div>' +
       '<div class="tour-globo">' +
-        '<button class="tour-cerrar" type="button" aria-label="Cerrar guía">&times;</button>' +
+        '<button class="tour-cerrar" type="button" aria-label="' + gettext('Cerrar guía') + '">&times;</button>' +
         '<div class="tour-titulo"></div>' +
         '<div class="tour-texto"></div>' +
         '<div class="tour-pie">' +
           '<div class="tour-puntos"></div>' +
           '<div class="tour-botones">' +
-            '<button class="tour-atras" type="button">Atrás</button>' +
-            '<button class="tour-siguiente" type="button">Siguiente</button>' +
+            '<button class="tour-atras" type="button">' + gettext('Atrás') + '</button>' +
+            '<button class="tour-siguiente" type="button">' + gettext('Siguiente') + '</button>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -503,7 +452,7 @@
     nodos.puntos.innerHTML = puntos;
 
     nodos.atras.style.visibility = indice === 0 ? 'hidden' : 'visible';
-    nodos.siguiente.textContent = indice === pasos.length - 1 ? 'Entendido' : 'Siguiente';
+    nodos.siguiente.textContent = indice === pasos.length - 1 ? gettext('Entendido') : gettext('Siguiente');
 
     // Mientras se acerca el elemento, el globo va centrado: nunca se
     // queda apuntando a una posicion vieja.
@@ -542,9 +491,8 @@
     if (!pasos.length) {
       pasos = [{
         donde: null,
-        titulo: 'Guía no disponible',
-        texto: 'Esta pantalla todavía se está cargando. Vuelve a tocar el botón ' +
-               '<strong>?</strong> en un momento.'
+        titulo: gettext('Guía no disponible'),
+        texto: gettext('Esta pantalla todavía se está cargando. Vuelve a tocar el botón <strong>?</strong> en un momento.')
       }];
     }
 

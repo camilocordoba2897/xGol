@@ -8,6 +8,10 @@
 #   (valor_limpio, None)      -> valido
 #   (valor_original, "texto") -> invalido, "texto" es lo que ve el usuario
 #
+#Los mensajes salen en el idioma que la persona eligio en el home (gettext).
+#Cada uno va completo, sin pegar pedazos ("El nombre" + "debe..."): en otros
+#idiomas el orden de las palabras cambia y por pedazos quedarian mal.
+#
 #IMPORTANTE: estas comprobaciones son de SERVIDOR. Los atributos pattern
 #del HTML son solo comodidad: cualquiera puede saltarselos desde la consola
 #del navegador o enviando el formulario con curl, asi que la validacion
@@ -16,6 +20,7 @@ import re
 from datetime import date, datetime
 
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 import unicodedata
 from django.contrib.auth.models import User
@@ -40,26 +45,31 @@ def _tiene_repeticion_absurda(texto):
     return re.search(r"(.)\1\1", texto.lower()) is not None
 
 
-def validar_nombre(valor, etiqueta="El nombre"):
+def validar_nombre(valor, campo="nombre"):
+    #campo: "nombre" o "apellidos" (cambia el mensaje, no la regla)
+    apellidos = campo == "apellidos"
     limpio = " ".join(str(valor or "").split())
 
     if not limpio:
-        return valor, f"{etiqueta} no puede quedar vacío."
+        return valor, (_("Los apellidos no pueden quedar vacíos.") if apellidos
+                       else _("El nombre no puede quedar vacío."))
 
     if len(limpio) < NOMBRE_MIN:
-        return valor, f"{etiqueta} debe tener al menos {NOMBRE_MIN} letras."
+        return valor, ((_("Los apellidos deben tener al menos %(n)d letras.") if apellidos
+                        else _("El nombre debe tener al menos %(n)d letras.")) % {"n": NOMBRE_MIN})
 
     if len(limpio) > NOMBRE_MAX:
-        return valor, f"{etiqueta} no puede pasar de {NOMBRE_MAX} caracteres."
+        return valor, ((_("Los apellidos no pueden pasar de %(n)d caracteres.") if apellidos
+                        else _("El nombre no puede pasar de %(n)d caracteres.")) % {"n": NOMBRE_MAX})
 
     if not PATRON_NOMBRE.match(limpio):
-        return valor, (
-            f"{etiqueta} solo puede tener letras. "
-            "No se admiten números ni símbolos como %, #, $ o ()."
-        )
+        return valor, (_("Los apellidos solo pueden tener letras. No se admiten números ni símbolos como %, #, $ o ().")
+                       if apellidos else
+                       _("El nombre solo puede tener letras. No se admiten números ni símbolos como %, #, $ o ()."))
 
     if _tiene_repeticion_absurda(limpio):
-        return valor, f"{etiqueta} no parece un nombre válido."
+        return valor, (_("Los apellidos no parecen válidos.") if apellidos
+                       else _("El nombre no parece un nombre válido."))
 
     #Se guarda con mayuscula inicial en cada parte. No sirve capitalize()
     #a secas: convertiria "O'Connor" en "O'connor" y "Sánchez-Prieto" en
@@ -88,22 +98,19 @@ def validar_usuario(valor, excluir_id=None):
     limpio = str(valor or "").strip()
 
     if not limpio:
-        return valor, "El nombre de usuario no puede quedar vacío."
+        return valor, _("El nombre de usuario no puede quedar vacío.")
 
     if len(limpio) < USUARIO_MIN:
-        return valor, f"El nombre de usuario debe tener al menos {USUARIO_MIN} caracteres."
+        return valor, _("El nombre de usuario debe tener al menos %(n)d caracteres.") % {"n": USUARIO_MIN}
 
     if len(limpio) > USUARIO_MAX:
-        return valor, f"El nombre de usuario no puede pasar de {USUARIO_MAX} caracteres."
+        return valor, _("El nombre de usuario no puede pasar de %(n)d caracteres.") % {"n": USUARIO_MAX}
 
     if not PATRON_USUARIO.match(limpio):
-        return valor, (
-            "El nombre de usuario solo puede tener letras y números, "
-            "sin espacios ni símbolos."
-        )
+        return valor, _("El nombre de usuario solo puede tener letras y números, sin espacios ni símbolos.")
 
     if not re.search(r"[A-Za-z]", limpio):
-        return valor, "El nombre de usuario debe tener al menos una letra."
+        return valor, _("El nombre de usuario debe tener al menos una letra.")
 
     #iexact: si existe "Juan" no se deja crear "juan". Serian dos cuentas
     #distintas para Django, pero el usuario las leeria como la misma y no
@@ -112,7 +119,7 @@ def validar_usuario(valor, excluir_id=None):
     if excluir_id is not None:
         repetidos = repetidos.exclude(pk=excluir_id)
     if repetidos.exists():
-        return valor, "Ese nombre de usuario ya está en uso, elige otro."
+        return valor, _("Ese nombre de usuario ya está en uso, elige otro.")
 
     return limpio, None
 
@@ -122,13 +129,13 @@ def validar_correo(valor, excluir_id=None):
     limpio = str(valor or "").strip().lower()
 
     if not limpio:
-        return valor, "El correo no puede quedar vacío."
+        return valor, _("El correo no puede quedar vacío.")
 
     if len(limpio) > 254:
-        return valor, "El correo es demasiado largo."
+        return valor, _("El correo es demasiado largo.")
 
     if not PATRON_CORREO.match(limpio):
-        return valor, "Escribe un correo válido, por ejemplo: nombre@correo.com"
+        return valor, _("Escribe un correo válido, por ejemplo: nombre@correo.com")
 
     #iexact porque Juan@Correo.com y juan@correo.com son el MISMO buzon:
     #si se dejan las dos, el usuario no sabria con cual entra ni a cual le
@@ -137,7 +144,7 @@ def validar_correo(valor, excluir_id=None):
     if excluir_id is not None:
         repetidos = repetidos.exclude(pk=excluir_id)
     if repetidos.exists():
-        return valor, "Ese correo ya tiene una cuenta registrada."
+        return valor, _("Ese correo ya tiene una cuenta registrada.")
 
     return limpio, None
 
@@ -146,19 +153,19 @@ def validar_contrasena(valor):
     clave = str(valor or "")
 
     if len(clave) < 8 or len(clave) > 16:
-        return clave, "La contraseña debe tener entre 8 y 16 caracteres."
+        return clave, _("La contraseña debe tener entre 8 y 16 caracteres.")
 
     if not re.search(r"[a-z]", clave):
-        return clave, "La contraseña debe tener al menos una letra minúscula."
+        return clave, _("La contraseña debe tener al menos una letra minúscula.")
 
     if not re.search(r"[A-Z]", clave):
-        return clave, "La contraseña debe tener al menos una letra mayúscula."
+        return clave, _("La contraseña debe tener al menos una letra mayúscula.")
 
     if not re.search(r"[0-9]", clave):
-        return clave, "La contraseña debe tener al menos un número."
+        return clave, _("La contraseña debe tener al menos un número.")
 
     if not re.search(r"[^A-Za-z0-9]", clave):
-        return clave, "La contraseña debe tener al menos un carácter especial."
+        return clave, _("La contraseña debe tener al menos un carácter especial.")
 
     return clave, None
 
@@ -184,26 +191,26 @@ def validar_documento(valor, excluir_id=None):
     limpio = re.sub(r"[.\s\-]", "", str(valor or "").strip())
 
     if not limpio:
-        return valor, "El número de cédula no puede quedar vacío."
+        return valor, _("El número de cédula no puede quedar vacío.")
 
     if not limpio.isdigit():
-        return valor, "La cédula solo puede tener números, sin letras ni símbolos."
+        return valor, _("La cédula solo puede tener números, sin letras ni símbolos.")
 
     if limpio.startswith("0"):
-        return valor, "El número de cédula no puede empezar por cero."
+        return valor, _("El número de cédula no puede empezar por cero.")
 
     if len(limpio) < DOCUMENTO_MIN:
-        return valor, "La cédula debe tener al menos %d dígitos." % DOCUMENTO_MIN
+        return valor, _("La cédula debe tener al menos %(n)d dígitos.") % {"n": DOCUMENTO_MIN}
 
     if len(limpio) > DOCUMENTO_MAX:
-        return valor, "La cédula no puede pasar de %d dígitos." % DOCUMENTO_MAX
+        return valor, _("La cédula no puede pasar de %(n)d dígitos.") % {"n": DOCUMENTO_MAX}
 
     #Solo se descarta el relleno evidente: 1111111, 2222222. No se
     #descartan secuencias como 1234567 porque ESE numero si le puede haber
     #tocado a alguien de verdad, y bloquear a una persona real es peor que
     #dejar pasar un numero inventado (que igual se puede inventar otro).
     if len(set(limpio)) == 1:
-        return valor, "Ese número de cédula no es válido."
+        return valor, _("Ese número de cédula no es válido.")
 
     #Se guarda solo el numero, sin puntos, para que no queden dos formas
     #distintas del mismo documento en la base.
@@ -212,7 +219,7 @@ def validar_documento(valor, excluir_id=None):
     if excluir_id is not None:
         repetidos = repetidos.exclude(usuario_id=excluir_id)
     if repetidos.exists():
-        return valor, "Ya hay una cuenta registrada con esa cédula."
+        return valor, _("Ya hay una cuenta registrada con esa cédula.")
 
     return limpio, None
 
@@ -230,7 +237,7 @@ def validar_telefono(valor):
     if not limpio:
         return "", None
     if len(limpio) > 20 or not PATRON_TELEFONO.match(limpio) or len(re.sub(r"\D", "", limpio)) < 7:
-        return valor, "Escribe un teléfono válido, solo números. Ej: 300 123 4567"
+        return valor, _("Escribe un teléfono válido, solo números. Ej: 300 123 4567")
     return limpio, None
 
 
@@ -244,18 +251,18 @@ def validar_avatar(archivo):
     #.html que luego se servia desde /media/ en nuestro propio dominio.
     #Aqui se abre con Pillow para confirmar que de verdad es una imagen.
     if archivo.size > AVATAR_MAX_MB * 1024 * 1024:
-        return f"La foto no puede pesar más de {AVATAR_MAX_MB} MB."
+        return _("La foto no puede pesar más de %(n)d MB.") % {"n": AVATAR_MAX_MB}
     try:
         from PIL import Image
         imagen = Image.open(archivo)
         formato = imagen.format
         imagen.verify()
     except Exception:
-        return "El archivo no es una imagen válida."
+        return _("El archivo no es una imagen válida.")
     finally:
         archivo.seek(0)
     if formato not in AVATAR_FORMATOS:
-        return "La foto debe ser JPG, PNG, WEBP o GIF."
+        return _("La foto debe ser JPG, PNG, WEBP o GIF.")
     return None
 
 
@@ -301,7 +308,7 @@ def validar_fecha_nacimiento(valor, hoy=None):
     crudo = str(valor or "").strip()
 
     if not crudo:
-        return valor, "La fecha de nacimiento no puede quedar vacía."
+        return valor, _("La fecha de nacimiento no puede quedar vacía.")
 
     #El input type=date manda AAAA-MM-DD. Se aceptan tambien las formas
     #que la gente escribe a mano cuando teclea la fecha.
@@ -314,21 +321,21 @@ def validar_fecha_nacimiento(valor, hoy=None):
             continue
 
     if fecha is None:
-        return valor, "Escribe una fecha de nacimiento válida."
+        return valor, _("Escribe una fecha de nacimiento válida.")
 
     if hoy is None:
         hoy = timezone.localdate()
 
     if fecha > hoy:
-        return valor, "La fecha de nacimiento no puede ser futura."
+        return valor, _("La fecha de nacimiento no puede ser futura.")
 
     edad = calcular_edad(fecha, hoy)
 
     if edad > EDAD_MAXIMA:
-        return valor, "Revisa la fecha de nacimiento, no parece correcta."
+        return valor, _("Revisa la fecha de nacimiento, no parece correcta.")
 
     if edad < EDAD_MINIMA:
-        return valor, ("Debes ser mayor de %d años para crear una cuenta en xGol." % EDAD_MINIMA)
+        return valor, _("Debes ser mayor de %(n)d años para crear una cuenta en xGol.") % {"n": EDAD_MINIMA}
 
     #Se devuelve como objeto date: asi el modelo lo guarda sin depender
     #del formato con que venga escrito.
@@ -362,7 +369,7 @@ def completar_identidad(perfil, documento, fecha_nacimiento):
         try:
             perfil.save(update_fields=cambios)
         except IntegrityError:
-            return "Ya hay una cuenta registrada con esa cédula."
+            return _("Ya hay una cuenta registrada con esa cédula.")
     return None
 
 
@@ -373,11 +380,11 @@ def validar_registro(datos):
     limpios = {}
     errores = []
 
-    limpios["nombre"], error = validar_nombre(datos.get("nombre"), "El nombre")
+    limpios["nombre"], error = validar_nombre(datos.get("nombre"), "nombre")
     if error:
         errores.append(error)
 
-    limpios["apellidos"], error = validar_nombre(datos.get("apellidos"), "Los apellidos")
+    limpios["apellidos"], error = validar_nombre(datos.get("apellidos"), "apellidos")
     if error:
         errores.append(error)
 

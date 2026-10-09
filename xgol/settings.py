@@ -64,6 +64,9 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    #Idioma elegido con las banderas del home: lo aplica a todo el sitio.
+    #Va despues de la autenticacion para guardarlo tambien en el perfil.
+    'xgol.idioma.IdiomaElegido',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
@@ -95,6 +98,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.i18n',
+                'xgol.idioma.contexto',
                 'usuarios.context_processors.acceso',
                 'usuarios.context_processors.google_disponible',
             ],
@@ -142,7 +147,23 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+#Español es el idioma del sitio: los textos del codigo estan en español y
+#las traducciones a los otros tres idiomas estan en locale/. El idioma solo
+#cambia cuando la persona lo elige con las banderas del home (cookie); no se
+#adivina por el navegador. Ver xgol/idioma.py.
+LANGUAGE_CODE = 'es'
+LANGUAGES = [
+    ('es', 'Español'),
+    ('en', 'English'),
+    ('pt-br', 'Português'),
+    ('de', 'Deutsch'),
+]
+LOCALE_PATHS = [BASE_DIR / 'locale']
+LANGUAGE_COOKIE_AGE = 60 * 60 * 24 * 365
+#Los numeros se escriben igual en los cuatro idiomas (punto decimal, como
+#siempre): varias plantillas usan esos numeros en anchos y graficas, y con
+#coma decimal se romperian. Las fechas si salen al estilo de cada pais.
+FORMAT_MODULE_PATH = ['xgol.formatos']
 
 TIME_ZONE = 'UTC'
 

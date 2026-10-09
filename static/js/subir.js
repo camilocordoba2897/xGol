@@ -39,8 +39,8 @@
     boton = document.createElement('button');
     boton.className = 'subir-btn';
     boton.type = 'button';
-    boton.title = 'Volver arriba';
-    boton.setAttribute('aria-label', 'Volver arriba');
+    boton.title = gettext('Volver arriba');
+    boton.setAttribute('aria-label', gettext('Volver arriba'));
     boton.innerHTML =
       '<svg viewBox="0 0 24 24" aria-hidden="true">' +
         '<line x1="12" y1="19.5" x2="12" y2="5"/>' +

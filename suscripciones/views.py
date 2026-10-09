@@ -5,6 +5,8 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_POST
 from django.conf import settings
+from django.utils.formats import date_format
+from django.utils.translation import gettext
 from suscripciones.models import Suscripcion
 from suscripciones.planes import PLANES,obtener_plan,nivel_de_plan
 from usuarios.decoradores import rol_requerido
@@ -68,7 +70,8 @@ def checkout(request,clave_plan):
     suscripcion=Suscripcion.objects.filter(usuario=request.user).first()
     if suscripcion is not None and suscripcion.esta_vigente():
         if plan["nivel"]<=nivel_de_plan(suscripcion.plan):
-            messages.info(request,f"Ya tienes el plan {suscripcion.plan} activo. Solo puedes pasar a un plan superior.")
+            messages.info(request,gettext("Ya tienes el plan %(plan)s activo. Solo puedes pasar a un plan superior.")
+                          % {"plan":gettext(suscripcion.plan)})
             return redirect("Suscripcion")
 
     desglose=desglosar_precio(plan["precio"])
@@ -156,7 +159,8 @@ def admin_activar_suscripcion(request,id):
             nota="Activacion manual desde el panel",
         )
 
-    messages.success(request,f"Suscripción de {usuario.username} activada hasta el {suscripcion.vencimiento:%d/%m/%Y}")
+    messages.success(request,gettext("Suscripción de %(usuario)s activada hasta el %(fecha)s")
+                     % {"usuario":usuario.username,"fecha":date_format(suscripcion.vencimiento,"SHORT_DATE_FORMAT")})
     return redirect("PanelAdmin")
 
 
@@ -185,5 +189,5 @@ def admin_cancelar_suscripcion(request,id):
         nota="Cancelada desde el panel de administración",
     )
 
-    messages.success(request,f"Suscripción de {usuario.username} cancelada")
+    messages.success(request,gettext("Suscripción de %(usuario)s cancelada") % {"usuario":usuario.username})
     return redirect("PanelAdmin")

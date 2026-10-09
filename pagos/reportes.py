@@ -8,11 +8,16 @@ from datetime import timedelta,date,datetime,time
 from django.db.models import Sum,Count,Q
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.utils.translation import pgettext_lazy
 
 from pagos.models import Pago,MovimientoSuscripcion,EventoPasarela
 from suscripciones.models import Suscripcion
 
-MESES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"]
+#Se traducen al usarlos (en el idioma de quien mira el panel)
+MESES=[pgettext_lazy("mes corto","ene"),pgettext_lazy("mes corto","feb"),pgettext_lazy("mes corto","mar"),
+       pgettext_lazy("mes corto","abr"),pgettext_lazy("mes corto","may"),pgettext_lazy("mes corto","jun"),
+       pgettext_lazy("mes corto","jul"),pgettext_lazy("mes corto","ago"),pgettext_lazy("mes corto","sep"),
+       pgettext_lazy("mes corto","oct"),pgettext_lazy("mes corto","nov"),pgettext_lazy("mes corto","dic")]
 
 
 def _sumar(consulta):

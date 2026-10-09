@@ -17,11 +17,18 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
+from django.views.decorators.cache import cache_control
+from django.views.i18n import JavaScriptCatalog
 from django.templatetags.static import static as ruta_estatica
 from usuarios.views import PedirEnlaceContrasena, RestablecerContrasena
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    #Textos traducidos para el JavaScript (gettext en el navegador). Las
+    #plantillas lo piden con ?idioma=..&v=.. en la direccion, asi que cada
+    #idioma y cada version de las traducciones es una copia distinta y el
+    #navegador puede guardarla un dia sin mezclar idiomas.
+    path('textos.js', cache_control(max_age=86400)(JavaScriptCatalog.as_view()), name='TextosJS'),
     #Los navegadores piden /favicon.ico por su cuenta aunque la pagina declare
     #otro icono: sin esto cada visita dejaba un 404 en el registro.
     path('favicon.ico', RedirectView.as_view(url=ruta_estatica('img/favicon.ico'), permanent=True)),

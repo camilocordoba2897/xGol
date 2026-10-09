@@ -15,66 +15,67 @@
   var SEPARACION = 14;   // distancia del globo al foco
 
   // ---- Pasos. selector null = mensaje centrado, sin foco ----
+  // Los textos salen en el idioma elegido en el home (gettext).
   var PASOS = [
     {
       vista: 'resumen', selector: null,
-      titulo: 'Bienvenido al panel',
-      texto: 'Te muestro en 10 pasos qué hace cada parte. Dura menos de un minuto y puedes salir cuando quieras.'
+      titulo: gettext('Bienvenido al panel'),
+      texto: gettext('Te muestro en 10 pasos qué hace cada parte. Dura menos de un minuto y puedes salir cuando quieras.')
     },
     {
       vista: 'resumen', selector: '.rail',
-      titulo: '1 · El menú lateral',
-      texto: 'Cinco vistas <strong>independientes</strong>: Resumen, Modelo, Dinero, Usuarios y Accesos. Cada una muestra solo lo suyo. Abajo del todo están volver al sitio y cerrar sesión.'
+      titulo: gettext('1 · El menú lateral'),
+      texto: gettext('Cinco vistas <strong>independientes</strong>: Resumen, Modelo, Dinero, Usuarios y Accesos. Cada una muestra solo lo suyo. Abajo del todo están volver al sitio y cerrar sesión.')
     },
     {
       vista: 'resumen', selector: '.kpis',
-      titulo: '2 · Las cuatro cifras',
-      texto: 'El estado del negocio hoy. La etiqueta verde o roja compara contra el periodo anterior: verde subió, rojo bajó.'
+      titulo: gettext('2 · Las cuatro cifras'),
+      texto: gettext('El estado del negocio hoy. La etiqueta verde o roja compara contra el periodo anterior: verde subió, rojo bajó.')
     },
     {
       vista: 'resumen', selector: '.apilada',
-      titulo: '3 · Estado de la base',
-      texto: 'Reparte a todos los registrados en tres grupos. El bloque del medio (<strong>registrados sin pagar</strong>) es tu venta pendiente.'
+      titulo: gettext('3 · Estado de la base'),
+      texto: gettext('Reparte a todos los registrados en tres grupos. El bloque del medio (<strong>registrados sin pagar</strong>) es tu venta pendiente.')
     },
     {
       vista: 'modelo', selector: '.regla',
-      titulo: '4 · Dónde cae el modelo',
-      texto: 'La marca blanca es el acierto 1X2 del motor, medido en partidos que no había visto. Rojo = por debajo de acertar siempre al local. Azul = rango normal. Verde = sobre el mejor 1X2 documentado. Ámbar = revisar la muestra.'
+      titulo: gettext('4 · Dónde cae el modelo'),
+      texto: gettext('La marca blanca es el acierto 1X2 del motor, medido en partidos que no había visto. Rojo = por debajo de acertar siempre al local. Azul = rango normal. Verde = sobre el mejor 1X2 documentado. Ámbar = revisar la muestra.')
     },
     {
       vista: 'modelo', selector: '#seguimiento-analizador .cal-fila',
-      titulo: '5 · Calibración',
-      texto: 'Si el modelo dijo 70%, debería acertar 7 de cada 10. La barra gris es lo que prometió y la verde lo que pasó. <strong>Optimista</strong> promete de más, <strong>Conservador</strong> se queda corto.'
+      titulo: gettext('5 · Calibración'),
+      texto: gettext('Si el modelo dijo 70%, debería acertar 7 de cada 10. La barra gris es lo que prometió y la verde lo que pasó. <strong>Optimista</strong> promete de más, <strong>Conservador</strong> se queda corto.')
     },
     {
       vista: 'modelo', selector: '#seguimiento-analizador .dos-columnas > .panel:last-child',
-      titulo: '6 · Mercados y ROI',
-      texto: 'Qué tipo de apuesta deja plata. Ojo: un mercado puede acertar mucho y aún así <strong>perder dinero</strong> si la cuota es baja. Por eso manda el ROI, no el porcentaje.'
+      titulo: gettext('6 · Mercados y ROI'),
+      texto: gettext('Qué tipo de apuesta deja plata. Ojo: un mercado puede acertar mucho y aún así <strong>perder dinero</strong> si la cuota es baja. Por eso manda el ROI, no el porcentaje.')
     },
     {
       vista: 'dinero', selector: '.kpis-6',
-      titulo: '7 · Ingresos por periodo',
-      texto: 'Hoy, semana, mes, trimestre, año e histórico. Solo cuenta <strong>pagos aprobados</strong>: un pendiente o rechazado no es una venta.'
+      titulo: gettext('7 · Ingresos por periodo'),
+      texto: gettext('Hoy, semana, mes, trimestre, año e histórico. Solo cuenta <strong>pagos aprobados</strong>: un pendiente o rechazado no es una venta.')
     },
     {
       vista: 'dinero', selector: '.filtros',
-      titulo: '8 · Historial y exportación',
-      texto: 'Filtra por estado, plan o fecha y busca por referencia, factura o usuario. Con <strong>CSV</strong> o <strong>Excel</strong> te llevas exactamente lo que estás viendo filtrado.'
+      titulo: gettext('8 · Historial y exportación'),
+      texto: gettext('Filtra por estado, plan o fecha y busca por referencia, factura o usuario. Con <strong>CSV</strong> o <strong>Excel</strong> te llevas exactamente lo que estás viendo filtrado.')
     },
     {
       vista: 'usuarios', selector: '#buscarUsuario',
-      titulo: '9 · Buscar y administrar',
-      texto: 'Busca por nombre o correo. En cada fila puedes activar o cancelar la suscripción, editar, bloquear o eliminar la cuenta.'
+      titulo: gettext('9 · Buscar y administrar'),
+      texto: gettext('Busca por nombre o correo. En cada fila puedes activar o cancelar la suscripción, editar, bloquear o eliminar la cuenta.')
     },
     {
       vista: 'resumen', selector: '.icono-btn',
-      titulo: '10 · Guía y tema',
-      texto: 'El botón <strong>?</strong> vuelve a abrir esta guía cuando quieras. El de al lado alterna entre modo claro y oscuro, y recuerda tu elección.'
+      titulo: gettext('10 · Guía y tema'),
+      texto: gettext('El botón <strong>?</strong> vuelve a abrir esta guía cuando quieras. El de al lado alterna entre modo claro y oscuro, y recuerda tu elección.')
     },
     {
       vista: 'resumen', selector: null,
-      titulo: 'Listo',
-      texto: 'Un recordatorio: las probabilidades son <strong>estimaciones estadísticas</strong>, no certezas. Y en apuestas, el ROI importa más que el porcentaje de acierto.'
+      titulo: gettext('Listo'),
+      texto: gettext('Un recordatorio: las probabilidades son <strong>estimaciones estadísticas</strong>, no certezas. Y en apuestas, el ROI importa más que el porcentaje de acierto.')
     }
   ];
 
@@ -124,14 +125,14 @@
       '<div class="tour-velo tour-velo-der"></div>' +
       '<div class="tour-foco"></div>' +
       '<div class="tour-globo">' +
-        '<button class="tour-cerrar" aria-label="Cerrar guía">&times;</button>' +
+        '<button class="tour-cerrar" aria-label="' + gettext('Cerrar guía') + '">&times;</button>' +
         '<div class="tour-titulo"></div>' +
         '<div class="tour-texto"></div>' +
         '<div class="tour-pie">' +
           '<div class="tour-puntos"></div>' +
           '<div class="tour-botones">' +
-            '<button class="tour-atras">Atrás</button>' +
-            '<button class="tour-siguiente">Siguiente</button>' +
+            '<button class="tour-atras">' + gettext('Atrás') + '</button>' +
+            '<button class="tour-siguiente">' + gettext('Siguiente') + '</button>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -298,7 +299,7 @@
     nodos.puntos.innerHTML = puntos;
 
     nodos.atras.style.visibility = indice === 0 ? 'hidden' : 'visible';
-    nodos.siguiente.textContent = indice === PASOS.length - 1 ? 'Entendido' : 'Siguiente';
+    nodos.siguiente.textContent = indice === PASOS.length - 1 ? gettext('Entendido') : gettext('Siguiente');
 
     // Si acabamos de cambiar de pestana, esperamos a que se pinte
     setTimeout(function() {

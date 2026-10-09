@@ -2,6 +2,7 @@ from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from django.contrib import messages
 from django.shortcuts import redirect
+from django.utils.translation import gettext
 
 try:
     from allauth.core.exceptions import ImmediateHttpResponse
@@ -44,8 +45,8 @@ class AdaptadorSocial(DefaultSocialAccountAdapter):
         #En un registro nuevo todavia no hay pk y no hay nada que proteger.
         if usuario is not None and usuario.pk and self._es_administrativa(usuario):
             messages.error(request,
-                "Esta cuenta es administrativa y no se puede abrir con Google. "
-                "Entra con tu usuario y contrasena.")
+                gettext("Esta cuenta es administrativa y no se puede abrir con Google. "
+                        "Entra con tu usuario y contraseña."))
             raise ImmediateHttpResponse(redirect("Ingresar"))
         return super().pre_social_login(request,sociallogin)
 

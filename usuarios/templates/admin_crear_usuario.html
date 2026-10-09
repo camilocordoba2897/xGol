@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% load static %}
 
-{% block Titulo %}Crear usuario{% endblock %}
+{% block Titulo %}{% translate "Crear usuario" %}{% endblock %}
 
 {% block estilos %}
   <link rel="stylesheet" href="{% static 'css/admin_crear_usuario.css' %}?v=2">
@@ -28,21 +29,21 @@
         <circle cx="100" cy="100" r="5" fill="currentColor" stroke="none"/>
       </svg>
 
-      <div class="ficha-ceja">Credencial</div>
+      <div class="ficha-ceja">{% translate "Credencial" %}</div>
 
       <div class="ficha-avatar" id="ficha-inicial">?</div>
 
       <div class="ficha-datos">
-        <div class="ficha-usuario" id="ficha-usuario">@usuario</div>
-        <div class="ficha-correo" id="ficha-correo">sin correo</div>
+        <div class="ficha-usuario" id="ficha-usuario">{% translate "@usuario" %}</div>
+        <div class="ficha-correo" id="ficha-correo">{% translate "sin correo" %}</div>
 
         <div class="ficha-chips">
-          <span class="ficha-chip ficha-chip--rol">Rol · Usuario</span>
-          <span class="ficha-chip">Local</span>
+          <span class="ficha-chip ficha-chip--rol">{% translate "Rol · Usuario" %}</span>
+          <span class="ficha-chip">{% translate "Local" %}</span>
         </div>
       </div>
 
-      <div class="ficha-pie">xGol · alta de cuenta</div>
+      <div class="ficha-pie">{% translate "xGol · alta de cuenta" %}</div>
     </aside>
 
     <!-- ===== Formulario ===== -->
@@ -50,35 +51,35 @@
 
       <div class="ficha-cabecera">
         <div>
-          <div class="ficha-titulo">Crear usuario nuevo</div>
-          <p class="ficha-sub">Se crea con rol de usuario y proveedor local.</p>
+          <div class="ficha-titulo">{% translate "Crear usuario nuevo" %}</div>
+          <p class="ficha-sub">{% translate "Se crea con rol de usuario y proveedor local." %}</p>
         </div>
-        <span class="ficha-sello">ADMINISTRACIÓN</span>
+        <span class="ficha-sello">{% translate "ADMINISTRACIÓN" %}</span>
       </div>
 
       <form action="{% url 'AdminCrearUsuario' %}" method="post">
         {% csrf_token %}
 
         <div class="ficha-campo">
-          <label for="adm-username">Nombre de usuario</label>
-          <input type="text" name="username" id="adm-username" placeholder="Ej: juanperez" required
+          <label for="adm-username">{% translate "Nombre de usuario" %}</label>
+          <input type="text" name="username" id="adm-username" placeholder="{% translate 'Ej: juanperez' %}" required
                  value="{{ datos.username|default:'' }}"
                  autocomplete="off" spellcheck="false">
         </div>
 
         <div class="ficha-campo">
-          <label for="adm-email">Correo</label>
-          <input type="email" name="email" id="adm-email" placeholder="correo@ejemplo.com" required
+          <label for="adm-email">{% translate "Correo" %}</label>
+          <input type="email" name="email" id="adm-email" placeholder="{% translate 'correo@ejemplo.com' %}" required
                  value="{{ datos.email|default:'' }}"
                  maxlength="254" autocomplete="off" spellcheck="false"
-                 title="Aqui se envia la factura. Ej: nombre@correo.com">
+                 title="{% translate 'Aquí se envía la factura. Ej: nombre@correo.com' %}">
         </div>
 
         <div class="ficha-campo ficha-campo-clave">
-          <label for="adm-password">Contraseña</label>
-          <input type="password" name="password" id="adm-password" placeholder="Contraseña del usuario" required
+          <label for="adm-password">{% translate "Contraseña" %}</label>
+          <input type="password" name="password" id="adm-password" placeholder="{% translate 'Contraseña del usuario' %}" required
                  autocomplete="new-password">
-          <button type="button" class="ficha-ojo" aria-label="Mostrar u ocultar contraseña">
+          <button type="button" class="ficha-ojo" aria-label="{% translate 'Mostrar u ocultar contraseña' %}">
             <svg class="ojo-abierto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             <svg class="ojo-cerrado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
           </button>
@@ -86,10 +87,10 @@
 
         <div class="ficha-acciones">
           <button type="submit" class="ficha-btn">
-            Crear usuario
+            {% translate "Crear usuario" %}
             <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
           </button>
-          <a href="{% url 'PanelAdmin' %}" class="ficha-btn-sec">Cancelar</a>
+          <a href="{% url 'PanelAdmin' %}" class="ficha-btn-sec">{% translate "Cancelar" %}</a>
         </div>
 
       </form>
@@ -115,8 +116,8 @@
     var correo=campoCorreo.value.trim();
 
     verInicial.textContent = usuario ? usuario.charAt(0).toUpperCase() : "?";
-    verUsuario.textContent = usuario ? "@"+usuario : "@usuario";
-    verCorreo.textContent  = correo  ? correo      : "sin correo";
+    verUsuario.textContent = usuario ? "@"+usuario : gettext("@usuario");
+    verCorreo.textContent  = correo  ? correo      : gettext("sin correo");
     carnet.classList.toggle("lleno", usuario.length>0);
   }
 

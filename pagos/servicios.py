@@ -9,6 +9,7 @@ from datetime import timedelta
 from django.db import transaction
 from django.utils import timezone
 from django.conf import settings
+from django.utils.translation import gettext_noop
 
 from pagos.models import Pago,Consecutivo,MovimientoSuscripcion
 from pagos import pasarela
@@ -121,7 +122,7 @@ def aplicar_transaccion(datos,ambiente_evento=None,actor=None):
     dias=int(plan.get("dias") or 0)
     if dias<=0:
       pago.estado="Error"
-      pago.mensaje="Plan desconocido, no se pudo calcular la vigencia"
+      pago.mensaje=gettext_noop("Plan desconocido, no se pudo calcular la vigencia")
       pago.save()
       return pago,"plan_desconocido"
 
@@ -170,12 +171,13 @@ def aplicar_transaccion(datos,ambiente_evento=None,actor=None):
 
 
 def _nombre_metodo(detalle):
+  #Se guarda en español; el panel y los reportes lo muestran traducido
   nombres={
-    "CARD":"Tarjeta","PSE":"PSE","NEQUI":"Nequi",
-    "BANCOLOMBIA_TRANSFER":"Bancolombia","BANCOLOMBIA_COLLECT":"Corresponsal",
-    "DAVIPLATA":"Daviplata","BANCOLOMBIA_QR":"QR Bancolombia",
+    "CARD":gettext_noop("Tarjeta"),"PSE":"PSE","NEQUI":"Nequi",
+    "BANCOLOMBIA_TRANSFER":"Bancolombia","BANCOLOMBIA_COLLECT":gettext_noop("Corresponsal"),
+    "DAVIPLATA":"Daviplata","BANCOLOMBIA_QR":gettext_noop("QR Bancolombia"),
   }
-  return nombres.get((detalle or "").upper(),detalle or "Otro")
+  return nombres.get((detalle or "").upper(),detalle or gettext_noop("Otro"))
 
 
 def _enviar_factura(id_pago):
@@ -225,7 +227,7 @@ def caducar_pendientes(horas=24):
   #"Pendiente" para siempre ensuciando el reporte de pendientes.
   limite=timezone.now()-timedelta(hours=horas)
   return Pago.objects.filter(estado="Pendiente",id_pasarela="",creado__lte=limite).update(
-    estado="Anulado",mensaje="Caducado sin llegar a la pasarela")
+    estado="Anulado",mensaje=gettext_noop("Caducado sin llegar a la pasarela"))
 
 
 def marcar_vencidas():

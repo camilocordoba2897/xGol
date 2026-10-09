@@ -10,14 +10,14 @@
 #sitio: si mañana cambia, cambia en registro y en recuperacion a la vez.
 from django.contrib.auth.forms import SetPasswordForm
 from django import forms
+from django.utils.translation import gettext_lazy
 
 from usuarios.validaciones import validar_contrasena
 
 
 class FormularioNuevaContrasena(SetPasswordForm):
-    #El sitio corre con LANGUAGE_CODE en ingles: sin esto, si las dos claves no
-    #coinciden sale "The two password fields didn't match." en pantalla.
-    error_messages = {"password_mismatch": "Las dos contraseñas no coinciden."}
+    #Mensaje propio (el de Django dice otra cosa) en el idioma de quien mira
+    error_messages = {"password_mismatch": gettext_lazy("Las dos contraseñas no coinciden.")}
 
     def clean_new_password1(self):
         clave = self.cleaned_data.get("new_password1")

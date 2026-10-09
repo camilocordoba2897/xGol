@@ -9,6 +9,8 @@
 //    analizador.js  ->  vista.js  ->  auto.js
 //  (auto.js envuelve renderAll para pintar los escudos; por eso
 //   va despues, y por eso la cabecera conserva .match-header y .mteam)
+//
+//  Los textos salen en el idioma elegido en el home (gettext).
 // ============================================================
 (function() {
 
@@ -16,7 +18,12 @@
   // En modo manual (CSV) no existe: la cabecera se pinta sin hora.
   function partido() { return window.XGOL_PARTIDO || null; }
 
-  var MESES_C = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  // Mes de las fechas cortas del historial. Cada idioma decide si va
+  // abreviado (11/abr/26) o en numero (04/11/26 en EE. UU., 11.04.26 en aleman).
+  var MESES_C = [pgettext('mes en fecha corta', 'ene'), pgettext('mes en fecha corta', 'feb'), pgettext('mes en fecha corta', 'mar'),
+                 pgettext('mes en fecha corta', 'abr'), pgettext('mes en fecha corta', 'may'), pgettext('mes en fecha corta', 'jun'),
+                 pgettext('mes en fecha corta', 'jul'), pgettext('mes en fecha corta', 'ago'), pgettext('mes en fecha corta', 'sep'),
+                 pgettext('mes en fecha corta', 'oct'), pgettext('mes en fecha corta', 'nov'), pgettext('mes en fecha corta', 'dic')];
 
   function horaDe(utc) {
     var d = new Date(utc);
@@ -27,20 +34,23 @@
   // Fecha larga para la cabecera del partido: "23 de agosto de 2026".
   // El historial y los enfrentamientos siguen usando fechaCorta(),
   // que no se toca porque ahi las fechas van en columna estrecha.
-  var MESES_L = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-                 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  var MESES_L = [pgettext('mes', 'enero'), pgettext('mes', 'febrero'), pgettext('mes', 'marzo'),
+                 pgettext('mes', 'abril'), pgettext('mes', 'mayo'), pgettext('mes', 'junio'),
+                 pgettext('mes', 'julio'), pgettext('mes', 'agosto'), pgettext('mes', 'septiembre'),
+                 pgettext('mes', 'octubre'), pgettext('mes', 'noviembre'), pgettext('mes', 'diciembre')];
 
   function fechaDe(utc) {
     var d = new Date(utc);
     if (isNaN(d)) return '';
-    return d.getDate() + ' de ' + MESES_L[d.getMonth()] + ' de ' + d.getFullYear();
+    return interpolate(gettext('%(dia)s de %(mes)s de %(anio)s'),
+                       { dia: d.getDate(), mes: MESES_L[d.getMonth()], anio: d.getFullYear() }, true);
   }
 
   function textoEstado(p) {
     if (!p) return '';
-    if (p.jugado) return 'finalizado';
-    if (p.estado === 'IN_PLAY' || p.estado === 'PAUSED') return 'en juego';
-    return 'no iniciado';
+    if (p.jugado) return gettext('finalizado');
+    if (p.estado === 'IN_PLAY' || p.estado === 'PAUSED') return gettext('en juego');
+    return gettext('no iniciado');
   }
 
   function escapar(t) {
@@ -59,19 +69,19 @@
       centro = '<div class="pr-hora">' + (p.goles_local != null ? p.goles_local : '?') +
                ' - ' + (p.goles_visitante != null ? p.goles_visitante : '?') + '</div>' +
                '<div class="pr-fecha">' + fechaDe(p.utc) + '</div>' +
-               '<div class="pr-estado">finalizado</div>';
+               '<div class="pr-estado">' + gettext('finalizado') + '</div>';
     } else if (p) {
       centro = '<div class="pr-hora">' + horaDe(p.utc) + '</div>' +
                '<div class="pr-fecha">' + fechaDe(p.utc) + '</div>' +
                '<div class="pr-estado">' + textoEstado(p) + '</div>';
     } else {
       centro = '<div class="pr-hora">VS</div>' +
-               '<div class="pr-estado">datos propios</div>';
+               '<div class="pr-estado">' + gettext('datos propios') + '</div>';
     }
 
     var liga = (p && p.liga)
       ? '<div class="pr-liga">' + escapar(p.liga) +
-        (p.jornada ? ' &middot; jornada ' + p.jornada : '') + '</div>'
+        (p.jornada ? ' &middot; ' + interpolate(gettext('jornada %s'), [p.jornada]) : '') + '</div>'
       : '';
 
     return liga +
@@ -92,7 +102,7 @@
   function tarjetaGanador(model) {
     var favorito, prob;
     if (model.pD >= model.pH && model.pD >= model.pA) {
-      favorito = 'Empate'; prob = model.pD;
+      favorito = gettext('Empate'); prob = model.pD;
     } else if (model.pH >= model.pA) {
       favorito = names.team1; prob = model.pH;
     } else {
@@ -116,17 +126,17 @@
     var ganaH = model.pH >= model.pD && model.pH >= model.pA;
     var ganaD = model.pD > model.pH && model.pD >= model.pA;
 
-    return '<div class="pr-card">' +
-      '<div class="pr-titulo">¿Quién ganará el partido?</div>' +
+    return '<div class="pr-card" data-tarjeta="ganador">' +
+      '<div class="pr-titulo">' + gettext('¿Quién ganará el partido?') + '</div>' +
       '<div class="pr-grande">' + escapar(favorito) + '</div>' +
-      '<div class="pr-sub">' + pct(prob) + '% de probabilidad</div>' +
+      '<div class="pr-sub">' + interpolate(gettext('%s% de probabilidad'), [pct(prob)]) + '</div>' +
       '<div class="pr-tres">' +
         '<div class="pr-tres-col">' +
           '<span class="pr-tres-eq">' + escapar(names.team1) + '</span>' +
           '<span class="pr-tres-pct' + (ganaH ? ' es-alto' : '') + '">' + ph + '%</span>' +
         '</div>' +
         '<div class="pr-tres-col pr-centro">' +
-          '<span class="pr-tres-eq">Empate</span>' +
+          '<span class="pr-tres-eq">' + gettext('Empate') + '</span>' +
           '<span class="pr-tres-pct' + (ganaD ? ' es-alto' : '') + '">' + pd + '%</span>' +
         '</div>' +
         '<div class="pr-tres-col pr-der">' +
@@ -149,13 +159,13 @@
     var mas = model.over25;
     var menos = 1 - mas;
     var gana = mas >= menos;
-    return '<div class="pr-card">' +
-      '<div class="pr-titulo">¿Cuántos goles se marcarán?</div>' +
-      '<div class="pr-grande">' + (gana ? '+2.5 Goles' : '-2.5 Goles') + '</div>' +
-      '<div class="pr-sub">' + pct(gana ? mas : menos) + '% de probabilidad</div>' +
+    return '<div class="pr-card" data-tarjeta="goles">' +
+      '<div class="pr-titulo">' + gettext('¿Cuántos goles se marcarán?') + '</div>' +
+      '<div class="pr-grande">' + (gana ? gettext('+2.5 Goles') : gettext('-2.5 Goles')) + '</div>' +
+      '<div class="pr-sub">' + interpolate(gettext('%s% de probabilidad'), [pct(gana ? mas : menos)]) + '</div>' +
       '<div class="pr-dos">' +
-        '<span>+2.5 Goles <strong>' + pct(mas) + '%</strong></span>' +
-        '<span>-2.5 Goles <strong>' + pct(menos) + '%</strong></span>' +
+        '<span>' + gettext('+2.5 Goles') + ' <strong>' + pct(mas) + '%</strong></span>' +
+        '<span>' + gettext('-2.5 Goles') + ' <strong>' + pct(menos) + '%</strong></span>' +
       '</div>' +
       '<div class="pr-barra"><div class="pr-barra-si" style="width:' + pct(mas) + '%"></div></div>' +
     '</div>';
@@ -182,7 +192,7 @@
     var tarjetas = top.map(function(s, idx) {
       var esLocal = s.h > s.a, esEmpate = s.h === s.a;
       var color = esLocal ? 'var(--home)' : esEmpate ? 'var(--draw)' : 'var(--away)';
-      var etiqueta = esLocal ? names.team1 : esEmpate ? 'Empate' : names.team2;
+      var etiqueta = esLocal ? names.team1 : esEmpate ? gettext('Empate') : names.team2;
       var ancho = Math.round((s.p / maxP) * 100);
       return '<div class="scoreline-card' + (idx === 0 ? ' sc-top' : '') + '">' +
         '<div class="sc-score" style="color:' + color + '">' + s.h + ' — ' + s.a + '</div>' +
@@ -192,11 +202,11 @@
       '</div>';
     }).join('');
 
-    return '<div class="pr-card">' +
-      '<div class="pr-titulo">Resultado más probable</div>' +
+    return '<div class="pr-card" data-tarjeta="marcador">' +
+      '<div class="pr-titulo">' + gettext('Resultado más probable') + '</div>' +
       '<div class="pr-grande">' + top[0].h + ' - ' + top[0].a + '</div>' +
-      '<div class="pr-sub">con ' + pct(top[0].p) + '% de probabilidad</div>' +
-      '<div class="pr-leyenda" style="margin:14px 0 8px">Los 12 marcadores más probables, de mayor a menor</div>' +
+      '<div class="pr-sub">' + interpolate(gettext('con %s% de probabilidad'), [pct(top[0].p)]) + '</div>' +
+      '<div class="pr-leyenda" style="margin:14px 0 8px">' + gettext('Los 12 marcadores más probables, de mayor a menor') + '</div>' +
       '<div class="scoreline-grid">' + tarjetas + '</div>' +
     '</div>';
   }
@@ -212,7 +222,7 @@
 
     var filas = [
       { k: 'local',     etiqueta: names.team1 },
-      { k: 'empate',    etiqueta: 'Empate' },
+      { k: 'empate',    etiqueta: gettext('Empate') },
       { k: 'visitante', etiqueta: names.team2 }
     ];
 
@@ -231,12 +241,12 @@
       '</div>';
     }).join('');
 
-    return '<div class="pr-card">' +
-      '<div class="pr-titulo">Cuotas de las casas de apuestas</div>' +
+    return '<div class="pr-card" data-tarjeta="cuotas">' +
+      '<div class="pr-titulo">' + gettext('Cuotas de las casas de apuestas') + '</div>' +
       '<div class="cu-fila">' + celdas + '</div>' +
-      '<div class="cu-nota">Mejor cuota disponible por resultado' +
-        (c.actualizado ? ' &middot; actualizado ' + escapar(c.actualizado) : '') +
-        '. No es una recomendación de apuesta.</div>' +
+      '<div class="cu-nota">' + gettext('Mejor cuota disponible por resultado') +
+        (c.actualizado ? ' &middot; ' + interpolate(gettext('actualizado %s'), [escapar(c.actualizado)]) : '') +
+        '. ' + gettext('No es una recomendación de apuesta.') + '</div>' +
     '</div>';
   }
 
@@ -248,8 +258,11 @@
   function fechaCorta(iso) {
     var d = new Date(String(iso || '') + 'T00:00:00');
     if (isNaN(d)) return String(iso || '');
-    return String(d.getDate()).padStart(2, '0') + '/' + MESES_C[d.getMonth()] + '/' +
-           String(d.getFullYear()).slice(2);
+    return interpolate(gettext('%(dia)s/%(mes)s/%(anio)s'), {
+      dia: String(d.getDate()).padStart(2, '0'),
+      mes: MESES_C[d.getMonth()],
+      anio: String(d.getFullYear()).slice(2)
+    }, true);
   }
 
   function tarjetaEnfrentamientos() {
@@ -278,19 +291,19 @@
       '</div>';
     }).join('');
 
-    return '<div class="pr-card">' +
-      '<div class="pr-titulo">Enfrentamientos</div>' +
+    return '<div class="pr-card" data-tarjeta="enfrentamientos">' +
+      '<div class="pr-titulo">' + gettext('Enfrentamientos') + '</div>' +
       '<div class="h2h-cab">' +
         '<span class="h2h-eqcab">' + escapar(names.team1) + '</span>' +
-        '<span class="h2h-total">' + t + (t === 1 ? ' partido' : ' partidos') +
-          (h.desde ? '<span class="h2h-desde">Desde ' + fechaCorta(h.desde) + '</span>' : '') +
+        '<span class="h2h-total">' + interpolate(ngettext('%s partido', '%s partidos', t), [t]) +
+          (h.desde ? '<span class="h2h-desde">' + interpolate(gettext('Desde %s'), [fechaCorta(h.desde)]) + '</span>' : '') +
         '</span>' +
         '<span class="h2h-eqcab h2h-der">' + escapar(names.team2) + '</span>' +
       '</div>' +
       '<div class="h2h-res">' +
-        '<span>' + h.victorias_local + (h.victorias_local === 1 ? ' victoria' : ' victorias') + '</span>' +
-        '<span class="pr-centro">' + h.empates + (h.empates === 1 ? ' empate' : ' empates') + '</span>' +
-        '<span class="pr-der">' + h.victorias_visitante + (h.victorias_visitante === 1 ? ' victoria' : ' victorias') + '</span>' +
+        '<span>' + interpolate(ngettext('%s victoria', '%s victorias', h.victorias_local), [h.victorias_local]) + '</span>' +
+        '<span class="pr-centro">' + interpolate(ngettext('%s empate', '%s empates', h.empates), [h.empates]) + '</span>' +
+        '<span class="pr-der">' + interpolate(ngettext('%s victoria', '%s victorias', h.victorias_visitante), [h.victorias_visitante]) + '</span>' +
       '</div>' +
       '<div class="h2h-pcts">' +
         '<span>' + pv + '%</span>' +
@@ -346,24 +359,27 @@
     var barras = '<div class="fm-barras">' +
       '<div class="fm-col"><div class="fm-bar-hueco">' +
         '<div class="fm-bar fm-w" style="height:' + Math.round((v / tope) * 100) + '%"></div></div>' +
-        '<div class="fm-lbl">' + v + (v === 1 ? ' victoria' : ' victorias') + '</div></div>' +
+        '<div class="fm-lbl">' + interpolate(ngettext('%s victoria', '%s victorias', v), [v]) + '</div></div>' +
       '<div class="fm-col"><div class="fm-bar-hueco">' +
         '<div class="fm-bar fm-d" style="height:' + Math.round((e / tope) * 100) + '%"></div></div>' +
-        '<div class="fm-lbl">' + e + (e === 1 ? ' empate' : ' empates') + '</div></div>' +
+        '<div class="fm-lbl">' + interpolate(ngettext('%s empate', '%s empates', e), [e]) + '</div></div>' +
       '<div class="fm-col"><div class="fm-bar-hueco">' +
         '<div class="fm-bar fm-l" style="height:' + Math.round((d / tope) * 100) + '%"></div></div>' +
-        '<div class="fm-lbl">' + d + (d === 1 ? ' derrota' : ' derrotas') + '</div></div>' +
+        '<div class="fm-lbl">' + interpolate(ngettext('%s derrota', '%s derrotas', d), [d]) + '</div></div>' +
     '</div>';
 
     var pestanas = ['casa', 'todos', 'fuera'].map(function(f) {
-      var texto = f === 'casa' ? 'Casa' : f === 'todos' ? 'Todos' : 'Fuera';
+      var texto = f === 'casa' ? gettext('Casa') : f === 'todos' ? gettext('Todos') : gettext('Fuera');
       return '<button class="fm-tab' + (filtro === f ? ' activa' : '') +
              '" onclick="xgolForma(\'' + cual + '\',\'' + f + '\')">' + texto + '</button>';
     }).join('');
 
     var lista = filas.slice(0, 6).map(function(r) {
       var res = String(r.resultado || '').toUpperCase();
-      var letra = res === 'W' ? 'G' : res === 'D' ? 'E' : 'P';
+      // Inicial del resultado: G/E/P en español, W/D/L en ingles...
+      var letra = res === 'W' ? pgettext('inicial de ganado', 'G')
+                : res === 'D' ? pgettext('inicial de empate', 'E')
+                : pgettext('inicial de perdido', 'P');
       var gf = (r.goles_f === '' || r.goles_f == null) ? '?' : r.goles_f;
       var gc = (r.goles_c === '' || r.goles_c == null) ? '?' : r.goles_c;
       var enCasa = String(r.sede || '').indexOf('local') === 0;
@@ -383,8 +399,9 @@
     }).join('');
 
     if (!filas.length) {
-      lista = '<div class="fm-vacio">Sin partidos ' +
-              (filtro === 'casa' ? 'como local' : 'como visitante') + ' en el historial.</div>';
+      lista = '<div class="fm-vacio">' +
+              (filtro === 'casa' ? gettext('Sin partidos como local en el historial.')
+                                 : gettext('Sin partidos como visitante en el historial.')) + '</div>';
     }
 
     return barras + '<div class="fm-tabs">' + pestanas + '</div>' + lista;
@@ -392,7 +409,7 @@
 
   function tarjetaForma(cual) {
     return '<div class="pr-card">' +
-      '<div class="pr-titulo">Últimos resultados <strong>' + escapar(names[cual]) + '</strong></div>' +
+      '<div class="pr-titulo">' + interpolate(gettext('Últimos resultados <strong>%s</strong>'), [escapar(names[cual])]) + '</div>' +
       '<div id="forma-' + cual + '">' + cuerpoForma(cual) + '</div>' +
     '</div>';
   }
@@ -406,21 +423,21 @@
     // partidos" es mentira: los numeros salen de la liga completa, del Elo y
     // del mercado. Y una linea que se contradice con lo que hay arriba tumba
     // la credibilidad de toda la pantalla.
-    var cabeza = 'Goles esperados: ' + escapar(names.team1) + ' <strong>' +
+    var cabeza = gettext('Goles esperados:') + ' ' + escapar(names.team1) + ' <strong>' +
       fmt2(model.lam1) + '</strong> &middot; ' + escapar(names.team2) +
       ' <strong>' + fmt2(model.lam2) + '</strong><br>';
 
     if (model.motor) {
-      var nombres = { dixon_coles: 'modelo de liga', elo: 'Elo', mercado: 'mercado' };
+      var nombres = { dixon_coles: gettext('modelo de liga'), elo: 'Elo', mercado: gettext('mercado') };
       var usadas = (model.motorFuentes || []).map(function(k) {
         return nombres[k] || k;
       });
       return '<div class="pr-modelo">' + cabeza +
-        'Motor xGol &middot; ' +
-        (usadas.length ? usadas.join(' + ') + ', ponderados' : 'sin fuentes') +
-        (model.motorPartidos ? ' sobre ' + model.motorPartidos + ' partidos de la liga' : '') +
+        gettext('Motor xGol') + ' &middot; ' +
+        (usadas.length ? interpolate(gettext('%s, ponderados'), [usadas.join(' + ')]) : gettext('sin fuentes')) +
+        (model.motorPartidos ? ' ' + interpolate(gettext('sobre %s partidos de la liga'), [model.motorPartidos]) : '') +
         ' &middot; Poisson + Dixon-Coles' +
-        (model.neutral ? ' &middot; sede neutral' : '') +
+        (model.neutral ? ' &middot; ' + gettext('sede neutral') : '') +
       '</div>';
     }
 
@@ -430,10 +447,10 @@
     if (model.usedXGOT) extras.push('xGOT');
     if (model.usedPPDA) extras.push('PPDA');
     return '<div class="pr-modelo">' + cabeza +
-      'Cálculo local &middot; Poisson + Dixon-Coles sobre los últimos ' + s1.n +
-      ' partidos de cada equipo' +
+      gettext('Cálculo local') + ' &middot; ' +
+      interpolate(gettext('Poisson + Dixon-Coles sobre los últimos %s partidos de cada equipo'), [s1.n]) +
       (extras.length ? ' &middot; ' + extras.join(' + ') : '') +
-      (model.neutral ? ' &middot; sede neutral' : '') +
+      (model.neutral ? ' &middot; ' + gettext('sede neutral') : '') +
     '</div>';
   }
 
@@ -462,11 +479,11 @@
         tarjetaForma('team2') +
       '</div>' +
       '<details class="pr-ajustes">' +
-        '<summary>Ajustes del partido</summary>' +
-        '<label class="neutral-toggle" title="Actívalo para finales o partidos en sede única: no se aplica ventaja local a ningún equipo.">' +
+        '<summary>' + gettext('Ajustes del partido') + '</summary>' +
+        '<label class="neutral-toggle" title="' + escapar(gettext('Actívalo para finales o partidos en sede única: no se aplica ventaja local a ningún equipo.')) + '">' +
           '<input type="checkbox" ' + (model.neutral ? 'checked' : '') + ' onchange="toggleNeutral(this.checked)">' +
           '<span class="neutral-slider"></span>' +
-          '<span class="neutral-label">Cancha neutral</span>' +
+          '<span class="neutral-label">' + gettext('Cancha neutral') + '</span>' +
         '</label>' +
       '</details>' +
       pieModelo(model, s1);

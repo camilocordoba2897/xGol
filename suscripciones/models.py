@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext_lazy
 from django.contrib.auth.models import User
 from datetime import timedelta
 from django.utils import timezone
@@ -28,8 +29,8 @@ class Suscripcion(models.Model):
   creado=models.DateTimeField(auto_now_add=True)
 
   class Meta:
-    verbose_name='Suscripcion'
-    verbose_name_plural='Suscripciones'
+    verbose_name=gettext_lazy("Suscripcion")
+    verbose_name_plural=gettext_lazy("Suscripciones")
     indexes=[
       models.Index(fields=["activa","vencimiento"]),
     ]

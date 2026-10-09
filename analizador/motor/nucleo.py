@@ -15,6 +15,7 @@
 #Nada de esto necesita librerias externas ni tocar el frontend: devuelve un
 #diccionario y ya.
 import math
+from django.utils.translation import gettext
 
 from . import calibracion, combinacion, mercado as mod_mercado, probabilidad
 from .probabilidad import matriz_marcadores, mezclar_matrices, resumen_mercados
@@ -131,9 +132,11 @@ def pronosticar(local, visitante, ajuste_liga=None, tabla_elo=None, casas=None,
         diagnostico["dixon_coles"] = {"lam_local": lam1, "lam_visitante": lam2}
         diagnostico["partidos_ajuste"] = ajuste_liga.partidos_usados
         if not ajuste_liga.conoce(local):
-            diagnostico["avisos"].append(f"{local} no aparece en el ajuste: se trata como equipo promedio")
+            diagnostico["avisos"].append(gettext("%(equipo)s no aparece en el ajuste: se trata como equipo promedio")
+                                         % {"equipo": local})
         if not ajuste_liga.conoce(visitante):
-            diagnostico["avisos"].append(f"{visitante} no aparece en el ajuste: se trata como equipo promedio")
+            diagnostico["avisos"].append(gettext("%(equipo)s no aparece en el ajuste: se trata como equipo promedio")
+                                         % {"equipo": visitante})
 
     # --- Fuente Elo ---
     if tabla_elo is not None:
@@ -165,7 +168,7 @@ def pronosticar(local, visitante, ajuste_liga=None, tabla_elo=None, casas=None,
         #lo mas limpio es que la fuente de mercado simplemente no aparezca.
 
     if not matrices:
-        raise ValueError("no hay ninguna fuente disponible para pronosticar")
+        raise ValueError(gettext("no hay ninguna fuente disponible para pronosticar"))
 
     for nombre, m in matrices.items():
         fuentes_1x2[nombre] = probabilidad.resultado_1x2(m)

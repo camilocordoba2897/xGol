@@ -1,17 +1,20 @@
 {% load static %}
 {% load formato %}
+{% load i18n %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>xGol — Predicción de fútbol con Inteligencia Artificial</title>
+<title>{% translate "xGol — Predicción de fútbol con Inteligencia Artificial" %}</title>
 <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
 <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/home.css' %}?v=42">
+<link rel="stylesheet" href="{% static 'css/home.css' %}?v=47">
+{# Textos traducidos para los scripts de la pagina (gettext) #}
+<script src="{% url 'TextosJS' %}?idioma={{ LANGUAGE_CODE }}&amp;v={{ VERSION_TEXTOS }}"></script>
 </head>
 <body class="home">
 
@@ -33,20 +36,50 @@
     </div>
 
     <div class="nav-links">
-      <a href="#inicio">Inicio</a>
-      <a href="#partidos">Partidos</a>
-      <a href="#ligas">Ligas</a>
-      <a href="#" onclick="abrirComoFunciona(event)">Cómo funciona</a>
+      <a href="#inicio">{% translate "Inicio" %}</a>
+      <a href="#partidos">{% translate "Partidos" %}</a>
+      <a href="#ligas">{% translate "Ligas" %}</a>
+      <a href="#" onclick="abrirComoFunciona(event)">{% translate "Cómo funciona" %}</a>
       {# Solo en el menú del celular: ahí no cabe la pestaña lateral #}
-      <a href="{% static 'manual/manual-de-usuario.html' %}" class="nav-manual" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg>Manual de usuario
+      <a href="{% url 'ManualUsuario' %}?idioma={{ LANGUAGE_CODE }}" class="nav-manual" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg><span>{% translate "Manual de usuario" %}</span>
       </a>
+      {# Idiomas en el menú ☰ (tablet y celular): ahí la barra no tiene espacio para la cápsula #}
+      <div class="nav-idiomas" role="group" aria-label="{% translate 'Idioma' %}">
+        {% for i in IDIOMAS_SELECTOR %}
+        <button type="button" data-idioma="{{ i.codigo }}" lang="{{ i.codigo }}" aria-pressed="{% if i.codigo == IDIOMA_ELEGIDO.codigo %}true{% else %}false{% endif %}"{% if i.codigo == IDIOMA_ELEGIDO.codigo %} class="sel"{% endif %}><img src="{% static 'img/banderas/' %}{{ i.bandera }}.svg" alt="" width="22" height="22">{{ i.nombre }}</button>
+        {% endfor %}
+      </div>
     </div>
 
     <div class="nav-actions">
+      {% comment %}
+        Selector de idioma: solo existe en el home, y lo que se elige aqui
+        cambia TODO el sitio (xgol/idioma.py). Al elegir, idioma.js guarda
+        la eleccion en la cookie de idioma y recarga la pagina ya traducida.
+      {% endcomment %}
+      <div class="idioma" id="idioma" data-cookie="{{ COOKIE_IDIOMA }}" data-actual="{{ IDIOMA_ELEGIDO.codigo }}">
+        <button type="button" class="idioma-btn" id="idiomaBtn" aria-haspopup="true" aria-expanded="false" aria-controls="idiomaMenu"
+                aria-label="{% translate 'Cambiar idioma' %}">
+          <img class="idioma-bandera" src="{% static 'img/banderas/' %}{{ IDIOMA_ELEGIDO.bandera }}.svg" alt="" width="24" height="24">
+          <span class="idioma-cod">{{ IDIOMA_ELEGIDO.corto }}</span>
+          <svg class="idioma-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="idioma-menu" id="idiomaMenu" role="menu">
+          <div class="idioma-tit">{% translate "Idioma" %}</div>
+          {% for i in IDIOMAS_SELECTOR %}
+          <button type="button" class="idioma-op{% if i.codigo == IDIOMA_ELEGIDO.codigo %} sel{% endif %}" role="menuitemradio" aria-checked="{% if i.codigo == IDIOMA_ELEGIDO.codigo %}true{% else %}false{% endif %}" data-idioma="{{ i.codigo }}" lang="{{ i.codigo }}">
+            <img src="{% static 'img/banderas/' %}{{ i.bandera }}.svg" alt="" width="28" height="28">
+            <span class="idioma-txt"><b>{{ i.nombre }}</b><small>{{ i.region }}</small></span>
+            <svg class="idioma-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+
       {% if user.is_authenticated %}
 
-        <a href="{% url 'Analizador' %}" class="btn btn-acc">Analizador</a>
+        <a href="{% url 'Analizador' %}" class="btn btn-acc">{% translate "Analizador" %}</a>
 
         <div class="hd-account" onclick="document.getElementById('accountMenu').classList.toggle('open')">
           {% if perfil.foto_url %}
@@ -58,23 +91,23 @@
           <span class="hd-caret"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></span>
 
           <div class="hd-menu" id="accountMenu">
-            <a href="{% url 'EditarPerfil' %}" class="hd-menu-item"><svg class="hd-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Administrar cuenta</span></a>
+            <a href="{% url 'EditarPerfil' %}" class="hd-menu-item"><svg class="hd-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>{% translate "Administrar cuenta" %}</span></a>
             {% if not es_admin %}
-              <a href="{% url 'Suscripcion' %}" class="hd-menu-item"><svg class="hd-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span>{% if suscripcion_activa %}Mejorar plan{% else %}Mis planes{% endif %}</span></a>
+              <a href="{% url 'Suscripcion' %}" class="hd-menu-item"><svg class="hd-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>{% if suscripcion_activa %}<span>{% translate "Mejorar plan" %}</span>{% else %}<span>{% translate "Mis planes" %}</span>{% endif %}</a>
             {% endif %}
             {% if es_admin %}
-              <a href="{% url 'PanelAdmin' %}" class="hd-menu-item"><svg class="hd-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg><span>Panel de administración</span></a>
+              <a href="{% url 'PanelAdmin' %}" class="hd-menu-item"><svg class="hd-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg><span>{% translate "Panel de administración" %}</span></a>
             {% endif %}
-            <a href="{% url 'Salir' %}" class="hd-menu-item hd-menu-exit"><svg class="hd-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Cerrar sesión</span></a>
+            <a href="{% url 'Salir' %}" class="hd-menu-item hd-menu-exit"><svg class="hd-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>{% translate "Cerrar sesión" %}</span></a>
           </div>
         </div>
 
       {% else %}
-        <a href="{% url 'Ingresar' %}" class="btn btn-ghost">Iniciar sesión</a>
+        <a href="{% url 'Ingresar' %}" class="btn btn-ghost">{% translate "Iniciar sesión" %}</a>
       {% endif %}
     </div>
 
-    <button class="nav-burger" id="navBurger" onclick="toggleMenu()" aria-label="Abrir menú" aria-expanded="false">
+    <button class="nav-burger" id="navBurger" onclick="toggleMenu()" aria-label="{% translate 'Abrir menú' %}" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
   </div>
@@ -92,12 +125,12 @@
 <section class="hero" id="inicio">
   <div class="hero-inner">
     <div>
-      <div class="hero-badge"><span class="pulse"></span> Motor de predicción con IA</div>
-      <h1 class="hero-title">Predice cualquier partido con <span class="grad">Inteligencia Artificial</span></h1>
-      <p class="hero-sub">xGol analiza millones de datos —forma reciente, goles esperados, historial y contexto— para estimar resultados, marcadores y probabilidades reales en cada mercado.</p>
+      <div class="hero-badge"><span class="pulse"></span> <span>{% translate "Motor de predicción con IA" %}</span></div>
+      <h1 class="hero-title">{% translate 'Predice cualquier partido con <span class="grad">Inteligencia Artificial</span>' %}</h1>
+      <p class="hero-sub">{% translate "xGol analiza millones de datos —forma reciente, goles esperados, historial y contexto— para estimar resultados, marcadores y probabilidades reales en cada mercado." %}</p>
       {% if not user.is_authenticated %}
       <div class="hero-cta">
-        <a href="#planes" class="btn btn-acc btn-lg">Ver planes</a>
+        <a href="#planes" class="btn btn-acc btn-lg">{% translate "Ver planes" %}</a>
       </div>
       {% endif %}
     </div>
@@ -114,8 +147,8 @@
            data-destino="{% if tiene_acceso %}{% url 'Analizador' %}{% elif user.is_authenticated %}{% url 'Suscripcion' %}{% else %}#planes{% endif %}"
            data-acceso="{% if tiene_acceso %}1{% else %}0{% endif %}">
         <div class="pc-head">
-          <span class="pc-tag">Próximo análisis</span>
-          <span class="pc-live">IA en vivo</span>
+          <span class="pc-tag">{% translate "Próximo análisis" %}</span>
+          <span class="pc-live">{% translate "IA en vivo" %}</span>
         </div>
         <!-- Marcador de carga: NO lleva equipos ni liga de verdad. Si el
              JavaScript no llegara a cargar, lo que quedaria a la vista seria
@@ -132,7 +165,7 @@
           </div>
         </div>
         <div class="pc-resultado">
-          <div class="pc-contexto">Cargando próximo análisis&hellip;</div>
+          <div class="pc-contexto">{% translate "Cargando próximo análisis&hellip;" %}</div>
         </div>
         {% comment %}
           A donde lleva depende de quien mira: el administrador y quien ya
@@ -143,13 +176,13 @@
         <a class="pc-candado" href="{% if tiene_acceso %}{% url 'Analizador' %}{% elif user.is_authenticated %}{% url 'Suscripcion' %}{% else %}#planes{% endif %}">
           <div class="pc-borroso"><span></span><span></span><span></span></div>
           <div class="pc-candado-txt">
-            <div class="pc-candado-t">{% if tiene_acceso %}Ver pronóstico completo{% else %}🔒 Pronóstico completo{% endif %}</div>
-            <div class="pc-candado-s">Ganador · goles · marcador</div>
+            {% if tiene_acceso %}<div class="pc-candado-t">{% translate "Ver pronóstico completo" %}</div>{% else %}<div class="pc-candado-t">{% translate "🔒 Pronóstico completo" %}</div>{% endif %}
+            <div class="pc-candado-s">{% translate "Ganador · goles · marcador" %}</div>
           </div>
         </a>
         <div class="pc-metricas">
-          <div class="pc-metrica"><div class="v">3</div><div class="l">Fuentes cruzadas</div></div>
-          <div class="pc-metrica"><div class="v">8</div><div class="l">Mercados</div></div>
+          <div class="pc-metrica"><div class="v">3</div><div class="l">{% translate "Fuentes cruzadas" %}</div></div>
+          <div class="pc-metrica"><div class="v">8</div><div class="l">{% translate "Mercados" %}</div></div>
         </div>
       </div>
     </div>
@@ -158,17 +191,17 @@
 
 <!-- CENTRO DE PARTIDOS -->
 <section class="sec reveal" id="partidos">
-  <div class="sec-eyebrow">La agenda del fútbol</div>
-  <h2 class="sec-title">Partidos y predicciones del día</h2>
-  <p class="sec-sub">La IA calcula las probabilidades de cada resultado antes del pitazo inicial. Elige un partido y mira lo que dicen los datos.</p>
+  <div class="sec-eyebrow">{% translate "La agenda del fútbol" %}</div>
+  <h2 class="sec-title">{% translate "Partidos y predicciones del día" %}</h2>
+  <p class="sec-sub">{% translate "La IA calcula las probabilidades de cada resultado antes del pitazo inicial. Elige un partido y mira lo que dicen los datos." %}</p>
 
   <div class="mcen">
     <div class="mtabs">
-      <button class="mtab activo" onclick="cambiarTabPartidos('proximos', this)">Próximos</button>
-      <button class="mtab" onclick="cambiarTabPartidos('vivo', this)"><span class="mtab-dot"></span>En vivo<span class="mtab-cuenta" id="vivoCuenta" hidden></span></button>
+      <button class="mtab activo" onclick="cambiarTabPartidos('proximos', this)">{% translate "Próximos" %}</button>
+      <button class="mtab" onclick="cambiarTabPartidos('vivo', this)"><span class="mtab-dot"></span><span>{% translate "En vivo" %}</span><span class="mtab-cuenta" id="vivoCuenta" hidden></span></button>
       <div class="mtab-dd" id="tablaDD">
         <button class="mtab mtab-trigger" id="ddTrigger" onclick="toggleTablaDD(event)" aria-haspopup="true" aria-expanded="false">
-          Tabla de ligas
+          <span>{% translate "Tabla de ligas" %}</span>
           <svg class="mtab-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="dd-menu" id="ddMenu" role="menu">
@@ -177,7 +210,7 @@
           <button class="dd-item" data-liga="seriea" role="menuitem" onclick="elegirLigaTabla('seriea')"><img src="{% static 'img/ligas/seriea.png' %}" alt=""><span>Serie A</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
           <button class="dd-item" data-liga="bundesliga" role="menuitem" onclick="elegirLigaTabla('bundesliga')"><img src="{% static 'img/ligas/bundesliga.png' %}" alt=""><span>Bundesliga</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
           <button class="dd-item" data-liga="ligue1" role="menuitem" onclick="elegirLigaTabla('ligue1')"><img src="{% static 'img/ligas/ligue1.png' %}" alt=""><span>Ligue 1</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
-          <button class="dd-item" data-liga="champions" role="menuitem" onclick="elegirLigaTabla('champions')"><img src="{% static 'img/ligas/champions.png' %}" alt=""><span>Champions League</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
+          <button class="dd-item" data-liga="champions" role="menuitem" onclick="elegirLigaTabla('champions')"><img src="{% static 'img/ligas/champions.png' %}" alt=""><span>{% translate "Champions League" %}</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
           <button class="dd-item" data-liga="eredivisie" role="menuitem" onclick="elegirLigaTabla('eredivisie')"><img src="{% static 'img/ligas/eredivisie.png' %}" alt="" onerror="this.style.visibility='hidden'"><span>Eredivisie</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
           <button class="dd-item" data-liga="primeiraliga" role="menuitem" onclick="elegirLigaTabla('primeiraliga')"><img src="{% static 'img/ligas/primeiraliga.png' %}" alt="" onerror="this.style.visibility='hidden'"><span>Primeira Liga</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
           <button class="dd-item" data-liga="brasileirao" role="menuitem" onclick="elegirLigaTabla('brasileirao')"><img src="{% static 'img/ligas/brasileirao.png' %}" alt="" onerror="this.style.visibility='hidden'"><span>Brasileirão</span><svg class="dd-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></button>
@@ -204,46 +237,46 @@
     <div class="mpanel" id="mpanel-tabla">
       <div class="stbl-head">
         <span class="stbl-liga"><img src="{% static 'img/ligas/premierleague.png' %}" alt="Premier League"> Premier League</span>
-        <span class="stbl-hint">Posiciones</span>
+        <span class="stbl-hint">{% translate "Posiciones" %}</span>
       </div>
       <table class="stbl">
         <thead>
-          <tr><th class="pos">#</th><th class="eq">Equipo</th><th>PJ</th><th>DIF</th><th>PTS</th></tr>
+          <tr><th class="pos">#</th><th class="eq">{% translate "Equipo" %}</th><th>{% translate "PJ" %}</th><th>{% translate "DIF" %}</th><th>{% translate "PTS" %}</th></tr>
         </thead>
         <tbody id="tabla-posiciones"></tbody>
       </table>
-      <div class="stbl-foot">📊 Tabla de posiciones actualizada automáticamente.</div>
+      <div class="stbl-foot">{% translate "📊 Tabla de posiciones actualizada automáticamente." %}</div>
     </div>
 
     <div class="mcen-foot">
-      <a href="{% if user.is_authenticated %}{% url 'Analizador' %}{% else %}{% url 'Registro' %}?next={% url 'Analizador' %}{% endif %}" class="btn btn-acc">Analiza tu propio partido</a>
+      <a href="{% if user.is_authenticated %}{% url 'Analizador' %}{% else %}{% url 'Registro' %}?next={% url 'Analizador' %}{% endif %}" class="btn btn-acc">{% translate "Analiza tu propio partido" %}</a>
     </div>
   </div>
 </section>
 
 <!-- LIGAS -->
 <section class="sec reveal" id="ligas">
-  <div class="sec-eyebrow">Cobertura global</div>
-  <h2 class="sec-title">Las ligas que puedes predecir</h2>
-  <p class="sec-sub">Estas nueve competencias, y solo estas, son las que el motor de xGol calcula. Las mismas que encuentras dentro del analizador.</p>
+  <div class="sec-eyebrow">{% translate "Cobertura global" %}</div>
+  <h2 class="sec-title">{% translate "Las ligas que puedes predecir" %}</h2>
+  <p class="sec-sub">{% translate "Estas nueve competencias, y solo estas, son las que el motor de xGol calcula. Las mismas que encuentras dentro del analizador." %}</p>
   <div class="leagues-grid">
-    <div class="league" onclick="abrirLiga('premier')"><div class="ic"><img src="{% static 'img/ligas/premierleague.png' %}" alt="Premier League"></div><div class="nm">Premier League</div><div class="ds">Inglaterra</div></div>
-    <div class="league" onclick="abrirLiga('laliga')"><div class="ic"><img src="{% static 'img/ligas/laliga.png' %}" alt="LaLiga"></div><div class="nm">LaLiga</div><div class="ds">España</div></div>
-    <div class="league" onclick="abrirLiga('seriea')"><div class="ic"><img src="{% static 'img/ligas/seriea.png' %}" alt="Serie A"></div><div class="nm">Serie A</div><div class="ds">Italia</div></div>
-    <div class="league" onclick="abrirLiga('bundesliga')"><div class="ic"><img src="{% static 'img/ligas/bundesliga.png' %}" alt="Bundesliga"></div><div class="nm">Bundesliga</div><div class="ds">Alemania</div></div>
-    <div class="league" onclick="abrirLiga('ligue1')"><div class="ic"><img src="{% static 'img/ligas/ligue1.png' %}" alt="Ligue 1"></div><div class="nm">Ligue 1</div><div class="ds">Francia</div></div>
-    <div class="league" onclick="abrirLiga('champions')"><div class="ic"><img src="{% static 'img/ligas/champions.png' %}" alt="Champions League"></div><div class="nm">Champions League</div><div class="ds">Europa</div></div>
-    <div class="league" onclick="abrirLiga('eredivisie')"><div class="ic"><img src="{% static 'img/ligas/eredivisie.png' %}" alt="Eredivisie" onerror="this.style.visibility='hidden'"></div><div class="nm">Eredivisie</div><div class="ds">Países Bajos</div></div>
-    <div class="league" onclick="abrirLiga('primeiraliga')"><div class="ic"><img src="{% static 'img/ligas/primeiraliga.png' %}" alt="Primeira Liga" onerror="this.style.visibility='hidden'"></div><div class="nm">Primeira Liga</div><div class="ds">Portugal</div></div>
-    <div class="league" onclick="abrirLiga('brasileirao')"><div class="ic"><img src="{% static 'img/ligas/brasileirao.png' %}" alt="Brasileirão" onerror="this.style.visibility='hidden'"></div><div class="nm">Brasileirão</div><div class="ds">Brasil</div></div>
+    <div class="league" onclick="abrirLiga('premier')"><div class="ic"><img src="{% static 'img/ligas/premierleague.png' %}" alt="Premier League"></div><div class="nm">Premier League</div><div class="ds">{% translate "Inglaterra" %}</div></div>
+    <div class="league" onclick="abrirLiga('laliga')"><div class="ic"><img src="{% static 'img/ligas/laliga.png' %}" alt="LaLiga"></div><div class="nm">LaLiga</div><div class="ds">{% translate "España" %}</div></div>
+    <div class="league" onclick="abrirLiga('seriea')"><div class="ic"><img src="{% static 'img/ligas/seriea.png' %}" alt="Serie A"></div><div class="nm">Serie A</div><div class="ds">{% translate "Italia" %}</div></div>
+    <div class="league" onclick="abrirLiga('bundesliga')"><div class="ic"><img src="{% static 'img/ligas/bundesliga.png' %}" alt="Bundesliga"></div><div class="nm">Bundesliga</div><div class="ds">{% translate "Alemania" %}</div></div>
+    <div class="league" onclick="abrirLiga('ligue1')"><div class="ic"><img src="{% static 'img/ligas/ligue1.png' %}" alt="Ligue 1"></div><div class="nm">Ligue 1</div><div class="ds">{% translate "Francia" %}</div></div>
+    <div class="league" onclick="abrirLiga('champions')"><div class="ic"><img src="{% static 'img/ligas/champions.png' %}" alt="{% translate 'Champions League' %}"></div><div class="nm">{% translate "Champions League" %}</div><div class="ds">{% translate "Europa" %}</div></div>
+    <div class="league" onclick="abrirLiga('eredivisie')"><div class="ic"><img src="{% static 'img/ligas/eredivisie.png' %}" alt="Eredivisie" onerror="this.style.visibility='hidden'"></div><div class="nm">Eredivisie</div><div class="ds">{% translate "Países Bajos" %}</div></div>
+    <div class="league" onclick="abrirLiga('primeiraliga')"><div class="ic"><img src="{% static 'img/ligas/primeiraliga.png' %}" alt="Primeira Liga" onerror="this.style.visibility='hidden'"></div><div class="nm">Primeira Liga</div><div class="ds">{% translate "Portugal" %}</div></div>
+    <div class="league" onclick="abrirLiga('brasileirao')"><div class="ic"><img src="{% static 'img/ligas/brasileirao.png' %}" alt="Brasileirão" onerror="this.style.visibility='hidden'"></div><div class="nm">Brasileirão</div><div class="ds">{% translate "Brasil" %}</div></div>
   </div>
 </section>
 
 <!-- EQUIPOS DESTACADOS (carrusel infinito) -->
 <section class="sec reveal">
-  <div class="sec-eyebrow">Tabla en vivo</div>
-  <h2 class="sec-title">Equipos destacados</h2>
-  <p class="sec-sub">Los primeros de la Premier League ahora mismo. Datos de la tabla oficial, no ejemplos.</p>
+  <div class="sec-eyebrow">{% translate "Tabla en vivo" %}</div>
+  <h2 class="sec-title">{% translate "Equipos destacados" %}</h2>
+  <p class="sec-sub">{% translate "Los primeros de la Premier League ahora mismo. Datos de la tabla oficial, no ejemplos." %}</p>
   <div class="carousel">
     <div class="car-track" id="carTrack">
       <div class="team-chip"><div class="tc-shield"><img src="https://r2.thesportsdb.com/images/media/team/badge/uyhbfe1612467038.png/medium" alt="Arsenal"></div><div><div class="tc-name">Arsenal</div></div></div>
@@ -264,40 +297,40 @@
 {% if not suscripcion_activa and not es_admin %}
 <section class="sec reveal" id="planes">
 
-    <div class="sec-eyebrow">Planes y precios</div>
-    <h2 class="sec-title">Elige tu plan y empieza a predecir</h2>
-    <p class="sec-sub">Acceso completo al analizador en los dos planes. Solo cambia la duración. Precios en COP con IVA incluido.</p>
+    <div class="sec-eyebrow">{% translate "Planes y precios" %}</div>
+    <h2 class="sec-title">{% translate "Elige tu plan y empieza a predecir" %}</h2>
+    <p class="sec-sub">{% translate "Acceso completo al analizador en los dos planes. Solo cambia la duración. Precios en COP con IVA incluido." %}</p>
 
     <div class="planes-grid">
 
       <!-- MENSUAL -->
       <div class="plan">
-        <div class="plan-nombre">Mensual</div>
-        <div class="plan-desc">Ideal para empezar</div>
+        <div class="plan-nombre">{% translate "Mensual" %}</div>
+        <div class="plan-desc">{% translate "Ideal para empezar" %}</div>
         <div class="plan-precio"><span class="val">${{ planes.mensual.precio|pesos }}</span><span class="cur">COP</span></div>
-        <div class="plan-periodo">{{ planes.mensual.dias }} días de acceso</div>
+        <div class="plan-periodo">{% blocktranslate with dias=planes.mensual.dias %}{{ dias }} días de acceso{% endblocktranslate %}</div>
         <ul class="plan-features">
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Acceso completo al analizador</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Predicciones y probabilidades ilimitadas</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Todos los mercados y estadísticas</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> <span>{% translate "Acceso completo al analizador" %}</span></li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> <span>{% translate "Predicciones y probabilidades ilimitadas" %}</span></li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> <span>{% translate "Todos los mercados y estadísticas" %}</span></li>
         </ul>
-        <a href="{% if user.is_authenticated %}{% url 'Checkout' 'mensual' %}{% else %}{% url 'Registro' %}?next={% url 'Checkout' 'mensual' %}{% endif %}" class="plan-cta secundario">Elegir Mensual</a>
+        <a href="{% if user.is_authenticated %}{% url 'Checkout' 'mensual' %}{% else %}{% url 'Registro' %}?next={% url 'Checkout' 'mensual' %}{% endif %}" class="plan-cta secundario">{% translate "Elegir Mensual" %}</a>
       </div>
 
       <!-- TRIMESTRAL -->
       <div class="plan destacado">
-        <div class="plan-badge">Más popular</div>
-        <div class="plan-nombre">Trimestral</div>
-        <div class="plan-desc">El equilibrio perfecto</div>
+        <div class="plan-badge">{% translate "Más popular" %}</div>
+        <div class="plan-nombre">{% translate "Trimestral" %}</div>
+        <div class="plan-desc">{% translate "El equilibrio perfecto" %}</div>
         <div class="plan-precio"><span class="val">${{ planes.trimestral.precio|pesos }}</span><span class="cur">COP</span></div>
-        <div class="plan-periodo">{{ planes.trimestral.dias }} días de acceso</div>
-        {% if planes.trimestral.ahorro %}<span class="plan-ahorro">{{ planes.trimestral.ahorro }}</span>{% endif %}
+        <div class="plan-periodo">{% blocktranslate with dias=planes.trimestral.dias %}{{ dias }} días de acceso{% endblocktranslate %}</div>
+        {% if planes.trimestral.ahorro %}<span class="plan-ahorro">{% blocktranslate with monto=planes.trimestral.ahorro|pesos %}Ahorras ${{ monto }}{% endblocktranslate %}</span>{% endif %}
         <ul class="plan-features">
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Todo lo del plan Mensual</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 3 meses de acceso continuo</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Mejor precio por mes</li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> <span>{% translate "Todo lo del plan Mensual" %}</span></li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> <span>{% translate "3 meses de acceso continuo" %}</span></li>
+          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> <span>{% translate "Mejor precio por mes" %}</span></li>
         </ul>
-        <a href="{% if user.is_authenticated %}{% url 'Checkout' 'trimestral' %}{% else %}{% url 'Registro' %}?next={% url 'Checkout' 'trimestral' %}{% endif %}" class="plan-cta primario">Elegir Trimestral</a>
+        <a href="{% if user.is_authenticated %}{% url 'Checkout' 'trimestral' %}{% else %}{% url 'Registro' %}?next={% url 'Checkout' 'trimestral' %}{% endif %}" class="plan-cta primario">{% translate "Elegir Trimestral" %}</a>
       </div>
     </div>
 
@@ -310,11 +343,11 @@
     <div class="ft-top">
       <div>
         <div class="ft-logo"><img src="{% static 'img/logo.png' %}" alt="xGol" style="height:4rem;width:auto;display:block;"></div>
-        <p class="ft-tag">Terminal de análisis y predicción de fútbol impulsada por modelos estadísticos e inteligencia artificial.</p>
+        <p class="ft-tag">{% translate "Terminal de análisis y predicción de fútbol impulsada por modelos estadísticos e inteligencia artificial." %}</p>
         <p class="ft-legal">
-          xGol es una herramienta de análisis estadístico y probabilístico con fines informativos y educativos.
+          {% blocktranslate trimmed %}xGol es una herramienta de análisis estadístico y probabilístico con fines informativos y educativos.
           Las probabilidades mostradas son estimaciones generadas por modelos matemáticos y no garantizan resultados.
-          xGol no es una casa de apuestas ni acepta dinero; no organiza, promueve ni gestiona juegos de suerte y azar.
+          xGol no es una casa de apuestas ni acepta dinero; no organiza, promueve ni gestiona juegos de suerte y azar.{% endblocktranslate %}
         </p>
       </div>
       <div class="ft-right">
@@ -323,10 +356,10 @@
           <a href="#" aria-label="Instagram"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/></svg></a>
         </div>
         <div class="ft-links">
-          <a href="{% url 'TerminosCondiciones' %}">Términos y condiciones</a>
-          <a href="{% url 'PoliticaPrivacidad' %}">Política de privacidad</a>
-          <a href="{% url 'AvisoLegal' %}">Aviso legal</a>
-          <a href="{% url 'JuegoResponsable' %}">Juego responsable</a>
+          <a href="{% url 'TerminosCondiciones' %}">{% translate "Términos y condiciones" %}</a>
+          <a href="{% url 'PoliticaPrivacidad' %}">{% translate "Política de privacidad" %}</a>
+          <a href="{% url 'AvisoLegal' %}">{% translate "Aviso legal" %}</a>
+          <a href="{% url 'JuegoResponsable' %}">{% translate "Juego responsable" %}</a>
         </div>
 
         {% comment %}
@@ -339,10 +372,10 @@
     </div>
 
     <div class="ft-bottom">
-      <div class="ft-copy">© 2026 xGol · Terminal de Análisis de Fútbol</div>
+      <div class="ft-copy">{% translate "© 2026 xGol · Terminal de Análisis de Fútbol" %}</div>
       <div class="ft-resp">
         <div class="ft-18">+18</div>
-        <span>Juega de forma legal y responsable</span>
+        <span>{% translate "Juega de forma legal y responsable" %}</span>
       </div>
     </div>
   </div>
@@ -350,8 +383,8 @@
 
 <!-- MODAL: CÓMO FUNCIONA -->
 <div class="cf-overlay" id="cfOverlay" onclick="cfOverlayClick(event)">
-  <div class="cf-modal" role="dialog" aria-modal="true" aria-label="Cómo funciona xGol">
-    <button class="cf-close" onclick="cerrarComoFunciona()" aria-label="Cerrar">✕</button>
+  <div class="cf-modal" role="dialog" aria-modal="true" aria-label="{% translate 'Cómo funciona xGol' %}">
+    <button class="cf-close" onclick="cerrarComoFunciona()" aria-label="{% translate 'Cerrar' %}">✕</button>
 
     <div class="cf-viewport">
       <div class="cf-track" id="cfTrack">
@@ -359,27 +392,27 @@
         <!-- Pantalla 1 -->
         <div class="cf-slide">
           <div class="cf-icon" style="font-size:1.05rem;line-height:1;"><span style="display:block;white-space:nowrap;font-family:var(--ff-display);font-weight:800;letter-spacing:-.01em;color:var(--texto-0);"><i style="font-style:normal;color:var(--acc);">x</i>Gol</span></div>
-          <h3 class="cf-title">¿Qué es xGol?</h3>
-          <p class="cf-text">Una terminal de análisis que usa modelos estadísticos e inteligencia artificial para estimar las probabilidades de cualquier partido de fútbol.</p>
+          <h3 class="cf-title">{% translate "¿Qué es xGol?" %}</h3>
+          <p class="cf-text">{% translate "Una terminal de análisis que usa modelos estadísticos e inteligencia artificial para estimar las probabilidades de cualquier partido de fútbol." %}</p>
         </div>
 
         <!-- Pantalla 2 -->
         <div class="cf-slide">
           <div class="cf-icon"><svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:none;stroke:var(--acc);stroke-width:1.9;" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
-          <h3 class="cf-title">¿Qué beneficio obtengo?</h3>
-          <p class="cf-text">Decides con datos, no con corazonadas: predicciones de goles, probabilidades calibradas y estadísticas claras, todo en un mismo lugar.</p>
+          <h3 class="cf-title">{% translate "¿Qué beneficio obtengo?" %}</h3>
+          <p class="cf-text">{% translate "Decides con datos, no con corazonadas: predicciones de goles, probabilidades calibradas y estadísticas claras, todo en un mismo lugar." %}</p>
         </div>
 
         <!-- Pantalla 3 -->
         <div class="cf-slide">
           <div class="cf-icon"><svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:none;stroke:var(--acc);stroke-width:1.9;" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polygon points="10 8.5 16 12 10 15.5 10 8.5"/></svg></div>
-          <h3 class="cf-title">¿Cómo empiezo?</h3>
+          <h3 class="cf-title">{% translate "¿Cómo empiezo?" %}</h3>
           <div class="cf-steps">
-            <div class="cf-step"><span class="cf-step-n">1</span> Elige un plan</div>
-            <div class="cf-step"><span class="cf-step-n">2</span> Crea tu cuenta</div>
-            <div class="cf-step"><span class="cf-step-n">3</span> Inicia sesión</div>
-            <div class="cf-step"><span class="cf-step-n">4</span> Entra al analizador</div>
-            <div class="cf-step"><span class="cf-step-n">5</span> Empieza a predecir</div>
+            <div class="cf-step"><span class="cf-step-n">1</span> <span>{% translate "Elige un plan" %}</span></div>
+            <div class="cf-step"><span class="cf-step-n">2</span> <span>{% translate "Crea tu cuenta" %}</span></div>
+            <div class="cf-step"><span class="cf-step-n">3</span> <span>{% translate "Inicia sesión" %}</span></div>
+            <div class="cf-step"><span class="cf-step-n">4</span> <span>{% translate "Entra al analizador" %}</span></div>
+            <div class="cf-step"><span class="cf-step-n">5</span> <span>{% translate "Empieza a predecir" %}</span></div>
           </div>
         </div>
 
@@ -387,21 +420,21 @@
     </div>
 
     <div class="cf-controls">
-      <button class="cf-arrow" id="cfPrev" onclick="cfAnterior()" aria-label="Anterior">‹</button>
+      <button class="cf-arrow" id="cfPrev" onclick="cfAnterior()" aria-label="{% translate 'Anterior' %}">‹</button>
       <div class="cf-dots">
         <span class="cf-dot" onclick="cfIr(0)"></span>
         <span class="cf-dot" onclick="cfIr(1)"></span>
         <span class="cf-dot" onclick="cfIr(2)"></span>
       </div>
-      <button class="cf-arrow" id="cfNext" onclick="cfSiguiente()" aria-label="Siguiente">›</button>
+      <button class="cf-arrow" id="cfNext" onclick="cfSiguiente()" aria-label="{% translate 'Siguiente' %}">›</button>
     </div>
   </div>
 </div>
 
 <!-- MODAL: EQUIPOS POR LIGA -->
 <div class="lg-overlay" id="lgOverlay" onclick="lgOverlayClick(event)">
-  <div class="lg-modal" role="dialog" aria-modal="true" aria-label="Equipos de la liga">
-    <button class="lg-close" onclick="cerrarLiga()" aria-label="Cerrar">✕</button>
+  <div class="lg-modal" role="dialog" aria-modal="true" aria-label="{% translate 'Equipos de la liga' %}">
+    <button class="lg-close" onclick="cerrarLiga()" aria-label="{% translate 'Cerrar' %}">✕</button>
 
     <div class="lg-head">
       <div class="lg-badge"><img id="lgLogo" alt=""></div>
@@ -413,7 +446,7 @@
 
     <div class="lg-search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="lgBuscar" type="text" placeholder="Buscar equipo…" oninput="filtrarEquipos()" autocomplete="off">
+      <input id="lgBuscar" type="text" placeholder="{% translate 'Buscar equipo…' %}" oninput="filtrarEquipos()" autocomplete="off">
     </div>
 
     <div class="lg-body" id="lgBody"></div>
@@ -445,15 +478,15 @@
 
   // ===== Modal de equipos por liga =====
   var LIGAS_MODAL = {
-    premier:     { nombre:'Premier League',    pais:'Inglaterra', logo:"{% static 'img/ligas/premierleague.png' %}", fd:'PL'  },
-    laliga:      { nombre:'LaLiga',            pais:'España',     logo:"{% static 'img/ligas/laliga.png' %}",        fd:'PD'  },
-    seriea:      { nombre:'Serie A',           pais:'Italia',     logo:"{% static 'img/ligas/seriea.png' %}",        fd:'SA'  },
-    bundesliga:  { nombre:'Bundesliga',        pais:'Alemania',   logo:"{% static 'img/ligas/bundesliga.png' %}",    fd:'BL1' },
-    ligue1:      { nombre:'Ligue 1',           pais:'Francia',    logo:"{% static 'img/ligas/ligue1.png' %}",        fd:'FL1' },
-    champions:   { nombre:'Champions League',  pais:'Europa',     logo:"{% static 'img/ligas/champions.png' %}",     fd:'CL'  },
-    eredivisie:  { nombre:'Eredivisie',        pais:'Países Bajos', logo:"{% static 'img/ligas/eredivisie.png' %}",   fd:'DED' },
-    primeiraliga:{ nombre:'Primeira Liga',     pais:'Portugal',   logo:"{% static 'img/ligas/primeiraliga.png' %}",  fd:'PPL' },
-    brasileirao: { nombre:'Brasileirão',       pais:'Brasil',     logo:"{% static 'img/ligas/brasileirao.png' %}",   fd:'BSA' }
+    premier:     { nombre:'Premier League',    pais:gettext('Inglaterra'), logo:"{% static 'img/ligas/premierleague.png' %}", fd:'PL'  },
+    laliga:      { nombre:'LaLiga',            pais:gettext('España'),     logo:"{% static 'img/ligas/laliga.png' %}",        fd:'PD'  },
+    seriea:      { nombre:'Serie A',           pais:gettext('Italia'),     logo:"{% static 'img/ligas/seriea.png' %}",        fd:'SA'  },
+    bundesliga:  { nombre:'Bundesliga',        pais:gettext('Alemania'),   logo:"{% static 'img/ligas/bundesliga.png' %}",    fd:'BL1' },
+    ligue1:      { nombre:'Ligue 1',           pais:gettext('Francia'),    logo:"{% static 'img/ligas/ligue1.png' %}",        fd:'FL1' },
+    champions:   { nombre:gettext('Champions League'),  pais:gettext('Europa'),     logo:"{% static 'img/ligas/champions.png' %}",     fd:'CL'  },
+    eredivisie:  { nombre:'Eredivisie',        pais:gettext('Países Bajos'), logo:"{% static 'img/ligas/eredivisie.png' %}",   fd:'DED' },
+    primeiraliga:{ nombre:'Primeira Liga',     pais:gettext('Portugal'),   logo:"{% static 'img/ligas/primeiraliga.png' %}",  fd:'PPL' },
+    brasileirao: { nombre:'Brasileirão',       pais:gettext('Brasil'),     logo:"{% static 'img/ligas/brasileirao.png' %}",   fd:'BSA' }
   };
   var LG_EQUIPOS_URL = "{% url 'EquiposLiga' %}";
   var lgCache = {};
@@ -500,7 +533,7 @@
 
   function lgPintar(lista) {
     lgLista = lista;
-    document.getElementById('lgCount').textContent = lista.length + (lista.length === 1 ? ' equipo' : ' equipos');
+    document.getElementById('lgCount').textContent = interpolate(ngettext('%s equipo', '%s equipos', lista.length), [lista.length]);
     if (!lista.length) { lgEstado('error'); return; }
     lgRender(lista);
   }
@@ -519,16 +552,22 @@
     var q = document.getElementById('lgBuscar').value.trim().toLowerCase();
     if (!lgLista.length) return;
     var f = q ? lgLista.filter(function(e) { return e.nombre.toLowerCase().indexOf(q) > -1; }) : lgLista;
-    if (!f.length) { document.getElementById('lgBody').innerHTML = '<div class="lg-empty">Sin resultados para «' + q + '».</div>'; return; }
+    if (!f.length) {
+      var aviso = document.createElement('div');
+      aviso.className = 'lg-empty';
+      aviso.textContent = interpolate(gettext('Sin resultados para «%s».'), [q]);
+      document.getElementById('lgBody').replaceChildren(aviso);
+      return;
+    }
     lgRender(f);
   }
 
   function lgEstado(tipo) {
     var b = document.getElementById('lgBody');
     if (tipo === 'cargando') {
-      b.innerHTML = '<div class="lg-loading"><span class="lg-spinner"></span><p>Cargando equipos…</p></div>';
+      b.innerHTML = '<div class="lg-loading"><span class="lg-spinner"></span><p>' + gettext('Cargando equipos…') + '</p></div>';
     } else {
-      b.innerHTML = '<div class="lg-empty">No se pudieron cargar los equipos.<br><button class="lg-retry" onclick="lgReintentar()">Reintentar</button></div>';
+      b.innerHTML = '<div class="lg-empty">' + gettext('No se pudieron cargar los equipos.') + '<br><button class="lg-retry" onclick="lgReintentar()">' + gettext('Reintentar') + '</button></div>';
     }
   }
 
@@ -669,7 +708,7 @@
         '<div class="mteam der"><img src="' + (p.visitante_logo||'') + '" alt=""><span>' + (p.visitante||'') + '</span></div>' +
       '</div>' +
       '<div class="mhora">' + (p.hora||'--:--') + '<span>' + (p.fecha||'') + '</span></div>' +
-      '<a class="mver" href="' + PART.analisis + '">Ver análisis</a>' +
+      '<a class="mver" href="' + PART.analisis + '">' + gettext('Ver análisis') + '</a>' +
     '</div>';
   }
 
@@ -679,18 +718,24 @@
     var pct = 0;
     if (p.minuto != null) pct = Math.max(2, Math.min(100, Math.round(p.minuto / 90 * 100)));
 
+    // El servidor manda el minuto ("37'", "45+") o una palabra en español
+    // cuando no lo sabe: esa palabra se traduce aqui.
+    var minuto = p.minuto_texto;
+    if (!minuto || minuto === 'EN VIVO') minuto = gettext('EN VIVO');
+    else if (minuto === 'DESCANSO') minuto = gettext('DESCANSO');
+
     // El reloj sigue corriendo entre refrescos: se guarda cuándo empezó
     var reloj = desc
-      ? '<span class="lc-min lc-ht">DESCANSO</span>'
+      ? '<span class="lc-min lc-ht">' + gettext('DESCANSO') + '</span>'
       : '<span class="lc-min" data-utc="' + (p.utc||'') + '" data-min="' +
-        (p.minuto != null ? p.minuto : '') + '">' + (p.minuto_texto||'EN VIVO') + '</span>';
+        (p.minuto != null ? p.minuto : '') + '">' + minuto + '</span>';
 
     var parcial = (p.goles_1t_local != null && p.goles_1t_visitante != null && p.periodo === '2T')
-      ? '<div class="lc-parcial">1ª parte ' + p.goles_1t_local + '–' + p.goles_1t_visitante + '</div>' : '';
+      ? '<div class="lc-parcial">' + interpolate(gettext('1ª parte %(local)s–%(visitante)s'), { local: p.goles_1t_local, visitante: p.goles_1t_visitante }, true) + '</div>' : '';
 
     return '<div class="live-card' + (desc ? ' en-descanso' : '') + '">' +
       '<div class="lc-league"><span>' + (p.liga||'') + '</span>' +
-        '<span class="lc-conf"><i class="lc-dot"></i>' + (desc ? 'DESCANSO' : 'EN DIRECTO') + '</span></div>' +
+        '<span class="lc-conf"><i class="lc-dot"></i>' + (desc ? gettext('DESCANSO') : gettext('EN DIRECTO')) + '</span></div>' +
       '<div class="lc-tv">' +
         '<div class="lc-lado">' +
           '<div class="lc-shield"><img src="' + (p.local_logo||'') + '" alt="" style="max-width:100%;max-height:100%"></div>' +
@@ -707,8 +752,8 @@
       '</div>' +
       '<div class="lc-barra"><span style="width:' + pct + '%"></span></div>' +
       parcial +
-      '<div class="lc-meta"><span>' + (p.periodo === '1T' ? 'Primera parte' : p.periodo === '2T' ? 'Segunda parte' : 'En juego') + '</span>' +
-        '<a href="' + PART.analisis + '" style="color:var(--acc);text-decoration:none">Ver análisis</a></div>' +
+      '<div class="lc-meta"><span>' + (p.periodo === '1T' ? gettext('Primera parte') : p.periodo === '2T' ? gettext('Segunda parte') : gettext('En juego')) + '</span>' +
+        '<a href="' + PART.analisis + '" style="color:var(--acc);text-decoration:none">' + gettext('Ver análisis') + '</a></div>' +
     '</div>';
   }
 
@@ -747,6 +792,7 @@
   }
 
   function vacio(msg) { return '<div class="mlive-empty"><h5>' + msg + '</h5></div>'; }
+  function avisoTabla(texto) { return '<tr><td colspan="5" style="text-align:center;color:var(--texto-3)">' + texto + '</td></tr>'; }
 
   async function traer(url) {
     const r = await fetch(url, { headers: { 'X-Requested-With': 'fetch' } });
@@ -768,21 +814,7 @@
       var d = await traer(PART.tabla + '?liga=PL');
       var t = (d.tabla || []).slice(0, 10);
       if (!t.length) throw new Error('tabla vacia');
-      var html = t.map(function(e) {
-        // football-data no siempre publica la forma en el plan gratuito. Si no
-        // viene, se pone el puesto y los puntos, que son igual de reales.
-        var forma = String(e.forma || '').replace(/,/g, ' ').trim();
-        var detalle = forma
-          ? 'Forma <b>' + limpiar(forma) + '</b>'
-          : limpiar(e.puesto) + '.º · <b>' + limpiar(e.puntos) + ' pts</b>';
-        var img = e.escudo
-          ? '<img src="' + limpiar(e.escudo) + '" alt="' + limpiar(e.equipo) + '" loading="lazy">'
-          : '';
-        return '<div class="team-chip"><div class="tc-shield">' + img + '</div>' +
-               '<div><div class="tc-name">' + limpiar(e.equipo) + '</div>' +
-               '<div class="tc-form">' + detalle + '</div></div></div>';
-      }).join('');
-      window.pintarCarrusel(html);
+      window.pintarCarrusel(chipsEquipos(t));
     } catch (e) {
       // Sin datos reales NO se deja la forma de ejemplo puesta
       window.pintarCarrusel(
@@ -790,13 +822,30 @@
     }
   }
 
+  function chipsEquipos(t) {
+    return t.map(function(e) {
+      // football-data no siempre publica la forma en el plan gratuito. Si no
+      // viene, se pone el puesto y los puntos, que son igual de reales.
+      var forma = String(e.forma || '').replace(/,/g, ' ').trim();
+      var detalle = forma
+        ? gettext('Forma') + ' <b>' + limpiar(forma) + '</b>'
+        : interpolate(gettext('%(puesto)s.º · <b>%(puntos)s pts</b>'), { puesto: limpiar(e.puesto), puntos: limpiar(e.puntos) }, true);
+      var img = e.escudo
+        ? '<img src="' + limpiar(e.escudo) + '" alt="' + limpiar(e.equipo) + '" loading="lazy">'
+        : '';
+      return '<div class="team-chip"><div class="tc-shield">' + img + '</div>' +
+             '<div><div class="tc-name">' + limpiar(e.equipo) + '</div>' +
+             '<div class="tc-form">' + detalle + '</div></div></div>';
+    }).join('');
+  }
+
   async function cargarHoy() {
     var cont = document.getElementById('lista-hoy');
-    cont.innerHTML = vacio('Cargando…');
+    cont.innerHTML = vacio(gettext('Cargando…'));
     try {
       var d = await traer(PART.hoy); var l = d.partidos || [];
-      cont.innerHTML = l.length ? l.map(filaPartido).join('') : vacio('No hay partidos hoy en las ligas seguidas');
-    } catch (e) { cont.innerHTML = vacio('No se pudieron cargar los partidos'); }
+      cont.innerHTML = l.length ? l.map(filaPartido).join('') : vacio(gettext('No hay partidos hoy en las ligas seguidas'));
+    } catch (e) { cont.innerHTML = vacio(gettext('No se pudieron cargar los partidos')); }
   }
 
   // Tope de filas del home. Nueve ligas por ocho dias pasan de cien partidos,
@@ -807,34 +856,34 @@
 
   async function cargarProximos() {
     var cont = document.getElementById('lista-proximos');
-    cont.innerHTML = vacio('Cargando…');
+    cont.innerHTML = vacio(gettext('Cargando…'));
     try {
       var d = await traer(PART.proximos); var l = d.partidos || [];
-      cont.innerHTML = l.length ? l.slice(0, TOPE_PROXIMOS).map(filaPartido).join('') : vacio('No hay próximos partidos en las ligas seguidas');
-    } catch (e) { cont.innerHTML = vacio('No se pudieron cargar los partidos'); }
+      cont.innerHTML = l.length ? l.slice(0, TOPE_PROXIMOS).map(filaPartido).join('') : vacio(gettext('No hay próximos partidos en las ligas seguidas'));
+    } catch (e) { cont.innerHTML = vacio(gettext('No se pudieron cargar los partidos')); }
   }
 
   async function cargarVivo() {
     var cont = document.getElementById('lista-vivo');
-    if (!cont.innerHTML.trim()) cont.innerHTML = vacio('Cargando…');
+    if (!cont.innerHTML.trim()) cont.innerHTML = vacio(gettext('Cargando…'));
     try {
       var d = await traer(PART.vivo); var l = d.partidos || [];
-            cont.innerHTML = l.length ? l.map(tarjetaVivo).join('') : vacio('No hay partidos en vivo en este momento');
+            cont.innerHTML = l.length ? l.map(tarjetaVivo).join('') : vacio(gettext('No hay partidos en vivo en este momento'));
             document.querySelectorAll('.mtab-dot').forEach(function(d) { d.classList.toggle('mtab-dot-apagado', !l.length); });
             // Cuantos hay ahora mismo. Si no hay ninguno el contador se esconde
             // en vez de mostrar un cero, que solo ocupa sitio.
             var cuenta = document.getElementById('vivoCuenta');
             if (cuenta) { cuenta.textContent = l.length; cuenta.hidden = !l.length; }
-    } catch (e) { cont.innerHTML = vacio('No se pudo cargar el directo'); }
+    } catch (e) { cont.innerHTML = vacio(gettext('No se pudo cargar el directo')); }
   }
 
   async function cargarTabla() {
     var cont = document.getElementById('tabla-posiciones');
-    cont.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--texto-3)">Cargando…</td></tr>';
+    cont.innerHTML = avisoTabla(gettext('Cargando…'));
     try {
       var d = await traer(PART.tabla); var l = d.tabla || [];
-      cont.innerHTML = l.length ? l.map(filaTabla).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--texto-3)">Tabla no disponible</td></tr>';
-    } catch (e) { cont.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--texto-3)">No se pudo cargar la tabla</td></tr>'; }
+      cont.innerHTML = l.length ? l.map(filaTabla).join('') : avisoTabla(gettext('Tabla no disponible'));
+    } catch (e) { cont.innerHTML = avisoTabla(gettext('No se pudo cargar la tabla')); }
   }
 
   function cargarTab(nombre) {
@@ -861,11 +910,11 @@
 
   async function cargarTablaLiga(cfg) {
     var cont = document.getElementById('tabla-posiciones');
-    cont.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--texto-3)">Cargando…</td></tr>';
+    cont.innerHTML = avisoTabla(gettext('Cargando…'));
     try {
       var l = await tablaFD(cfg.fd);
-      cont.innerHTML = l.length ? l.map(filaTabla).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--texto-3)">Tabla no disponible para esta competición</td></tr>';
-    } catch (e) { cont.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--texto-3)">No se pudo cargar la tabla</td></tr>'; }
+      cont.innerHTML = l.length ? l.map(filaTabla).join('') : avisoTabla(gettext('Tabla no disponible para esta competición'));
+    } catch (e) { cont.innerHTML = avisoTabla(gettext('No se pudo cargar la tabla')); }
   }
 
   function activarTablaPanel() {
@@ -919,19 +968,20 @@
   document.addEventListener('DOMContentLoaded', function() { cargarTab('proximos'); cargarVivo(); cargarCarrusel(); });
 </script>
 
-<script src="{% static 'js/prediccion.js' %}?v=5"></script>
+<script src="{% static 'js/idioma.js' %}?v=3"></script>
+<script src="{% static 'js/prediccion.js' %}?v=7"></script>
 
 <!-- MANUAL DE USUARIO: solo el ícono, fijo en el borde izquierdo a media
      altura. Vive en el margen que deja el contenido (28 px), así que no tapa
      nada. Al señalarlo aparece el nombre. En celular va dentro del menú. -->
-<a class="manual-tab" href="{% static 'manual/manual-de-usuario.html' %}" target="_blank" rel="noopener"
-   aria-label="Abrir el manual de usuario (se abre en otra pestaña)">
+<a class="manual-tab" href="{% url 'ManualUsuario' %}?idioma={{ LANGUAGE_CODE }}" target="_blank" rel="noopener"
+   aria-label="{% translate 'Abrir el manual de usuario (se abre en otra pestaña)' %}">
   <svg class="manual-tab-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M232,44H160a43.86,43.86,0,0,0-32,13.85A43.86,43.86,0,0,0,96,44H24A12,12,0,0,0,12,56V200a12,12,0,0,0,12,12H96a20,20,0,0,1,20,20,12,12,0,0,0,24,0,20,20,0,0,1,20-20h72a12,12,0,0,0,12-12V56A12,12,0,0,0,232,44ZM96,188H36V68H96a20,20,0,0,1,20,20V192.81A43.79,43.79,0,0,0,96,188Zm124,0H160a43.71,43.71,0,0,0-20,4.83V88a20,20,0,0,1,20-20h60Z"/></svg>
-  <span class="manual-tab-globo" aria-hidden="true">Manual de usuario<small>Abre la guía paso a paso</small></span>
+  <span class="manual-tab-globo" aria-hidden="true">{% translate "Manual de usuario<small>Abre la guía paso a paso</small>" %}</span>
 </a>
 
 <!-- BOTON SUBIR -->
-<button type="button" class="subir" id="btnSubir" onclick="irArriba()" title="Volver al inicio" aria-label="Volver al inicio de la página">
+<button type="button" class="subir" id="btnSubir" onclick="irArriba()" title="{% translate 'Volver al inicio' %}" aria-label="{% translate 'Volver al inicio de la página' %}">
   <svg class="subir-aro" viewBox="0 0 50 50" aria-hidden="true"><circle id="subirAro" cx="25" cy="25" r="23.5"/></svg>
   <svg class="subir-flecha" viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
 </button>
