@@ -340,3 +340,24 @@ class ManualTests(TestCase):
         script = manual._script_del_manual(manual.original()).group(2)
         for texto in manual.TEXTOS_SCRIPT:
             self.assertIn("'" + texto + "'", script)
+
+    def test_cada_idioma_tiene_sus_capturas(self):
+        #Las capturas de pantalla (recuadros y portada) tienen su version en
+        #cada idioma, y sus marcas numeradas siguen siendo las mismas
+        original = manual.original()
+        bloques = re.findall(r'<figure class="shot.*?</figure>|<div class="cv-shots".*?</div>\s*</div>', original, re.S)
+        capturas = [m.group(1) for b in bloques for m in manual._IMAGEN.finditer(b)]
+        self.assertGreater(len(capturas), 80)
+        marcas_original = len(manual._MARCA.findall(original))
+        for idioma in OTROS:
+            carpeta = manual.CAPTURAS / idioma
+            faltan = [manual.huella(c) for c in capturas if not (carpeta / f"{manual.huella(c)}.webp").exists()]
+            self.assertEqual(faltan, [], idioma)
+            html = self.manual(idioma)
+            for c in capturas:
+                self.assertNotIn(c, html, idioma)
+            marcas = manual._MARCA.findall(html)
+            self.assertEqual(len(marcas), marcas_original, idioma)
+            for marca in marcas:
+                izquierda, arriba = [float(v) for v in re.findall(r"[\d.]+", marca)]
+                self.assertTrue(0 <= izquierda <= 100 and 0 <= arriba <= 100, f"{idioma}: {marca}")

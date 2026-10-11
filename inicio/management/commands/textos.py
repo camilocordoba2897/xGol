@@ -9,7 +9,7 @@ NOMBRES = {"en": "inglés", "pt-br": "portugués", "de": "alemán"}
 
 
 class Command(BaseCommand):
-    help = "Extrae los textos traducibles, actualiza locale/*.po y compila los .mo"
+    help = "Extrae los textos traducibles, actualiza xgol/traducciones/*.po y compila los .mo"
 
     def add_arguments(self, parser):
         parser.add_argument("--revisar", action="store_true",

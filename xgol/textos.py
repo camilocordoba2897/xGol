@@ -1,5 +1,5 @@
 #Textos traducibles del proyecto: los saca del codigo, mantiene al dia los
-#archivos de traduccion (locale/<idioma>/LC_MESSAGES/*.po) y los compila
+#archivos de traduccion (xgol/traducciones/<idioma>/LC_MESSAGES/*.po) y los compila
 #(.mo), que es lo que Django lee.
 #
 #Hace lo mismo que "makemessages" y "compilemessages" de Django, pero en
@@ -31,9 +31,9 @@ RAIZ = Path(settings.BASE_DIR)
 APPS = ["inicio", "usuarios", "analizador", "suscripciones", "pagos", "xgol"]
 CARPETAS_PLANTILLAS = [RAIZ / "templates"] + [RAIZ / app / "templates" for app in APPS]
 CARPETA_JS = RAIZ / "static" / "js"
-CARPETA_LOCALE = RAIZ / "locale"
+CARPETA_LOCALE = Path(settings.LOCALE_PATHS[0])
 
-#Idioma -> carpeta de locale y regla de plurales (la misma de Django)
+#Idioma -> carpeta de traducciones y regla de plurales (la misma de Django)
 TRADUCCIONES = {
     "en": ("en", "nplurals=2; plural=(n != 1);"),
     "pt-br": ("pt_BR", "nplurals=2; plural=(n > 1);"),
@@ -372,7 +372,7 @@ def choques_en_espanol(textos):
     #traducciones al español (de textos en ingles). Si un texto nuestro
     #coincidiera con uno ingles de Django ("No", "Total"...), en español
     #saldria la version de Django. Esos pocos se guardan tal cual en
-    #locale/es para que el español quede siempre como esta escrito.
+    #xgol/traducciones/es para que el español quede siempre como esta escrito.
     from django.test.utils import override_settings
     from django.utils.translation.trans_real import DjangoTranslation
     choques = {}
