@@ -205,6 +205,23 @@ class FacturaTests(TestCase):
                                    monto=20000, subtotal=16807, iva=3193, monto_centavos=2000000)
         self.assertTrue(generar_factura_pdf(pago).getvalue().startswith(b"%PDF"))
 
+    def test_la_fecha_de_emision_va_en_hora_de_colombia(self):
+        #10:27 p. m. en Colombia del 6 de octubre son las 3:27 a. m. del 7 en UTC
+        from datetime import datetime, timezone as zona
+        from pagos.factura import _fecha
+        self.assertEqual(_fecha(datetime(2026, 10, 7, 3, 27, tzinfo=zona.utc)), "06/10/2026")
+        self.assertEqual(_fecha(date(2026, 11, 5)), "05/11/2026")
+
+    def test_la_factura_lleva_el_logo_oficial(self):
+        from pagos import factura
+        usuario = User.objects.create_user(username="g", password="Clave#123")
+        pago = Pago.objects.create(usuario=usuario, referencia="R2", estado="Aprobado",
+                                   monto=20000, subtotal=16807, iva=3193, monto_centavos=2000000)
+        self.assertTrue(factura.LOGO.exists())
+        with mock.patch.object(factura.canvas.Canvas, "drawImage", autospec=True) as dibujo:
+            factura.generar_factura_pdf(pago)
+        self.assertEqual(dibujo.call_count, 1)
+
 
 @override_settings(**LLAVES)
 class PanelDineroTests(TestCase):
