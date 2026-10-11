@@ -57,6 +57,47 @@ class ProximosTests(TestCase):
                                return_value=[partido(hoy, "FINISHED"), partido(hoy)]):
             self.assertEqual([p["estado"] for p in api_partidos.partidos_proximos()], ["TIMED"])
 
+    def test_un_rechazo_de_la_api_no_se_guarda_como_sin_partidos(self):
+        #Pasarse del limite de 10 por minuto no puede dejar la tarjeta del
+        #home diciendo "No hay partidos programados": sale la ultima lista buena.
+        futuro = partido((self.hoy + timedelta(days=3)).isoformat())
+        with mock.patch.object(api_partidos, "_partidos_rango", return_value=[futuro]):
+            api_partidos.partidos_proximos()
+        cache.delete("partidos_proximos_v6")   #vencio la cache normal
+        with mock.patch.object(api_partidos, "_partidos_rango", return_value=None) as rango:
+            self.assertEqual(api_partidos.partidos_proximos(), [futuro])
+        #Y no sigue buscando bloques con la API rechazando
+        self.assertEqual(rango.call_count, 1)
+
+    def test_la_copia_buena_no_trae_los_que_ya_empezaron(self):
+        ayer = partido((self.hoy - timedelta(days=1)).isoformat())
+        futuro = partido((self.hoy + timedelta(days=3)).isoformat())
+        with mock.patch.object(api_partidos, "_partidos_rango", return_value=[ayer, futuro]):
+            api_partidos.partidos_proximos()
+        cache.delete("partidos_proximos_v6")
+        with mock.patch.object(api_partidos, "_partidos_rango", return_value=None):
+            self.assertEqual(api_partidos.partidos_proximos(), [futuro])
+
+    def test_dos_visitas_a_la_vez_gastan_una_sola_peticion(self):
+        #La tarjeta y la lista de abajo piden lo mismo al mismo tiempo: la
+        #segunda espera lo que trae la primera en vez de volver a pedirlo.
+        futuro = partido((self.hoy + timedelta(days=3)).isoformat())
+        cache.add("partidos_proximos_v6_pidiendo", True, 15)
+        llega = lambda segundos: cache.set("partidos_proximos_v6", [futuro], 600)
+        with mock.patch.object(api_partidos.time, "sleep", side_effect=llega), \
+             mock.patch.object(api_partidos, "_partidos_rango") as rango:
+            self.assertEqual(api_partidos.partidos_proximos(), [futuro])
+        rango.assert_not_called()
+
+    def test_la_tarjeta_sigue_con_partidos_si_la_api_rechaza(self):
+        futuro = partido((self.hoy + timedelta(days=3)).isoformat())
+        with mock.patch.object(api_partidos, "_partidos_rango", return_value=[futuro]):
+            api_partidos.partidos_proximos()
+        cache.delete("partidos_proximos_v6")
+        with mock.patch.object(api_partidos, "_pedir", return_value={}):
+            datos = self.client.get(reverse("PrediccionesDestacadas")).json()["predicciones"]
+        self.assertEqual([t["local"] for t in datos["tarjetas"]], ["Arsenal"])
+
     def test_solo_ligas_que_cubre_el_analizador(self):
         self.assertTrue(api_partidos._cubierta({"competition": {"code": "PD"}}))
         self.assertFalse(api_partidos._cubierta({"competition": {"code": "ELC"}}))

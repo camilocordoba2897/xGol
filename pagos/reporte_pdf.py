@@ -17,13 +17,12 @@ from reportlab.lib.units import cm
 from reportlab.lib import colors
 from reportlab.pdfgen import canvas
 
-from pagos.factura import EMPRESA
+from pagos.factura import EMPRESA, dibujar_logo
 from pagos.templatetags.formato import pesos
 
 # ---- Paleta: la misma de la factura ----
 AZUL = colors.HexColor("#0f1f44")
 AZUL_CLARO = colors.HexColor("#16294f")
-LIMA = colors.HexColor("#22c55e")
 GRIS = colors.HexColor("#64748b")
 GRIS_CLARO = colors.HexColor("#94a3b8")
 TEXTO = colors.HexColor("#1e293b")
@@ -102,12 +101,7 @@ def _cabecera_pagina(c, filtros, totales, pagina):
   c.rect(0, ALTO - 3.1 * cm, ANCHO, 3.1 * cm, fill=1, stroke=0)
 
   #Logo xGol, igual que en la factura
-  c.setFont("Helvetica-Bold", 22)
-  c.setFillColor(LIMA)
-  c.drawString(MARGEN, ALTO - 1.6 * cm, "x")
-  ancho_x = c.stringWidth("x", "Helvetica-Bold", 22)
-  c.setFillColor(colors.white)
-  c.drawString(MARGEN + ancho_x, ALTO - 1.6 * cm, "Gol")
+  dibujar_logo(c, MARGEN - 0.12 * cm, ALTO - 1.9 * cm, 1.4 * cm)
 
   c.setFillColor(GRIS_CLARO)
   c.setFont("Helvetica", 7.5)

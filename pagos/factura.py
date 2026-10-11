@@ -2,8 +2,12 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.lib import colors
 from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
+from datetime import datetime
 from io import BytesIO
 
+from django.conf import settings
+from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.translation import gettext, gettext_noop
 
@@ -20,8 +24,21 @@ EMPRESA = {
   "web": "www.xgol.com"
 }
 
+#El logo oficial, el mismo archivo que muestra el sitio
+LOGO = settings.BASE_DIR / "static" / "img" / "logo.png"
+
+def dibujar_logo(c, x, y, alto):
+    #x, y: esquina inferior izquierda. El ancho sale de la proporcion del PNG.
+    imagen = ImageReader(str(LOGO))
+    ancho_px, alto_px = imagen.getSize()
+    c.drawImage(imagen, x, y, width=alto * ancho_px / alto_px, height=alto, mask="auto")
+
 def _fecha(valor):
-    #Fecha corta al estilo del idioma activo (dd/mm/aaaa, mm/dd/aaaa...)
+    #Fecha corta al estilo del idioma activo (dd/mm/aaaa, mm/dd/aaaa...).
+    #La hora del pago viene en UTC: sin pasarla a hora de Colombia, un pago
+    #de las 10 p. m. salia con fecha del dia siguiente.
+    if isinstance(valor,datetime) and timezone.is_aware(valor):
+        valor=timezone.localtime(valor)
     return date_format(valor,"SHORT_DATE_FORMAT")
 
 
@@ -48,14 +65,8 @@ def generar_factura_pdf(pago):
     c.setFillColor(azul)
     c.rect(0,alto-4.2*cm,ancho,4.2*cm,fill=1,stroke=0)
 
-    #Logo xGol: la x en lima y Gol en blanco como en la aplicacion
-    c.setFont("Helvetica-Bold",26)
-    c.setFillColor(lima)
-    c.drawString(2*cm,alto-2*cm,"x")
-    ancho_x=c.stringWidth("x","Helvetica-Bold",26)
-    c.setFillColor(colors.white)
-    c.drawString(2*cm+ancho_x,alto-2*cm,"Gol")
-    
+    dibujar_logo(c,1.85*cm,alto-2.3*cm,1.7*cm)
+
     #Datos de la empresa bajo el logo
     c.setFillColor(gris_claro)
     c.setFont("Helvetica",8)

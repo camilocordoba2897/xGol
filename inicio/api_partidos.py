@@ -1,5 +1,6 @@
 #Cliente para consumir football-data.org (v4) desde el servidor.
 #El token viaja solo aqui (backend), nunca al navegador.
+import time
 import requests
 from datetime import date, timedelta, datetime, timezone
 from zoneinfo import ZoneInfo
@@ -150,16 +151,59 @@ def _partidos_rango(desde, hasta):
     #Se filtra por competencia cubierta: el plan gratuito devuelve tambien
     #Championship, Mundial y Eurocopa, que el analizador no pronostica. Si
     #salieran en el home, el usuario veria partidos que luego no encuentra.
+    #
+    #None si football-data no respondio (por ejemplo, pasarse del limite de 10
+    #peticiones por minuto). No es lo mismo que una lista vacia: una respuesta
+    #buena siempre trae "matches", aunque venga sin partidos.
     datos = _pedir("matches", {"dateFrom": desde, "dateTo": hasta})
-    return [_partido(m) for m in datos.get("matches", []) if _cubierta(m)]
+    if "matches" not in datos:
+        return None
+    return [_partido(m) for m in datos["matches"] if _cubierta(m)]
+
+#UN RECHAZO DE LA API NO ES "NO HAY PARTIDOS". Al abrir el home la tarjeta de
+#arriba y la lista de abajo pedian los mismos partidos a la vez; en fecha FIFA
+#cada busqueda gasta hasta 4 peticiones, asi que se pasaba del limite y la
+#respuesta rechazada quedaba guardada 10 minutos como si no hubiera partidos:
+#la tarjeta decia "No hay partidos programados" con la agenda llena.
+#Ahora la segunda visita espera lo que trae la primera, y si football-data
+#rechaza la peticion se sirve la ultima lista buena (sin los que ya empezaron).
+ESPERA_MAXIMA = 15
+REINTENTO_PARTIDOS = 30
+
+def _sin_empezar(partidos):
+    ahora = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return [p for p in partidos if (p.get("utc") or "") > ahora]
+
+def _partidos_cacheados(llave, segundos, obtener, vigentes=None):
+    datos = cache.get(llave)
+    if datos is not None:
+        return datos
+    if not cache.add(llave + "_pidiendo", True, ESPERA_MAXIMA):
+        limite = time.monotonic() + ESPERA_MAXIMA
+        while time.monotonic() < limite:
+            time.sleep(0.3)
+            datos = cache.get(llave)
+            if datos is not None:
+                return datos
+        datos = None
+    else:
+        try:
+            datos = obtener()
+        finally:
+            cache.delete(llave + "_pidiendo")
+    if datos is not None:
+        cache.set(llave, datos, segundos)
+        cache.set(llave + "_respaldo", datos, RESPALDO)
+        return datos
+    datos = cache.get(llave + "_respaldo") or []
+    if vigentes:
+        datos = vigentes(datos)
+    cache.set(llave, datos, REINTENTO_PARTIDOS)
+    return datos
 
 def partidos_hoy():
-    datos = cache.get("partidos_hoy_v3")
-    if datos is None:
-        hoy = hora_local.localdate().isoformat()
-        datos = _partidos_rango(hoy, hoy)
-        cache.set("partidos_hoy_v3", datos, 180)
-    return datos
+    hoy = hora_local.localdate().isoformat()
+    return _partidos_cacheados(f"partidos_hoy_{hoy}", 180, lambda: _partidos_rango(hoy, hoy))
 
 def partidos_proximos():
     #ARRANCA HOY, no mañana.
@@ -174,18 +218,22 @@ def partidos_proximos():
     #flotante, que sale de aqui) se quedaba vacia. Si la semana no trae nada,
     #se sigue buscando hacia adelante en bloques de 10 dias, que es el rango
     #maximo que acepta football-data, y se para en el primero con partidos.
-    datos = cache.get("partidos_proximos_v5")
-    if datos is None:
-        hoy = hora_local.localdate()
-        hasta = hoy + timedelta(days=7)
-        datos = _pendientes(_partidos_rango(hoy.isoformat(), hasta.isoformat()))
+    return _partidos_cacheados("partidos_proximos_v6", 600, _buscar_proximos, _sin_empezar)
+
+def _buscar_proximos():
+    #Si un bloque falla se para ahi (None): seguir buscando gastaria mas
+    #peticiones y una lista vacia diria que no hay partidos cuando no se sabe.
+    hoy = hora_local.localdate()
+    desde, hasta = hoy, hoy + timedelta(days=7)
+    while True:
+        bloque = _partidos_rango(desde.isoformat(), hasta.isoformat())
+        if bloque is None:
+            return None
+        datos = _pendientes(bloque)
         desde = hasta + timedelta(days=1)
-        while not datos and desde <= hoy + timedelta(days=BUSCAR_HASTA):
-            hasta = desde + timedelta(days=9)
-            datos = _pendientes(_partidos_rango(desde.isoformat(), hasta.isoformat()))
-            desde = hasta + timedelta(days=1)
-        cache.set("partidos_proximos_v5", datos, 600)
-    return datos
+        if datos or desde > hoy + timedelta(days=BUSCAR_HASTA):
+            return datos
+        hasta = desde + timedelta(days=9)
 
 #Dias hacia adelante que se buscan como mucho cuando la semana viene vacia.
 #Son 3 peticiones extra en el peor caso, y solo cada 10 minutos (cache).
@@ -195,21 +243,24 @@ def _pendientes(partidos):
     return [p for p in partidos if p.get("estado") != "FINISHED"]
 
 def partidos_vivo():
-    datos = cache.get("partidos_vivo_v3")
-    if datos is None:
-        #Ventana de 3 dias, no solo hoy: football-data fecha los partidos en UTC.
-        #Un partido de las 22:30 UTC del domingo cae en lunes para un servidor
-        #en UTC y en domingo para uno en Bogota; con un solo dia se perdian.
-        hoy = hora_local.localdate()
-        crudo = _pedir("matches", {
-            "dateFrom": (hoy - timedelta(days=1)).isoformat(),
-            "dateTo": (hoy + timedelta(days=1)).isoformat(),
-        })
-        vivos = {"IN_PLAY", "PAUSED"}
-        datos = [_partido(m) for m in crudo.get("matches", [])
-                 if m.get("status") in vivos and _cubierta(m)]
-        cache.set("partidos_vivo_v3", datos, 30)
-    return datos
+    #Si la API falla no se usa la copia vieja: un marcador en vivo atrasado
+    #es peor que ninguno.
+    return _partidos_cacheados("partidos_vivo_v4", 30, _buscar_vivos, lambda viejos: [])
+
+def _buscar_vivos():
+    #Ventana de 3 dias, no solo hoy: football-data fecha los partidos en UTC.
+    #Un partido de las 22:30 UTC del domingo cae en lunes para un servidor
+    #en UTC y en domingo para uno en Bogota; con un solo dia se perdian.
+    hoy = hora_local.localdate()
+    crudo = _pedir("matches", {
+        "dateFrom": (hoy - timedelta(days=1)).isoformat(),
+        "dateTo": (hoy + timedelta(days=1)).isoformat(),
+    })
+    if "matches" not in crudo:
+        return None
+    vivos = {"IN_PLAY", "PAUSED"}
+    return [_partido(m) for m in crudo["matches"]
+            if m.get("status") in vivos and _cubierta(m)]
 
 #Cache de las tablas y los equipos.
 #
@@ -329,14 +380,6 @@ MAX_TARJETAS = 6
 # ------------------------------------------------------------
 MAX_RESUELTOS = 0
 MOSTRAR_BALANCE = False
-
-def _partidos_crudos(desde, hasta):
-    llave = f"crudos_{desde}_{hasta}"
-    datos = cache.get(llave)
-    if datos is None:
-        datos = _pedir("matches", {"dateFrom": desde, "dateTo": hasta}).get("matches", [])
-        cache.set(llave, datos, 180)
-    return datos
 
 def _dias_desde(fecha_txt):
     #Dias entre una fecha YYYY-MM-DD y hoy (hora de Colombia), o None
