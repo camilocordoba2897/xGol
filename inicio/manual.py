@@ -14,15 +14,21 @@
 #    (pie de la captura ampliada), data-name/data-sec/data-group (nombre de
 #    la pagina en la barra) y la descripcion de la pagina.
 #  - Los pocos textos que escribe el script del manual (TEXTOS_SCRIPT).
-#Las capturas son imagenes: quedan como se tomaron.
+#  - Las capturas: cada idioma tiene las suyas en static/manual/capturas/<idioma>/,
+#    con el nombre de la huella de la captura en español, y marcas.json con
+#    donde quedan los numeros sobre ellas. Si falta una, queda la española.
+import hashlib
+import json
 import re
 from bisect import bisect_right
 from functools import lru_cache
 
 from django.conf import settings
+from django.templatetags.static import static
 from django.utils import translation
 
 RUTA = settings.BASE_DIR / "static" / "manual" / "manual-de-usuario.html"
+CAPTURAS = settings.BASE_DIR / "static" / "manual" / "capturas"
 CONTEXTO = "manual"
 
 #Etiquetas que van dentro de una frase
@@ -43,6 +49,8 @@ _ETIQUETA = re.compile(r"<(/?)([a-zA-Z][a-zA-Z0-9]*)")
 _ATRIBUTO = re.compile(r'(\s(?:%s)=")([^"]*)(")' % "|".join(ATRIBUTOS))
 _DESCRIPCION = re.compile(r'(<meta name="description" content=")([^"]*)(")')
 _SCRIPT = re.compile(r"(<script\b[^>]*>)(.*?)(</script>)", re.S | re.I)
+_IMAGEN = re.compile(r'<img\b[^>]*\bsrc="(data:image/[^"]+)"')
+_MARCA = re.compile(r'<span class="pin" style="(left:[\d.]+%;top:[\d.]+%)"')
 _LETRA = re.compile(r"[^\W\d_]")
 _ESPACIOS = re.compile(r"\s+")
 _PRECIO = re.compile(r"\$\d{1,3}(?:\.\d{3})+")
@@ -51,9 +59,10 @@ _PORCENTAJE = re.compile(r"\d %")
 
 def _traducible(texto):
     #Con letras, y que no sea la marca ni una direccion del sitio. Los
-    #precios y porcentajes tambien: en ingles van $10,000 y 70%.
+    #precios, porcentajes y la cuota del ejemplo tambien: en ingles van
+    #$10,000 y 70%, y la cuota cambia con la captura de cada idioma.
     plano = re.sub(r"<[^>]*>|&\w+;", "", texto).strip()
-    if _PRECIO.search(plano) or _PORCENTAJE.search(plano):
+    if _PRECIO.search(plano) or _PORCENTAJE.search(plano) or "÷" in plano:
         return True
     return bool(_LETRA.search(plano)) and plano not in NO_SE_TRADUCE and not re.fullmatch(r"\S*[./]\S*", plano)
 
@@ -234,6 +243,37 @@ def traducir(html):
     return html.replace('<html lang="es">', f'<html lang="{lang}">', 1)
 
 
+def huella(imagen):
+    #Nombre de la captura traducida: sale de la captura en español
+    return hashlib.sha1(imagen.encode()).hexdigest()[:12]
+
+
+def _capturas(html, idioma):
+    carpeta = CAPTURAS / idioma
+    if not carpeta.is_dir():
+        return html
+    try:
+        marcas = json.loads((carpeta / "marcas.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        marcas = {}
+    cambios = []
+    for m in _IMAGEN.finditer(html):
+        clave = huella(m.group(1))
+        if not (carpeta / f"{clave}.webp").exists():
+            continue
+        try:
+            url = static(f"manual/capturas/{idioma}/{clave}.webp")
+        except ValueError:
+            continue
+        cambios.append((m.start(1), m.end(1), url))
+        #Las marcas van despues de la imagen, dentro de su mismo recuadro
+        fin = html.find("</div>", m.end())
+        for marca, nueva in zip(_MARCA.finditer(html, m.end(), fin), marcas.get(clave, [])):
+            if nueva:
+                cambios.append((marca.start(1), marca.end(1), f"left:{nueva[0]}%;top:{nueva[1]}%"))
+    return _reemplazar(html, sorted(cambios))
+
+
 def original():
     return RUTA.read_text(encoding="utf-8")
 
@@ -241,7 +281,7 @@ def original():
 @lru_cache(maxsize=8)
 def _en_idioma(idioma, marca):
     with translation.override(idioma):
-        return traducir(original())
+        return _capturas(traducir(original()), idioma)
 
 
 def manual_en(idioma):

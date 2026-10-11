@@ -148,7 +148,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
 #Español es el idioma del sitio: los textos del codigo estan en español y
-#las traducciones a los otros tres idiomas estan en locale/. El idioma solo
+#las traducciones a los otros tres idiomas estan en xgol/traducciones/. El idioma solo
 #cambia cuando la persona lo elige con las banderas del home (cookie); no se
 #adivina por el navegador. Ver xgol/idioma.py.
 LANGUAGE_CODE = 'es'
@@ -158,7 +158,7 @@ LANGUAGES = [
     ('pt-br', 'Português'),
     ('de', 'Deutsch'),
 ]
-LOCALE_PATHS = [BASE_DIR / 'locale']
+LOCALE_PATHS = [BASE_DIR / 'xgol' / 'traducciones']
 LANGUAGE_COOKIE_AGE = 60 * 60 * 24 * 365
 #Los numeros se escriben igual en los cuatro idiomas (punto decimal, como
 #siempre): varias plantillas usan esos numeros en anchos y graficas, y con

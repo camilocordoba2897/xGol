@@ -63,7 +63,7 @@ def _version_textos():
     #Cambia cada vez que se recompilan las traducciones: asi el navegador no
     #se queda con textos viejos del catalogo de JavaScript.
     total = 0
-    for mo in Path(settings.BASE_DIR, "locale").glob("*/LC_MESSAGES/*.mo"):
+    for mo in Path(settings.LOCALE_PATHS[0]).glob("*/LC_MESSAGES/*.mo"):
         datos = mo.stat()
         total += int(datos.st_mtime) + datos.st_size
     return str(total)
