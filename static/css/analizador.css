@@ -233,15 +233,6 @@ button.btn:hover{background:var(--accent-deep)}
 
 /* fila de línea / apuesta (nivel hoja) */
 
-/* Toggle cancha neutral */
-.neutral-toggle{display:inline-flex;align-items:center;gap:9px;cursor:pointer;margin-bottom:10px;user-select:none}
-.neutral-toggle input{display:none}
-.neutral-slider{position:relative;width:38px;height:21px;background:var(--line);border-radius:21px;transition:background .2s;flex-shrink:0}
-.neutral-slider::after{content:'';position:absolute;top:2px;left:2px;width:17px;height:17px;background:var(--text-2);border-radius:50%;transition:all .2s}
-.neutral-toggle input:checked + .neutral-slider{background:#4c2d8a}
-.neutral-toggle input:checked + .neutral-slider::after{transform:translateX(17px);background:var(--purple)}
-.neutral-label{font-size:12px;color:var(--text-0);font-weight:600}
-
 /* ============================================================
    CAPA DE REFINAMIENTO — elevación, hover, micro-interacciones
    ============================================================ */
@@ -493,8 +484,6 @@ html[data-modo="claro"] button.btn:hover{background:#c2e8d5;filter:none}
 /* Paneles que tenian color fijo */
 
 /* Zona morada (constructor de combinadas) */
-
-html[data-modo="claro"] .neutral-toggle input:checked + .neutral-slider{background:#6d4bc4}
 
 /* Boton de volver al inicio */
 html[data-modo="claro"] .volver-inicio{color:#2f3b35;border-color:var(--line);background:#ffffff}

@@ -5,7 +5,7 @@
    Jerarquía en tres niveles, que es el cambio de fondo:
      NIVEL 1  la respuesta  → primera .pr-card, tipografía enorme
      NIVEL 2  el soporte    → .pr-card, tarjetas normales
-     NIVEL 3  el detalle    → .pr-ajustes, contenido plegable
+     NIVEL 3  el detalle    → .pr-modelo, el pie con los goles esperados
 
    Solo usa las variables de analizador.css: ningún color suelto,
    por lo que el modo claro sale solo. NO cambia ninguna clase que
@@ -467,23 +467,8 @@ html[data-modo="claro"] .pr-volver:hover{
 .fm-vacio{padding:22px 10px;text-align:center;font-size:12.5px;color:var(--text-3)}
 
 /* ============================================================
-   NIVEL 3 — DETALLE PLEGABLE (ajustes del modelo)
+   NIVEL 3 — DETALLE (pie del modelo)
    ============================================================ */
-.pr-ajustes{
-  border:1px solid var(--line-soft);border-radius:var(--r-md);
-  background:var(--bg-1);padding:0 18px;margin-bottom:12px;
-}
-.pr-ajustes > summary{
-  cursor:pointer;list-style:none;padding:14px 0;
-  font-family:var(--font-eyebrow);font-size:11px;font-weight:800;
-  text-transform:uppercase;letter-spacing:.11em;color:var(--text-3);
-  transition:color .15s var(--ease-out);
-}
-.pr-ajustes > summary::-webkit-details-marker{display:none}
-.pr-ajustes > summary::before{content:'\25B8\A0';color:var(--accent)}
-.pr-ajustes[open] > summary::before{content:'\25BE\A0'}
-.pr-ajustes > summary:hover{color:var(--text-1)}
-.pr-ajustes[open]{padding-bottom:18px}
 .pr-modelo{font-size:12px;color:var(--text-3);line-height:1.65}
 
 /* ============================================================

@@ -961,14 +961,6 @@ function fmt(v) { return (+v).toFixed(1); }
 function fmt2(v) { return (+v).toFixed(2); }
 
 // ============================================================
-//  CANCHA NEUTRAL (interruptor del pronostico, lo pinta vista.js)
-// ============================================================
-function toggleNeutral(on) {
-  neutralVenue = !!on;
-  renderAll();
-}
-
-// ============================================================
 //  REGISTRO DE PRONOSTICOS EVALUADOS
 //  seguimiento.js evalua cada partido pronosticado cuando termina y lo
 //  agrega aqui. Se guarda por usuario en la base; el panel del

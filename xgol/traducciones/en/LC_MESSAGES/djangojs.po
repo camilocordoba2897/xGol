@@ -944,59 +944,51 @@ msgstr "Recent form"
 msgid "Los últimos resultados de cada equipo. Las pestañas <strong>Casa</strong> y <strong>Fuera</strong> filtran solo esos partidos, que es donde suelen verse las diferencias grandes entre un equipo y otro."
 msgstr "Each team's latest results. The <strong>Home</strong> and <strong>Away</strong> tabs filter only those matches, which is where the big differences between teams usually show."
 
-#: static/js/tour.js:184 static/js/vista.js:482
-msgid "Ajustes del partido"
-msgstr "Match settings"
-
-#: static/js/tour.js:185
-msgid "Ábrelo si hay algo que el historial no sabe. <strong>Cancha neutral</strong> quita la ventaja de local (útil en finales), y dentro puedes marcar bajas o contexto. Todo se <strong>recalcula al instante</strong>."
-msgstr "Open it if there's something the history doesn't know. <strong>Neutral venue</strong> removes home advantage (useful for finals), and inside you can mark absences or context. Everything is <strong>recalculated instantly</strong>."
-
-#: static/js/tour.js:189
+#: static/js/tour.js:184
 msgid "De dónde salen los números"
 msgstr "Where the numbers come from"
 
-#: static/js/tour.js:190
+#: static/js/tour.js:185
 msgid "Los <strong>goles esperados</strong> de cada equipo y con cuántos partidos se calcularon. El modelo es Poisson con corrección Dixon-Coles: más partidos en el historial, resultado más fiable."
 msgstr "Each team's <strong>expected goals</strong> and how many matches they were calculated from. The model is Poisson with the Dixon-Coles correction: more matches in the history, more reliable result."
 
-#: static/js/tour.js:194
+#: static/js/tour.js:189
 msgid "Volver atrás"
 msgstr "Go back"
 
-#: static/js/tour.js:195
+#: static/js/tour.js:190
 msgid "Te devuelve a la lista sin perder nada: la liga y la fecha que tenías siguen puestas."
 msgstr "Takes you back to the list without losing anything: the league and date you had are still set."
 
-#: static/js/tour.js:199
+#: static/js/tour.js:194
 msgid "Eso es todo"
 msgstr "That's all"
 
-#: static/js/tour.js:200
+#: static/js/tour.js:195
 msgid "Un último recordatorio: esto son <strong>probabilidades</strong>, no predicciones seguras. Ningún modelo acierta siempre. Apuesta responsablemente."
 msgstr "One last reminder: these are <strong>probabilities</strong>, not sure predictions. No model is always right. Bet responsibly."
 
-#: static/js/tour.js:271 static/js/tour_panel.js:128
+#: static/js/tour.js:266 static/js/tour_panel.js:128
 msgid "Cerrar guía"
 msgstr "Close guide"
 
-#: static/js/tour.js:277 static/js/tour_panel.js:134
+#: static/js/tour.js:272 static/js/tour_panel.js:134
 msgid "Atrás"
 msgstr "Back"
 
-#: static/js/tour.js:278 static/js/tour.js:455 static/js/tour_panel.js:135
+#: static/js/tour.js:273 static/js/tour.js:450 static/js/tour_panel.js:135
 msgid "Siguiente"
 msgstr "Next"
 
-#: static/js/tour.js:455 static/js/tour_panel.js:302
+#: static/js/tour.js:450 static/js/tour_panel.js:302
 msgid "Entendido"
 msgstr "Got it"
 
-#: static/js/tour.js:494
+#: static/js/tour.js:489
 msgid "Guía no disponible"
 msgstr "Guide not available"
 
-#: static/js/tour.js:495
+#: static/js/tour.js:490
 msgid "Esta pantalla todavía se está cargando. Vuelve a tocar el botón <strong>?</strong> en un momento."
 msgstr "This screen is still loading. Tap the <strong>?</strong> button again in a moment."
 
@@ -1344,11 +1336,3 @@ msgstr "Local calculation"
 #: static/js/vista.js:451
 msgid "Poisson + Dixon-Coles sobre los últimos %s partidos de cada equipo"
 msgstr "Poisson + Dixon-Coles over each team's last %s matches"
-
-#: static/js/vista.js:483
-msgid "Actívalo para finales o partidos en sede única: no se aplica ventaja local a ningún equipo."
-msgstr "Turn it on for finals or single-venue matches: no home advantage is applied to either team."
-
-#: static/js/vista.js:486
-msgid "Cancha neutral"
-msgstr "Neutral venue"

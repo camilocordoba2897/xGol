@@ -3,7 +3,7 @@
 //
 //  Sobrescribe renderAll() para pintar solo las tarjetas del video.
 //  NO toca analizador.js: reutiliza tal cual computeStats(),
-//  buildModel(), toggleNeutral(), pct(), fmt() y el estado global.
+//  buildModel(), pct(), fmt() y el estado global.
 //
 //  Orden de carga obligatorio en la plantilla:
 //    analizador.js  ->  vista.js  ->  auto.js
@@ -478,14 +478,6 @@
         tarjetaForma('team1') +
         tarjetaForma('team2') +
       '</div>' +
-      '<details class="pr-ajustes">' +
-        '<summary>' + gettext('Ajustes del partido') + '</summary>' +
-        '<label class="neutral-toggle" title="' + escapar(gettext('Actívalo para finales o partidos en sede única: no se aplica ventaja local a ningún equipo.')) + '">' +
-          '<input type="checkbox" ' + (model.neutral ? 'checked' : '') + ' onchange="toggleNeutral(this.checked)">' +
-          '<span class="neutral-slider"></span>' +
-          '<span class="neutral-label">' + gettext('Cancha neutral') + '</span>' +
-        '</label>' +
-      '</details>' +
       pieModelo(model, s1);
     // Ya no van arbitro, clasico, eliminatoria ni "necesita ganar": solo
     // movian tarjetas, corners y tiros, que no se muestran en el pronostico.

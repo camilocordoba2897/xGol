@@ -944,59 +944,51 @@ msgstr "Aktuelle Form"
 msgid "Los últimos resultados de cada equipo. Las pestañas <strong>Casa</strong> y <strong>Fuera</strong> filtran solo esos partidos, que es donde suelen verse las diferencias grandes entre un equipo y otro."
 msgstr "Die letzten Ergebnisse jedes Teams. Die Reiter <strong>Heim</strong> und <strong>Auswärts</strong> filtern nur diese Spiele, denn dort zeigen sich meist die großen Unterschiede zwischen den Teams."
 
-#: static/js/tour.js:184 static/js/vista.js:482
-msgid "Ajustes del partido"
-msgstr "Spieleinstellungen"
-
-#: static/js/tour.js:185
-msgid "Ábrelo si hay algo que el historial no sabe. <strong>Cancha neutral</strong> quita la ventaja de local (útil en finales), y dentro puedes marcar bajas o contexto. Todo se <strong>recalcula al instante</strong>."
-msgstr "Öffnen Sie sie, wenn es etwas gibt, das der Verlauf nicht weiß. <strong>Neutraler Platz</strong> entfernt den Heimvorteil (nützlich bei Finals), und darin können Sie Ausfälle oder Kontext markieren. Alles wird <strong>sofort neu berechnet</strong>."
-
-#: static/js/tour.js:189
+#: static/js/tour.js:184
 msgid "De dónde salen los números"
 msgstr "Woher die Zahlen kommen"
 
-#: static/js/tour.js:190
+#: static/js/tour.js:185
 msgid "Los <strong>goles esperados</strong> de cada equipo y con cuántos partidos se calcularon. El modelo es Poisson con corrección Dixon-Coles: más partidos en el historial, resultado más fiable."
 msgstr "Die <strong>erwarteten Tore</strong> jedes Teams und aus wie vielen Spielen sie berechnet wurden. Das Modell ist Poisson mit Dixon-Coles-Korrektur: Je mehr Spiele im Verlauf, desto verlässlicher das Ergebnis."
 
-#: static/js/tour.js:194
+#: static/js/tour.js:189
 msgid "Volver atrás"
 msgstr "Zurück"
 
-#: static/js/tour.js:195
+#: static/js/tour.js:190
 msgid "Te devuelve a la lista sin perder nada: la liga y la fecha que tenías siguen puestas."
 msgstr "Bringt Sie zurück zur Liste, ohne etwas zu verlieren: Liga und Datum bleiben eingestellt."
 
-#: static/js/tour.js:199
+#: static/js/tour.js:194
 msgid "Eso es todo"
 msgstr "Das war's"
 
-#: static/js/tour.js:200
+#: static/js/tour.js:195
 msgid "Un último recordatorio: esto son <strong>probabilidades</strong>, no predicciones seguras. Ningún modelo acierta siempre. Apuesta responsablemente."
 msgstr "Eine letzte Erinnerung: Das sind <strong>Wahrscheinlichkeiten</strong>, keine sicheren Vorhersagen. Kein Modell liegt immer richtig. Wetten Sie verantwortungsvoll."
 
-#: static/js/tour.js:271 static/js/tour_panel.js:128
+#: static/js/tour.js:266 static/js/tour_panel.js:128
 msgid "Cerrar guía"
 msgstr "Anleitung schließen"
 
-#: static/js/tour.js:277 static/js/tour_panel.js:134
+#: static/js/tour.js:272 static/js/tour_panel.js:134
 msgid "Atrás"
 msgstr "Zurück"
 
-#: static/js/tour.js:278 static/js/tour.js:455 static/js/tour_panel.js:135
+#: static/js/tour.js:273 static/js/tour.js:450 static/js/tour_panel.js:135
 msgid "Siguiente"
 msgstr "Weiter"
 
-#: static/js/tour.js:455 static/js/tour_panel.js:302
+#: static/js/tour.js:450 static/js/tour_panel.js:302
 msgid "Entendido"
 msgstr "Verstanden"
 
-#: static/js/tour.js:494
+#: static/js/tour.js:489
 msgid "Guía no disponible"
 msgstr "Anleitung nicht verfügbar"
 
-#: static/js/tour.js:495
+#: static/js/tour.js:490
 msgid "Esta pantalla todavía se está cargando. Vuelve a tocar el botón <strong>?</strong> en un momento."
 msgstr "Dieser Bildschirm lädt noch. Tippen Sie gleich noch einmal auf die Schaltfläche <strong>?</strong>."
 
@@ -1344,11 +1336,3 @@ msgstr "Lokale Berechnung"
 #: static/js/vista.js:451
 msgid "Poisson + Dixon-Coles sobre los últimos %s partidos de cada equipo"
 msgstr "Poisson + Dixon-Coles über die letzten %s Spiele jedes Teams"
-
-#: static/js/vista.js:483
-msgid "Actívalo para finales o partidos en sede única: no se aplica ventaja local a ningún equipo."
-msgstr "Aktivieren Sie dies für Finals oder Spiele an einem neutralen Ort: Kein Team erhält einen Heimvorteil."
-
-#: static/js/vista.js:486
-msgid "Cancha neutral"
-msgstr "Neutraler Platz"

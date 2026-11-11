@@ -180,11 +180,6 @@
       texto: gettext('Los últimos resultados de cada equipo. Las pestañas <strong>Casa</strong> y <strong>Fuera</strong> filtran solo esos partidos, que es donde suelen verse las diferencias grandes entre un equipo y otro.')
     },
     {
-      donde: ['.pr-ajustes'],
-      titulo: gettext('Ajustes del partido'),
-      texto: gettext('Ábrelo si hay algo que el historial no sabe. <strong>Cancha neutral</strong> quita la ventaja de local (útil en finales), y dentro puedes marcar bajas o contexto. Todo se <strong>recalcula al instante</strong>.')
-    },
-    {
       donde: ['.pr-modelo'],
       titulo: gettext('De dónde salen los números'),
       texto: gettext('Los <strong>goles esperados</strong> de cada equipo y con cuántos partidos se calcularon. El modelo es Poisson con corrección Dixon-Coles: más partidos en el historial, resultado más fiable.')
