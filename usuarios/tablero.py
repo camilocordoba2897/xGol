@@ -57,7 +57,7 @@ def perfiles_clientes():
 #Cortes de probabilidad para medir la calibracion del modelo
 RANGOS=[(0.30,0.50),(0.50,0.60),(0.60,0.70),(0.70,0.80),(0.80,0.90),(0.90,1.01)]
 
-#Minimo de apuestas para que un rango o un mercado se pueda juzgar. Con menos
+#Minimo de lineas para que un rango o un mercado se pueda juzgar. Con menos
 #que esto el porcentaje es ruido, no informacion.
 MINIMO_FIABLE=10
 
@@ -281,28 +281,22 @@ def resumen_motor():
 
 
 # ============================================================
-#  MODELO / CASA DE APUESTAS
+#  MODELO / SEGUIMIENTO DEL ANALIZADOR
 #  Sale de RegistroApuesta, que es lo que el analizador ya guarda cada vez
 #  que se registra un partido con su resultado real.
 # ============================================================
 def resumen_modelo():
-  filas=list(RegistroApuesta.objects.all().values("probabilidad","acierto","cuota","propia"))
+  filas=list(RegistroApuesta.objects.all().values("probabilidad","acierto","propia"))
   total=len(filas)
 
   vacio={"total":0,"aciertos":0,"tasa":0,"esperado":0,"sesgo":0,"veredicto":gettext_noop("Sin datos"),
-         "con_cuota":0,"ganancia":0,"roi":None,"propias":0,"cuota_media":0,
-         "referencias":REFERENCIAS,"comparado":veredicto_global(0)}
+         "propias":0,"referencias":REFERENCIAS,"comparado":veredicto_global(0)}
   if total==0:
     return vacio
 
   aciertos=sum(1 for f in filas if f["acierto"])
   esperado=sum(_probabilidad(f["probabilidad"]) for f in filas)/total*100
   tasa=aciertos/total*100
-
-  con_cuota=[f for f in filas if f["cuota"]]
-  ganancia=0.0
-  for f in con_cuota:
-    ganancia=ganancia+((float(f["cuota"])-1) if f["acierto"] else -1)
 
   sesgo=tasa-esperado
   if abs(sesgo)<=3:
@@ -319,13 +313,9 @@ def resumen_modelo():
     "esperado":round(esperado,1),
     "sesgo":round(sesgo,1),
     "veredicto":veredicto,
-    "con_cuota":len(con_cuota),
-    "ganancia":round(ganancia,2),
-    "roi":round(ganancia/len(con_cuota)*100,1) if con_cuota else None,
     "propias":sum(1 for f in filas if f["propia"]),
     "referencias":REFERENCIAS,
     "comparado":veredicto_global(tasa),
-    "cuota_media":round(sum(float(f["cuota"]) for f in con_cuota)/len(con_cuota),2) if con_cuota else 0,
   }
 
 
@@ -367,20 +357,16 @@ def calibracion():
 
 
 def por_mercado():
-  #Que tipo de apuesta acierta y cual pierde plata. Ordenado por volumen para
+  #Que tanto acierta cada tipo de pronostico. Ordenado por volumen para
   #que arriba quede lo que mas se usa, no lo que mejor se ve.
   mapa={}
-  for f in RegistroApuesta.objects.all().values("mercado","probabilidad","acierto","cuota"):
+  for f in RegistroApuesta.objects.all().values("mercado","probabilidad","acierto"):
     clave=f["mercado"] or gettext_noop("Sin mercado")
-    fila=mapa.setdefault(clave,{"mercado":clave,"cuenta":0,"aciertos":0,
-                                "con_cuota":0,"ganancia":0.0,"predicho":0.0})
+    fila=mapa.setdefault(clave,{"mercado":clave,"cuenta":0,"aciertos":0,"predicho":0.0})
     fila["cuenta"]=fila["cuenta"]+1
     fila["predicho"]=fila["predicho"]+_probabilidad(f["probabilidad"])
     if f["acierto"]:
       fila["aciertos"]=fila["aciertos"]+1
-    if f["cuota"]:
-      fila["con_cuota"]=fila["con_cuota"]+1
-      fila["ganancia"]=fila["ganancia"]+((float(f["cuota"])-1) if f["acierto"] else -1)
 
   salida=[]
   for fila in mapa.values():
@@ -391,8 +377,6 @@ def por_mercado():
       "aciertos":fila["aciertos"],
       "tasa":round(fila["aciertos"]/cuenta*100,1),
       "predicho":round(fila["predicho"]/cuenta*100,1),
-      "ganancia":round(fila["ganancia"],2),
-      "roi":round(fila["ganancia"]/fila["con_cuota"]*100,1) if fila["con_cuota"] else None,
       "fiable":cuenta>=MINIMO_FIABLE,
     })
   return sorted(salida,key=lambda f:-f["cuenta"])

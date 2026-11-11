@@ -195,7 +195,7 @@
   //  TARJETA DE DIAGNOSTICO
   //  NO repite los porcentajes (esos ya salen en las tarjetas de
   //  siempre). Enseña de DONDE salen: que dice cada fuente, cuanto
-  //  pesa, cuanta confianza hay y donde la casa paga de mas.
+  //  pesa y cuanta confianza hay.
   // ------------------------------------------------------------
   function tarjetaDiagnostico(d) {
     var diag = d.diagnostico || {};
@@ -217,19 +217,11 @@
         filas + '</tbody></table>'
       : '';
 
-    // Ya NO se marcan "apuestas con valor". Medido en temporadas que el
-    // motor no habia visto: apostar donde el motor veia valor sobre la cuota
-    // perdio entre un 21% y un 38% de lo apostado. Anunciar valor sin nada
-    // que lo respalde es inventar numeros, asi que se dice la verdad.
-    var bloqueValor = '<div class="mx-nota">' +
-      gettext('xGol no marca apuestas «de valor»: en temporadas que el motor no había visto, apostar donde veía valor sobre la cuota perdió dinero. El mercado de apuestas es muy difícil de batir.') +
-      '</div>';
-
     var rh = d.rendimiento_historico, bloqueRend = '';
-    if (rh && rh.partidos > 0 && rh.log_perdida != null) {
+    if (rh && rh.partidos > 0) {
       bloqueRend = '<div class="mx-nota">' +
-        interpolate(gettext('Historial del motor: <b>%(partidos)s</b> partidos evaluados &middot; log-pérdida <b>%(perdida)s</b> (menos es mejor &middot; 1.0986 = no saber nada)'),
-                    { partidos: rh.partidos, perdida: rh.log_perdida.toFixed(4) }, true) +
+        interpolate(gettext('Historial del motor: <b>%(partidos)s</b> partidos evaluados'),
+                    { partidos: rh.partidos }, true) +
         (rh.acierto != null ? ' &middot; ' + interpolate(gettext('acierto <b>%s%</b>'), [(rh.acierto * 100).toFixed(1)]) : '') +
         '</div>';
     }
@@ -245,7 +237,7 @@
 
     return '<div class="pr-card mx-card">' +
       '<div class="pr-titulo">' + gettext('De dónde sale este pronóstico') + ' ' + etiquetaConf + '</div>' +
-      tabla + bloqueValor + bloqueRend + avisos +
+      tabla + bloqueRend + avisos +
       '<div class="mx-nota">' +
       gettext('Todas las tarjetas de esta pantalla salen de la misma matriz de marcadores, por eso nunca se contradicen entre sí. No es una recomendación de apuesta.') +
       '</div>' +

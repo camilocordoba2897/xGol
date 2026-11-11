@@ -273,7 +273,7 @@ msgstr "Analysis Terminal"
 msgid "xGol — Predicción de fútbol con Inteligencia Artificial"
 msgstr "xGol — AI-powered soccer predictions"
 
-#: inicio/templates/inicio.html:41 usuarios/templates/panel_admin.html:272
+#: inicio/templates/inicio.html:41 usuarios/templates/panel_admin.html:262
 msgid "Partidos"
 msgstr "Matches"
 
@@ -522,7 +522,7 @@ msgstr "Full access to the analyzer"
 msgid "Predicciones y probabilidades ilimitadas"
 msgstr "Unlimited predictions and probabilities"
 
-#: inicio/templates/inicio.html:318 suscripciones/templates/suscripcion.html:92
+#: inicio/templates/inicio.html:318 suscripciones/templates/checkout.html:89 suscripciones/templates/suscripcion.html:92
 msgid "Todos los mercados y estadísticas"
 msgstr "All markets and statistics"
 
@@ -639,11 +639,11 @@ msgstr "Open the analyzer"
 msgid "Empieza a predecir"
 msgstr "Start predicting"
 
-#: inicio/templates/inicio.html:427 usuarios/templates/panel_admin.html:594
+#: inicio/templates/inicio.html:427 usuarios/templates/panel_admin.html:569
 msgid "Anterior"
 msgstr "Previous"
 
-#: inicio/templates/inicio.html:433 usuarios/templates/panel_admin.html:596
+#: inicio/templates/inicio.html:433 usuarios/templates/panel_admin.html:571
 msgid "Siguiente"
 msgstr "Next"
 
@@ -900,7 +900,7 @@ msgstr "10. Contact"
 msgid "Para dudas sobre estos Términos, escríbenos a [correo de contacto de xGol]."
 msgstr "For questions about these Terms, write to us at [xGol contact email]."
 
-#: usuarios/templates/admin_crear_usuario.html:5 usuarios/templates/admin_crear_usuario.html:90 usuarios/templates/panel_admin.html:661
+#: usuarios/templates/admin_crear_usuario.html:5 usuarios/templates/admin_crear_usuario.html:90 usuarios/templates/panel_admin.html:636
 msgid "Crear usuario"
 msgstr "Create user"
 
@@ -912,7 +912,7 @@ msgstr "Badge"
 msgid "@usuario"
 msgstr "@username"
 
-#: usuarios/templates/admin_crear_usuario.html:38 usuarios/templates/panel_admin.html:669
+#: usuarios/templates/admin_crear_usuario.html:38 usuarios/templates/panel_admin.html:644
 msgid "sin correo"
 msgstr "no email"
 
@@ -1021,19 +1021,19 @@ msgstr "Save changes"
 msgid "Sin correo"
 msgstr "No email"
 
-#: usuarios/templates/admin_editar_usuario.html:89 usuarios/templates/panel_admin.html:667
+#: usuarios/templates/admin_editar_usuario.html:89 usuarios/templates/panel_admin.html:642
 msgid "Cuenta"
 msgstr "Account"
 
-#: usuarios/templates/admin_editar_usuario.html:90 usuarios/templates/panel_admin.html:706 suscripciones/templates/suscripcion.html:33
+#: usuarios/templates/admin_editar_usuario.html:90 usuarios/templates/panel_admin.html:681 suscripciones/templates/suscripcion.html:33
 msgid "Activa"
 msgstr "Active"
 
-#: usuarios/templates/admin_editar_usuario.html:90 usuarios/templates/panel_admin.html:707
+#: usuarios/templates/admin_editar_usuario.html:90 usuarios/templates/panel_admin.html:682
 msgid "Bloqueada"
 msgstr "Blocked"
 
-#: usuarios/templates/admin_editar_usuario.html:93 usuarios/templates/panel_admin.html:667 suscripciones/templates/suscripcion.html:7
+#: usuarios/templates/admin_editar_usuario.html:93 usuarios/templates/panel_admin.html:642 suscripciones/templates/suscripcion.html:7
 msgid "Suscripción"
 msgstr "Subscription"
 
@@ -1042,7 +1042,7 @@ msgstr "Subscription"
 msgid "vence %(fecha)s"
 msgstr "expires %(fecha)s"
 
-#: usuarios/templates/admin_editar_usuario.html:99 usuarios/templates/panel_admin.html:481 usuarios/templates/panel_admin.html:698
+#: usuarios/templates/admin_editar_usuario.html:99 usuarios/templates/panel_admin.html:456 usuarios/templates/panel_admin.html:673
 msgid "Sin suscripción"
 msgstr "No subscription"
 
@@ -1146,7 +1146,7 @@ msgstr "Numbers only"
 msgid "Entre 6 y 10 dígitos, sin puntos ni letras"
 msgstr "Between 6 and 10 digits, no periods or letters"
 
-#: usuarios/templates/editar_perfil.html:75 usuarios/templates/editar_perfil.html:195 usuarios/templates/panel_admin.html:690
+#: usuarios/templates/editar_perfil.html:75 usuarios/templates/editar_perfil.html:195 usuarios/templates/panel_admin.html:665
 msgid "Fecha de nacimiento"
 msgstr "Date of birth"
 
@@ -1326,15 +1326,15 @@ msgstr "Overview"
 msgid "Modelo"
 msgstr "Model"
 
-#: usuarios/templates/panel_admin.html:52 usuarios/templates/panel_admin.html:410
+#: usuarios/templates/panel_admin.html:52 usuarios/templates/panel_admin.html:385
 msgid "Dinero"
 msgstr "Money"
 
-#: usuarios/templates/panel_admin.html:55 usuarios/templates/panel_admin.html:136 usuarios/templates/panel_admin.html:620
+#: usuarios/templates/panel_admin.html:55 usuarios/templates/panel_admin.html:136 usuarios/templates/panel_admin.html:595
 msgid "Usuarios"
 msgstr "Users"
 
-#: usuarios/templates/panel_admin.html:58 usuarios/templates/panel_admin.html:748
+#: usuarios/templates/panel_admin.html:58 usuarios/templates/panel_admin.html:723
 msgid "Accesos"
 msgstr "Sign-ins"
 
@@ -1361,7 +1361,7 @@ msgid_plural "%(n)s nuevos en 30 días"
 msgstr[0] "%(n)s new in 30 days"
 msgstr[1] "%(n)s new in 30 days"
 
-#: usuarios/templates/panel_admin.html:150 usuarios/templates/panel_admin.html:474 suscripciones/models.py:33
+#: usuarios/templates/panel_admin.html:150 usuarios/templates/panel_admin.html:449 suscripciones/models.py:33
 msgid "Suscripciones"
 msgstr "Subscriptions"
 
@@ -1374,7 +1374,7 @@ msgstr "%(p)s%% of users pay"
 msgid "Ingresos del mes"
 msgstr "Revenue this month"
 
-#: usuarios/templates/panel_admin.html:166 usuarios/templates/panel_admin.html:426 usuarios/templates/panel_admin.html:427
+#: usuarios/templates/panel_admin.html:166 usuarios/templates/panel_admin.html:401 usuarios/templates/panel_admin.html:402
 #, python-format
 msgid "%(n)s venta"
 msgid_plural "%(n)s ventas"
@@ -1390,7 +1390,7 @@ msgstr "Model accuracy"
 msgid "1X2 · %(n)s partidos medidos a ciegas"
 msgstr "1X2 · %(n)s matches measured blind"
 
-#: usuarios/templates/panel_admin.html:180 usuarios/templates/panel_admin.html:313
+#: usuarios/templates/panel_admin.html:180 usuarios/templates/panel_admin.html:302
 msgid "El motor aún se está calibrando"
 msgstr "The engine is still calibrating"
 
@@ -1435,612 +1435,578 @@ msgstr "Prediction engine"
 msgid "Acierto 1X2"
 msgstr "1X2 accuracy"
 
-#: usuarios/templates/panel_admin.html:224 usuarios/templates/panel_admin.html:272
-msgid "RPS"
-msgstr "RPS"
-
-#: usuarios/templates/panel_admin.html:226
-msgid "0,19 a 0,21 es un buen modelo"
-msgstr "0.19 to 0.21 is a good model"
-
-#: usuarios/templates/panel_admin.html:229
-msgid "Log-pérdida"
-msgstr "Log loss"
-
-#: usuarios/templates/panel_admin.html:231
-msgid "1,099 es no saber nada"
-msgstr "1.099 means knowing nothing"
-
-#: usuarios/templates/panel_admin.html:234
+#: usuarios/templates/panel_admin.html:224
 msgid "Partidos medidos"
 msgstr "Matches measured"
 
-#: usuarios/templates/panel_admin.html:236
+#: usuarios/templates/panel_admin.html:226
 #, python-format
 msgid "en %(n)s ligas, sin ver el resultado"
 msgstr "in %(n)s leagues, without seeing the result"
 
-#: usuarios/templates/panel_admin.html:242
+#: usuarios/templates/panel_admin.html:232
 msgid "Dónde caes frente a la referencia real"
 msgstr "Where you stand against the real benchmark"
 
-#: usuarios/templates/panel_admin.html:243
+#: usuarios/templates/panel_admin.html:233
 msgid "Acierto 1X2 del motor contra los rangos documentados en estudios públicos de predicción de fútbol."
 msgstr "The engine's 1X2 accuracy against the ranges documented in public soccer prediction studies."
 
-#: usuarios/templates/panel_admin.html:256
+#: usuarios/templates/panel_admin.html:246
 msgid "41%% suelo"
 msgstr "41%% floor"
 
-#: usuarios/templates/panel_admin.html:256
+#: usuarios/templates/panel_admin.html:246
 msgid "55.9%% tope 1X2"
 msgstr "55.9%% 1X2 ceiling"
 
-#: usuarios/templates/panel_admin.html:256
+#: usuarios/templates/panel_admin.html:246
 msgid "70%% dudoso"
 msgstr "70%% doubtful"
 
-#: usuarios/templates/panel_admin.html:260
+#: usuarios/templates/panel_admin.html:250
 msgid "<b>41%%</b> es acertar siempre al local · <b>55.9%%</b> es el mejor 1X2 documentado · por encima de <b>70%%</b> sostenido no hay modelo público creíble."
 msgstr "<b>41%%</b> is always picking the home team · <b>55.9%%</b> is the best documented 1X2 · above <b>70%%</b> sustained there is no credible public model."
 
-#: usuarios/templates/panel_admin.html:267
+#: usuarios/templates/panel_admin.html:257
 msgid "Por liga"
 msgstr "By league"
 
-#: usuarios/templates/panel_admin.html:268
+#: usuarios/templates/panel_admin.html:258
 msgid "Cada temporada se pronosticó sin ver su futuro."
 msgstr "Each season was predicted without seeing its future."
 
-#: usuarios/templates/panel_admin.html:272
+#: usuarios/templates/panel_admin.html:262
 msgid "Liga"
 msgstr "League"
 
-#: usuarios/templates/panel_admin.html:272 usuarios/templates/panel_admin.html:379
+#: usuarios/templates/panel_admin.html:262 usuarios/templates/panel_admin.html:358
 msgid "Acierto"
 msgstr "Accuracy"
 
-#: usuarios/templates/panel_admin.html:290
+#: usuarios/templates/panel_admin.html:279
 msgid "En 1X2 lo normal está entre <b>50%%</b> y <b>55%%</b>: hay tres resultados posibles."
 msgstr "In 1X2, normal is between <b>50%%</b> and <b>55%%</b>: there are three possible outcomes."
 
-#: usuarios/templates/panel_admin.html:295
+#: usuarios/templates/panel_admin.html:284
 msgid "Pronósticos en vivo"
 msgstr "Live predictions"
 
-#: usuarios/templates/panel_admin.html:296
+#: usuarios/templates/panel_admin.html:285
 msgid "Guardados antes de cada partido y evaluados solos cuando termina."
 msgstr "Saved before each match and evaluated automatically when it ends."
 
-#: usuarios/templates/panel_admin.html:301
+#: usuarios/templates/panel_admin.html:290
 msgid "Guardados"
 msgstr "Saved"
 
-#: usuarios/templates/panel_admin.html:302
+#: usuarios/templates/panel_admin.html:291
 msgid "Esperando resultado"
 msgstr "Awaiting result"
 
-#: usuarios/templates/panel_admin.html:303
+#: usuarios/templates/panel_admin.html:292
 msgid "Evaluados"
 msgstr "Evaluated"
 
-#: usuarios/templates/panel_admin.html:304
+#: usuarios/templates/panel_admin.html:293
 msgid "Acierto en vivo"
 msgstr "Live accuracy"
 
-#: usuarios/templates/panel_admin.html:304
+#: usuarios/templates/panel_admin.html:293
 #, python-format
 msgid "%(p)s%% (%(a)s de %(t)s)"
 msgstr "%(p)s%% (%(a)s of %(t)s)"
 
-#: usuarios/templates/panel_admin.html:305
+#: usuarios/templates/panel_admin.html:294
 msgid "Descartados"
 msgstr "Discarded"
 
-#: usuarios/templates/panel_admin.html:309
+#: usuarios/templates/panel_admin.html:298
 msgid "Con menos de <b>200</b> partidos en vivo el porcentaje todavía es ruido: manda la medición a ciegas."
 msgstr "With fewer than <b>200</b> live matches the percentage is still noise: the blind measurement is what counts."
 
-#: usuarios/templates/panel_admin.html:309
+#: usuarios/templates/panel_admin.html:298
 msgid "Los descartados se pidieron después del saque y no cuentan."
 msgstr "Discarded ones were requested after kickoff and don't count."
 
-#: usuarios/templates/panel_admin.html:313
+#: usuarios/templates/panel_admin.html:302
 msgid "Se calibra solo con el histórico de cada liga; en unos minutos aparecen sus métricas."
 msgstr "It calibrates itself with each league's history; its metrics will appear in a few minutes."
 
-#: usuarios/templates/panel_admin.html:316
+#: usuarios/templates/panel_admin.html:305
 msgid "Seguimiento del analizador"
 msgstr "Analyzer tracking"
 
-#: usuarios/templates/panel_admin.html:321
+#: usuarios/templates/panel_admin.html:310
 msgid "Acierto real"
 msgstr "Actual accuracy"
 
-#: usuarios/templates/panel_admin.html:323
+#: usuarios/templates/panel_admin.html:312
 #, python-format
 msgid "%(a)s de %(t)s líneas"
 msgstr "%(a)s of %(t)s lines"
 
-#: usuarios/templates/panel_admin.html:326
+#: usuarios/templates/panel_admin.html:315
 msgid "Sesgo"
 msgstr "Bias"
 
-#: usuarios/templates/panel_admin.html:327
+#: usuarios/templates/panel_admin.html:316
 msgid "pts"
 msgstr "pts"
 
-#: usuarios/templates/panel_admin.html:328
+#: usuarios/templates/panel_admin.html:317
 #, python-format
 msgid "prometía %(p)s%%"
 msgstr "promised %(p)s%%"
 
-#: usuarios/templates/panel_admin.html:331 usuarios/templates/panel_admin.html:379
-msgid "ROI"
-msgstr "ROI"
-
-#: usuarios/templates/panel_admin.html:333
-#, python-format
-msgid "%(g)s u. en %(n)s apuestas"
-msgstr "%(g)s u. over %(n)s bets"
-
-#: usuarios/templates/panel_admin.html:336
-msgid "Muestra"
-msgstr "Sample"
-
-#: usuarios/templates/panel_admin.html:338
-#, python-format
-msgid "cuota media %(c)s"
-msgstr "average odds %(c)s"
-
-#: usuarios/templates/panel_admin.html:345
+#: usuarios/templates/panel_admin.html:324
 msgid "Calibración"
 msgstr "Calibration"
 
-#: usuarios/templates/panel_admin.html:346
+#: usuarios/templates/panel_admin.html:325
 msgid "Si dijo 70%%, debería acertar 7 de cada 10."
 msgstr "If it said 70%%, it should be right 7 times out of 10."
 
-#: usuarios/templates/panel_admin.html:357
+#: usuarios/templates/panel_admin.html:336
 msgid "Prometió"
 msgstr "Promised"
 
-#: usuarios/templates/panel_admin.html:362
+#: usuarios/templates/panel_admin.html:341
 msgid "Acertó"
 msgstr "Hit"
 
-#: usuarios/templates/panel_admin.html:369
+#: usuarios/templates/panel_admin.html:348
 msgid "<b>Optimista</b> promete de más · <b>Conservador</b> se queda corto · <b>Ajustado</b> cumple."
 msgstr "<b>Optimistic</b> overpromises · <b>Conservative</b> falls short · <b>On target</b> delivers."
 
-#: usuarios/templates/panel_admin.html:374
+#: usuarios/templates/panel_admin.html:353
 msgid "Por mercado"
 msgstr "By market"
 
-#: usuarios/templates/panel_admin.html:375
-msgid "Qué tipo de apuesta deja plata."
-msgstr "Which type of bet makes money."
+#: usuarios/templates/panel_admin.html:354
+msgid "Qué tanto acierta cada tipo de pronóstico."
+msgstr "How often each type of prediction is right."
 
-#: usuarios/templates/panel_admin.html:379
+#: usuarios/templates/panel_admin.html:358
 msgid "Mercado"
 msgstr "Market"
 
-#: usuarios/templates/panel_admin.html:379
+#: usuarios/templates/panel_admin.html:358
 msgid "Aciertos"
 msgstr "Hits"
 
-#: usuarios/templates/panel_admin.html:383
+#: usuarios/templates/panel_admin.html:362
 msgid "pocos datos"
 msgstr "little data"
 
-#: usuarios/templates/panel_admin.html:398
-msgid "ROI negativo pierde plata aunque acierte mucho: la cuota es muy baja."
-msgstr "Negative ROI loses money even with many hits: the odds are too low."
+#: usuarios/templates/panel_admin.html:373
+msgid "Arriba sale el que más se usa · con <b>pocos datos</b> el porcentaje todavía puede cambiar mucho."
+msgstr "The most used one is at the top · with <b>little data</b> the percentage can still change a lot."
 
-#: usuarios/templates/panel_admin.html:402
+#: usuarios/templates/panel_admin.html:377
 msgid "Sin datos todavía"
 msgstr "No data yet"
 
-#: usuarios/templates/panel_admin.html:402
+#: usuarios/templates/panel_admin.html:377
 msgid "Se llena solo cuando terminan los partidos que se pronosticaron en el analizador."
 msgstr "It fills in automatically when the matches predicted in the analyzer finish."
 
-#: usuarios/templates/panel_admin.html:411
+#: usuarios/templates/panel_admin.html:386
 msgid "Control financiero completo: ingresos, suscripciones y todas las transacciones."
 msgstr "Full financial control: revenue, subscriptions and every transaction."
 
-#: usuarios/templates/panel_admin.html:419
+#: usuarios/templates/panel_admin.html:394
 msgid "Faltan las llaves de la pasarela en <code>.env</code>. Nadie puede pagar."
 msgstr "The payment gateway keys are missing in <code>.env</code>. Nobody can pay."
 
-#: usuarios/templates/panel_admin.html:426 analizador/templates/analizador.html:148 pagos/exportar.py:368
+#: usuarios/templates/panel_admin.html:401 analizador/templates/analizador.html:148 pagos/exportar.py:368
 msgid "Hoy"
 msgstr "Today"
 
-#: usuarios/templates/panel_admin.html:427
+#: usuarios/templates/panel_admin.html:402
 msgid "Semana"
 msgstr "Week"
 
-#: usuarios/templates/panel_admin.html:428
+#: usuarios/templates/panel_admin.html:403
 msgid "Mes"
 msgstr "Month"
 
-#: usuarios/templates/panel_admin.html:429
+#: usuarios/templates/panel_admin.html:404
 msgid "Trimestre"
 msgstr "Quarter"
 
-#: usuarios/templates/panel_admin.html:430
+#: usuarios/templates/panel_admin.html:405
 msgid "Año"
 msgstr "Year"
 
-#: usuarios/templates/panel_admin.html:431 pagos/exportar.py:369
+#: usuarios/templates/panel_admin.html:406 pagos/exportar.py:369
 msgid "Histórico"
 msgstr "All time"
 
-#: usuarios/templates/panel_admin.html:437
+#: usuarios/templates/panel_admin.html:412
 msgid "Ingresos · 12 meses"
 msgstr "Revenue · 12 months"
 
-#: usuarios/templates/panel_admin.html:438
+#: usuarios/templates/panel_admin.html:413
 msgid "Dinero cobrado cada mes."
 msgstr "Money collected each month."
 
-#: usuarios/templates/panel_admin.html:441
+#: usuarios/templates/panel_admin.html:416
 msgid "Ingresos mensuales"
 msgstr "Monthly revenue"
 
-#: usuarios/templates/panel_admin.html:459
+#: usuarios/templates/panel_admin.html:434
 msgid "Bruto, comisión y neto"
 msgstr "Gross, fees and net"
 
-#: usuarios/templates/panel_admin.html:460
+#: usuarios/templates/panel_admin.html:435
 msgid "Lo que se cobró frente a lo que realmente llega."
 msgstr "What was charged versus what actually arrives."
 
-#: usuarios/templates/panel_admin.html:464
+#: usuarios/templates/panel_admin.html:439
 msgid "Bruto cobrado"
 msgstr "Gross collected"
 
-#: usuarios/templates/panel_admin.html:465 pagos/exportar.py:323 pagos/exportar.py:359
+#: usuarios/templates/panel_admin.html:440 pagos/exportar.py:323 pagos/exportar.py:359
 msgid "Comisión estimada"
 msgstr "Estimated fees"
 
-#: usuarios/templates/panel_admin.html:466 pagos/exportar.py:323 pagos/exportar.py:359
+#: usuarios/templates/panel_admin.html:441 pagos/exportar.py:323 pagos/exportar.py:359
 msgid "Neto estimado"
 msgstr "Estimated net"
 
-#: usuarios/templates/panel_admin.html:469
+#: usuarios/templates/panel_admin.html:444
 msgid "La comisión es estimada. Manda el extracto de la pasarela."
 msgstr "Fees are estimated. The gateway statement is what counts."
 
-#: usuarios/templates/panel_admin.html:476
+#: usuarios/templates/panel_admin.html:451
 msgid "Activas"
 msgstr "Active"
 
-#: usuarios/templates/panel_admin.html:477
+#: usuarios/templates/panel_admin.html:452
 msgid "Vencidas"
 msgstr "Expired"
 
-#: usuarios/templates/panel_admin.html:478
+#: usuarios/templates/panel_admin.html:453
 msgid "Vencen en 5 días"
 msgstr "Expiring in 5 days"
 
-#: usuarios/templates/panel_admin.html:479
+#: usuarios/templates/panel_admin.html:454
 msgid "Renovación auto."
 msgstr "Auto-renewal"
 
-#: usuarios/templates/panel_admin.html:480
+#: usuarios/templates/panel_admin.html:455
 msgid "Canceladas"
 msgstr "Canceled"
 
-#: usuarios/templates/panel_admin.html:488
+#: usuarios/templates/panel_admin.html:463
 msgid "Ventas por plan"
 msgstr "Sales by plan"
 
-#: usuarios/templates/panel_admin.html:491 usuarios/templates/panel_admin.html:517 usuarios/templates/panel_admin.html:548
+#: usuarios/templates/panel_admin.html:466 usuarios/templates/panel_admin.html:492 usuarios/templates/panel_admin.html:523
 msgid "Plan"
 msgstr "Plan"
 
-#: usuarios/templates/panel_admin.html:491 usuarios/templates/panel_admin.html:503
+#: usuarios/templates/panel_admin.html:466 usuarios/templates/panel_admin.html:478
 msgid "Ventas"
 msgstr "Sales"
 
-#: usuarios/templates/panel_admin.html:491 usuarios/templates/panel_admin.html:503
+#: usuarios/templates/panel_admin.html:466 usuarios/templates/panel_admin.html:478
 msgid "Ingreso"
 msgstr "Revenue"
 
-#: usuarios/templates/panel_admin.html:494 usuarios/templates/panel_admin.html:506
+#: usuarios/templates/panel_admin.html:469 usuarios/templates/panel_admin.html:481
 msgid "Sin ventas aprobadas."
 msgstr "No approved sales."
 
-#: usuarios/templates/panel_admin.html:500
+#: usuarios/templates/panel_admin.html:475
 msgid "Ventas por medio de pago"
 msgstr "Sales by payment method"
 
-#: usuarios/templates/panel_admin.html:503 usuarios/templates/panel_admin.html:564
+#: usuarios/templates/panel_admin.html:478 usuarios/templates/panel_admin.html:539
 msgid "Medio"
 msgstr "Method"
 
-#: usuarios/templates/panel_admin.html:514
+#: usuarios/templates/panel_admin.html:489
 msgid "Vencen esta semana"
 msgstr "Expiring this week"
 
-#: usuarios/templates/panel_admin.html:517 usuarios/templates/panel_admin.html:605 usuarios/templates/panel_admin.html:667
+#: usuarios/templates/panel_admin.html:492 usuarios/templates/panel_admin.html:580 usuarios/templates/panel_admin.html:642
 msgid "Vence"
 msgstr "Expires"
 
-#: usuarios/templates/panel_admin.html:517
+#: usuarios/templates/panel_admin.html:492
 msgid "Renueva sola"
 msgstr "Auto-renews"
 
-#: usuarios/templates/panel_admin.html:522 pagos/exportar.py:57
+#: usuarios/templates/panel_admin.html:497 pagos/exportar.py:57
 msgid "Sí"
 msgstr "Yes"
 
-#: usuarios/templates/panel_admin.html:522 pagos/exportar.py:57
+#: usuarios/templates/panel_admin.html:497 pagos/exportar.py:57
 msgid "No"
 msgstr "No"
 
-#: usuarios/templates/panel_admin.html:523
+#: usuarios/templates/panel_admin.html:498
 msgid "Ninguna vence en 7 días."
 msgstr "None expire in 7 days."
 
-#: usuarios/templates/panel_admin.html:531 pagos/reporte_pdf.py:250 pagos/vistas_finanzas.py:89
+#: usuarios/templates/panel_admin.html:506 pagos/reporte_pdf.py:244 pagos/vistas_finanzas.py:89
 msgid "Historial de transacciones"
 msgstr "Transaction history"
 
-#: usuarios/templates/panel_admin.html:532
+#: usuarios/templates/panel_admin.html:507
 #, python-format
 msgid "%(n)s transacción con los filtros actuales."
 msgid_plural "%(n)s transacciones con los filtros actuales."
 msgstr[0] "%(n)s transaction with the current filters."
 msgstr[1] "%(n)s transactions with the current filters."
 
-#: usuarios/templates/panel_admin.html:537
+#: usuarios/templates/panel_admin.html:512
 msgid "Buscar"
 msgstr "Search"
 
-#: usuarios/templates/panel_admin.html:537
+#: usuarios/templates/panel_admin.html:512
 msgid "Referencia, factura o usuario"
 msgstr "Reference, invoice or user"
 
-#: usuarios/templates/panel_admin.html:538 usuarios/templates/panel_admin.html:564 pagos/exportar.py:322
+#: usuarios/templates/panel_admin.html:513 usuarios/templates/panel_admin.html:539 pagos/exportar.py:322
 msgid "Estado"
 msgstr "Status"
 
-#: usuarios/templates/panel_admin.html:540 usuarios/templates/panel_admin.html:550
+#: usuarios/templates/panel_admin.html:515 usuarios/templates/panel_admin.html:525
 msgid "Todos"
 msgstr "All"
 
-#: usuarios/templates/panel_admin.html:541 pagos/exportar.py:106 pagos/models.py:11
+#: usuarios/templates/panel_admin.html:516 pagos/exportar.py:106 pagos/models.py:11
 msgid "Aprobado"
 msgstr "Approved"
 
-#: usuarios/templates/panel_admin.html:542 pagos/models.py:10
+#: usuarios/templates/panel_admin.html:517 pagos/models.py:10
 msgid "Pendiente"
 msgstr "Pending"
 
-#: usuarios/templates/panel_admin.html:543 pagos/models.py:12
+#: usuarios/templates/panel_admin.html:518 pagos/models.py:12
 msgid "Rechazado"
 msgstr "Declined"
 
-#: usuarios/templates/panel_admin.html:544 pagos/models.py:13
+#: usuarios/templates/panel_admin.html:519 pagos/models.py:13
 msgid "Anulado"
 msgstr "Voided"
 
-#: usuarios/templates/panel_admin.html:545 pagos/models.py:14
+#: usuarios/templates/panel_admin.html:520 pagos/models.py:14
 msgid "Error"
 msgstr "Error"
 
-#: usuarios/templates/panel_admin.html:554
+#: usuarios/templates/panel_admin.html:529
 msgid "Desde"
 msgstr "From"
 
-#: usuarios/templates/panel_admin.html:555
+#: usuarios/templates/panel_admin.html:530
 msgid "Hasta"
 msgstr "To"
 
-#: usuarios/templates/panel_admin.html:556
+#: usuarios/templates/panel_admin.html:531
 msgid "Filtrar"
 msgstr "Filter"
 
-#: usuarios/templates/panel_admin.html:557
+#: usuarios/templates/panel_admin.html:532
 msgid "Limpiar"
 msgstr "Clear"
 
-#: usuarios/templates/panel_admin.html:558 usuarios/templates/panel_admin.html:579
+#: usuarios/templates/panel_admin.html:533 usuarios/templates/panel_admin.html:554
 msgid "PDF"
 msgstr "PDF"
 
-#: usuarios/templates/panel_admin.html:559
+#: usuarios/templates/panel_admin.html:534
 msgid "Excel"
 msgstr "Excel"
 
-#: usuarios/templates/panel_admin.html:564 usuarios/templates/panel_admin.html:605 usuarios/templates/panel_admin.html:754
+#: usuarios/templates/panel_admin.html:539 usuarios/templates/panel_admin.html:580 usuarios/templates/panel_admin.html:729
 msgid "Fecha"
 msgstr "Date"
 
-#: usuarios/templates/panel_admin.html:564 pagos/exportar.py:320
+#: usuarios/templates/panel_admin.html:539 pagos/exportar.py:320
 msgid "Factura"
 msgstr "Invoice"
 
-#: usuarios/templates/panel_admin.html:564 pagos/exportar.py:323
+#: usuarios/templates/panel_admin.html:539 pagos/exportar.py:323
 msgid "Total"
 msgstr "Total"
 
-#: usuarios/templates/panel_admin.html:564
+#: usuarios/templates/panel_admin.html:539
 msgid "Neto"
 msgstr "Net"
 
-#: usuarios/templates/panel_admin.html:583
+#: usuarios/templates/panel_admin.html:558
 msgid "Preguntarle a Wompi el estado real de este pago"
 msgstr "Ask Wompi for the actual status of this payment"
 
-#: usuarios/templates/panel_admin.html:583
+#: usuarios/templates/panel_admin.html:558
 msgid "Consultar"
 msgstr "Check"
 
-#: usuarios/templates/panel_admin.html:588
+#: usuarios/templates/panel_admin.html:563
 msgid "Sin coincidencias"
 msgstr "No matches"
 
-#: usuarios/templates/panel_admin.html:588
+#: usuarios/templates/panel_admin.html:563
 msgid "Ninguna transacción cumple estos filtros."
 msgstr "No transaction matches these filters."
 
-#: usuarios/templates/panel_admin.html:595
+#: usuarios/templates/panel_admin.html:570
 #, python-format
 msgid "Página %(a)s de %(b)s"
 msgstr "Page %(a)s of %(b)s"
 
-#: usuarios/templates/panel_admin.html:602
+#: usuarios/templates/panel_admin.html:577
 msgid "Bitácora de suscripciones"
 msgstr "Subscription log"
 
-#: usuarios/templates/panel_admin.html:602
+#: usuarios/templates/panel_admin.html:577
 msgid "Por qué cada usuario tiene acceso hasta esa fecha."
 msgstr "Why each user has access until that date."
 
-#: usuarios/templates/panel_admin.html:605
+#: usuarios/templates/panel_admin.html:580
 msgid "Movimiento"
 msgstr "Change"
 
-#: usuarios/templates/panel_admin.html:605 pagos/exportar.py:324
+#: usuarios/templates/panel_admin.html:580 pagos/exportar.py:324
 msgid "Días"
 msgstr "Days"
 
-#: usuarios/templates/panel_admin.html:610
+#: usuarios/templates/panel_admin.html:585
 msgid "Sin movimientos."
 msgstr "No changes."
 
-#: usuarios/templates/panel_admin.html:621
+#: usuarios/templates/panel_admin.html:596
 msgid "Crear cuentas, buscar, y activar o cortar el acceso de cada usuario."
 msgstr "Create accounts, search, and grant or cut off each user's access."
 
-#: usuarios/templates/panel_admin.html:627
+#: usuarios/templates/panel_admin.html:602
 msgid "Registros · 12 meses"
 msgstr "Sign-ups · 12 months"
 
-#: usuarios/templates/panel_admin.html:628
+#: usuarios/templates/panel_admin.html:603
 msgid "Cuentas nuevas por mes."
 msgstr "New accounts per month."
 
-#: usuarios/templates/panel_admin.html:631
+#: usuarios/templates/panel_admin.html:606
 msgid "Usuarios nuevos por mes"
 msgstr "New users per month"
 
-#: usuarios/templates/panel_admin.html:652
+#: usuarios/templates/panel_admin.html:627
 msgid "Todos los usuarios"
 msgstr "All users"
 
-#: usuarios/templates/panel_admin.html:653
+#: usuarios/templates/panel_admin.html:628
 #, python-format
 msgid "%(n)s cuenta registrada."
 msgid_plural "%(n)s cuentas registradas."
 msgstr[0] "%(n)s registered account."
 msgstr[1] "%(n)s registered accounts."
 
-#: usuarios/templates/panel_admin.html:657
+#: usuarios/templates/panel_admin.html:632
 msgid "Buscar usuario o correo..."
 msgstr "Search user or email..."
 
-#: usuarios/templates/panel_admin.html:667
+#: usuarios/templates/panel_admin.html:642
 msgid "Acciones"
 msgstr "Actions"
 
-#: usuarios/templates/panel_admin.html:688
+#: usuarios/templates/panel_admin.html:663
 msgid "Número de cédula"
 msgstr "ID number"
 
-#: usuarios/templates/panel_admin.html:688
+#: usuarios/templates/panel_admin.html:663
 #, python-format
 msgid "CC %(doc)s"
 msgstr "ID %(doc)s"
 
-#: usuarios/templates/panel_admin.html:702 suscripciones/templates/suscripcion.html:42
+#: usuarios/templates/panel_admin.html:677 suscripciones/templates/suscripcion.html:42
 #, python-format
 msgid "%(dias)s día"
 msgid_plural "%(dias)s días"
 msgstr[0] "%(dias)s day"
 msgstr[1] "%(dias)s days"
 
-#: usuarios/templates/panel_admin.html:716
+#: usuarios/templates/panel_admin.html:691
 msgid "Cancelar sub."
 msgstr "Cancel sub."
 
-#: usuarios/templates/panel_admin.html:721
+#: usuarios/templates/panel_admin.html:696
 msgid "Activar mes"
 msgstr "Activate month"
 
-#: usuarios/templates/panel_admin.html:724
+#: usuarios/templates/panel_admin.html:699
 msgid "Editar"
 msgstr "Edit"
 
-#: usuarios/templates/panel_admin.html:728
+#: usuarios/templates/panel_admin.html:703
 msgid "Bloquear"
 msgstr "Block"
 
-#: usuarios/templates/panel_admin.html:730
+#: usuarios/templates/panel_admin.html:705
 msgid "Activar"
 msgstr "Activate"
 
-#: usuarios/templates/panel_admin.html:733
+#: usuarios/templates/panel_admin.html:708
 msgid "Eliminar"
 msgstr "Delete"
 
-#: usuarios/templates/panel_admin.html:740
+#: usuarios/templates/panel_admin.html:715
 msgid "Ningún usuario coincide"
 msgstr "No user matches"
 
-#: usuarios/templates/panel_admin.html:740
+#: usuarios/templates/panel_admin.html:715
 msgid "Prueba con otra parte del nombre o del correo."
 msgstr "Try another part of the name or email."
 
-#: usuarios/templates/panel_admin.html:749
+#: usuarios/templates/panel_admin.html:724
 msgid "Quién entró, desde qué IP y cuándo. Sirve para detectar claves compartidas."
 msgstr "Who signed in, from which IP and when. Useful to detect shared passwords."
 
-#: usuarios/templates/panel_admin.html:754
+#: usuarios/templates/panel_admin.html:729
 msgid "Acción"
 msgstr "Action"
 
-#: usuarios/templates/panel_admin.html:754
+#: usuarios/templates/panel_admin.html:729
 msgid "IP"
 msgstr "IP"
 
-#: usuarios/templates/panel_admin.html:763
+#: usuarios/templates/panel_admin.html:738
 msgid "Sin registros"
 msgstr "No records"
 
-#: usuarios/templates/panel_admin.html:763
+#: usuarios/templates/panel_admin.html:738
 msgid "Aquí aparecerá cada inicio de sesión."
 msgstr "Each sign-in will appear here."
 
-#: usuarios/templates/panel_admin.html:826
+#: usuarios/templates/panel_admin.html:801
 msgid "¿Cancelar la suscripción?"
 msgstr "Cancel the subscription?"
 
-#: usuarios/templates/panel_admin.html:828
+#: usuarios/templates/panel_admin.html:803
 msgid "Se le retirará el acceso al analizador a <strong id=\"dlgUsuario\"></strong> de forma inmediata."
 msgstr "<strong id=\"dlgUsuario\"></strong> will lose access to the analyzer immediately."
 
-#: usuarios/templates/panel_admin.html:832
+#: usuarios/templates/panel_admin.html:807
 msgid "Plan actual"
 msgstr "Current plan"
 
-#: usuarios/templates/panel_admin.html:833
+#: usuarios/templates/panel_admin.html:808
 msgid "Vencía el"
 msgstr "Was due to expire"
 
-#: usuarios/templates/panel_admin.html:835
+#: usuarios/templates/panel_admin.html:810
 msgid "Esta acción no genera devolución del dinero."
 msgstr "This action does not refund any money."
 
-#: usuarios/templates/panel_admin.html:837
+#: usuarios/templates/panel_admin.html:812
 msgid "No, dejarla activa"
 msgstr "No, keep it active"
 
-#: usuarios/templates/panel_admin.html:838
+#: usuarios/templates/panel_admin.html:813
 msgid "Sí, cancelar"
 msgstr "Yes, cancel"
 
@@ -2252,10 +2218,6 @@ msgstr "Main features"
 msgid "Acceso completo al analizador de fútbol"
 msgstr "Full access to the soccer analyzer"
 
-#: suscripciones/templates/checkout.html:89
-msgid "Todos los mercados: 1X2, córners, tarjetas, props"
-msgstr "All markets: 1X2, corners, cards, props"
-
 #: suscripciones/templates/checkout.html:93
 msgid "Modelos Poisson, Dixon-Coles y xG"
 msgstr "Poisson, Dixon-Coles and xG models"
@@ -2265,7 +2227,7 @@ msgstr "Poisson, Dixon-Coles and xG models"
 msgid "Acceso por %(dias)s días"
 msgstr "Access for %(dias)s days"
 
-#: suscripciones/templates/checkout.html:103 pagos/factura.py:123
+#: suscripciones/templates/checkout.html:103 pagos/factura.py:134
 #, python-format
 msgid "Suscripción %(nombre)s"
 msgstr "%(nombre)s subscription"
@@ -2501,7 +2463,7 @@ msgstr "Check the sample"
 msgid "Sin datos"
 msgstr "No data"
 
-#: usuarios/tablero.py:309
+#: usuarios/tablero.py:303
 msgid "Calibrado"
 msgstr "Calibrated"
 
@@ -2517,23 +2479,23 @@ msgstr "In the normal range"
 msgid "Sobre la referencia"
 msgstr "Above the benchmark"
 
-#: usuarios/tablero.py:311 usuarios/tablero.py:353
+#: usuarios/tablero.py:305 usuarios/tablero.py:343
 msgid "Optimista"
 msgstr "Optimistic"
 
-#: usuarios/tablero.py:313 usuarios/tablero.py:355
+#: usuarios/tablero.py:307 usuarios/tablero.py:345
 msgid "Conservador"
 msgstr "Conservative"
 
-#: usuarios/tablero.py:349
+#: usuarios/tablero.py:339
 msgid "Pocos datos"
 msgstr "Little data"
 
-#: usuarios/tablero.py:374
+#: usuarios/tablero.py:364
 msgid "Sin mercado"
 msgstr "No market"
 
-#: usuarios/tablero.py:351
+#: usuarios/tablero.py:341
 msgid "Ajustado"
 msgstr "On target"
 
@@ -2920,11 +2882,11 @@ msgstr "Gateway ID"
 msgid "Método"
 msgstr "Method"
 
-#: pagos/exportar.py:322 pagos/factura.py:150
+#: pagos/exportar.py:322 pagos/factura.py:161
 msgid "Subtotal"
 msgstr "Subtotal"
 
-#: pagos/exportar.py:322 pagos/reporte_pdf.py:55
+#: pagos/exportar.py:322 pagos/reporte_pdf.py:54
 msgid "IVA"
 msgstr "VAT"
 
@@ -2944,7 +2906,7 @@ msgstr "Period"
 msgid "Transacciones"
 msgstr "Transactions"
 
-#: pagos/exportar.py:358 pagos/reporte_pdf.py:210
+#: pagos/exportar.py:358 pagos/reporte_pdf.py:204
 msgid "Ingreso bruto"
 msgstr "Gross revenue"
 
@@ -2952,7 +2914,7 @@ msgstr "Gross revenue"
 msgid "TOTAL APROBADO"
 msgstr "TOTAL APPROVED"
 
-#: pagos/exportar.py:165 pagos/factura.py:166 pagos/reporte_pdf.py:56
+#: pagos/exportar.py:165 pagos/factura.py:177 pagos/reporte_pdf.py:55
 msgid "TOTAL"
 msgstr "TOTAL"
 
@@ -2972,69 +2934,69 @@ msgstr "This quarter"
 msgid "Este año"
 msgstr "This year"
 
-#: pagos/factura.py:19
+#: pagos/factura.py:23
 msgid "Medellín, Colombia"
 msgstr "Medellín, Colombia"
 
-#: pagos/factura.py:69 pagos/reporte_pdf.py:49
+#: pagos/factura.py:80 pagos/reporte_pdf.py:48
 msgid "FACTURA"
 msgstr "INVOICE"
 
-#: pagos/factura.py:86
+#: pagos/factura.py:97
 msgid "FACTURAR A"
 msgstr "BILL TO"
 
-#: pagos/factura.py:99
+#: pagos/factura.py:110
 msgid "DETALLES DEL PAGO"
 msgstr "PAYMENT DETAILS"
 
-#: pagos/factura.py:116
+#: pagos/factura.py:127
 msgid "DESCRIPCIÓN"
 msgstr "DESCRIPTION"
 
-#: pagos/factura.py:117
+#: pagos/factura.py:128
 msgid "VALOR"
 msgstr "AMOUNT"
 
-#: pagos/factura.py:156
+#: pagos/factura.py:167
 msgid "IVA (19%)"
 msgstr "VAT (19%)"
 
-#: pagos/factura.py:174
+#: pagos/factura.py:185
 msgid "Valores en pesos colombianos (COP)"
 msgstr "Amounts in Colombian pesos (COP)"
 
-#: pagos/factura.py:75
+#: pagos/factura.py:86
 #, python-format
 msgid "Emitida: %(fecha)s"
 msgstr "Issued: %(fecha)s"
 
-#: pagos/factura.py:93
+#: pagos/factura.py:104
 #, python-format
 msgid "Usuario: %(usuario)s"
 msgstr "Username: %(usuario)s"
 
-#: pagos/factura.py:102 pagos/reporte_pdf.py:150
+#: pagos/factura.py:113 pagos/reporte_pdf.py:144
 #, python-format
 msgid "Método: %(metodo)s"
 msgstr "Method: %(metodo)s"
 
-#: pagos/factura.py:103 pagos/reporte_pdf.py:144
+#: pagos/factura.py:114 pagos/reporte_pdf.py:138
 #, python-format
 msgid "Estado: %(estado)s"
 msgstr "Status: %(estado)s"
 
-#: pagos/factura.py:104
+#: pagos/factura.py:115
 #, python-format
 msgid "Ref: %(referencia)s"
 msgstr "Ref: %(referencia)s"
 
-#: pagos/factura.py:185
+#: pagos/factura.py:196
 #, python-format
 msgid "%(web)s · Documento generado automáticamente · Factura de demostración"
 msgstr "%(web)s · Automatically generated document · Demo invoice"
 
-#: pagos/factura.py:130
+#: pagos/factura.py:141
 #, python-format
 msgid "Vigencia: %(desde)s - %(hasta)s"
 msgstr "Valid: %(desde)s - %(hasta)s"
@@ -3091,101 +3053,101 @@ msgstr "Expiration"
 msgid "Ajuste del administrador"
 msgstr "Admin adjustment"
 
-#: pagos/reporte_pdf.py:48
+#: pagos/reporte_pdf.py:47
 msgid "FECHA"
 msgstr "DATE"
 
-#: pagos/reporte_pdf.py:50
+#: pagos/reporte_pdf.py:49
 msgid "USUARIO"
 msgstr "USER"
 
-#: pagos/reporte_pdf.py:51
+#: pagos/reporte_pdf.py:50
 msgid "PLAN"
 msgstr "PLAN"
 
-#: pagos/reporte_pdf.py:52
+#: pagos/reporte_pdf.py:51
 msgid "MÉTODO"
 msgstr "METHOD"
 
-#: pagos/reporte_pdf.py:53
+#: pagos/reporte_pdf.py:52
 msgid "ESTADO"
 msgstr "STATUS"
 
-#: pagos/reporte_pdf.py:54
+#: pagos/reporte_pdf.py:53
 msgid "SUBTOTAL"
 msgstr "SUBTOTAL"
 
-#: pagos/reporte_pdf.py:120
+#: pagos/reporte_pdf.py:114
 msgid "REPORTE DE TRANSACCIONES"
 msgstr "TRANSACTION REPORT"
 
-#: pagos/reporte_pdf.py:140 pagos/reporte_pdf.py:161
+#: pagos/reporte_pdf.py:134 pagos/reporte_pdf.py:155
 msgid "Todos los pagos aprobados"
 msgstr "All approved payments"
 
-#: pagos/reporte_pdf.py:205
+#: pagos/reporte_pdf.py:199
 msgid "RESUMEN DEL REPORTE"
 msgstr "REPORT SUMMARY"
 
-#: pagos/reporte_pdf.py:229
+#: pagos/reporte_pdf.py:223
 msgid "La comisión es estimada; el valor exacto lo confirma el extracto de la pasarela."
 msgstr "Fees are estimated; the exact amount is confirmed by the gateway statement."
 
-#: pagos/reporte_pdf.py:236
+#: pagos/reporte_pdf.py:230
 msgid "No hay pagos aprobados que coincidan con los filtros seleccionados."
 msgstr "There are no approved payments matching the selected filters."
 
-#: pagos/reporte_pdf.py:248
+#: pagos/reporte_pdf.py:242
 msgid "xGol · Reporte de transacciones"
 msgstr "xGol · Transaction report"
 
-#: pagos/reporte_pdf.py:129
+#: pagos/reporte_pdf.py:123
 #, python-format
 msgid "Emitido: %(fecha)s"
 msgstr "Issued: %(fecha)s"
 
-#: pagos/reporte_pdf.py:131
+#: pagos/reporte_pdf.py:125
 #, python-format
 msgid "Página %(n)d"
 msgstr "Page %(n)d"
 
-#: pagos/reporte_pdf.py:133
+#: pagos/reporte_pdf.py:127
 #, python-format
 msgid "%(n)d pago aprobado"
 msgid_plural "%(n)d pagos aprobados"
 msgstr[0] "%(n)d approved payment"
 msgstr[1] "%(n)d approved payments"
 
-#: pagos/reporte_pdf.py:191
+#: pagos/reporte_pdf.py:185
 #, python-format
 msgid "%(web)s · Documento generado automáticamente · Valores en pesos colombianos (COP)"
 msgstr "%(web)s · Automatically generated document · Amounts in Colombian pesos (COP)"
 
-#: pagos/reporte_pdf.py:209
+#: pagos/reporte_pdf.py:203
 msgid "Pagos aprobados"
 msgstr "Approved payments"
 
-#: pagos/reporte_pdf.py:147
+#: pagos/reporte_pdf.py:141
 #, python-format
 msgid "Plan: %(plan)s"
 msgstr "Plan: %(plan)s"
 
-#: pagos/reporte_pdf.py:153
+#: pagos/reporte_pdf.py:147
 #, python-format
 msgid "Del %(desde)s al %(hasta)s"
 msgstr "From %(desde)s to %(hasta)s"
 
-#: pagos/reporte_pdf.py:160
+#: pagos/reporte_pdf.py:154
 #, python-format
 msgid "Búsqueda: “%(texto)s”"
 msgstr "Search: “%(texto)s”"
 
-#: pagos/reporte_pdf.py:155
+#: pagos/reporte_pdf.py:149
 #, python-format
 msgid "Desde %(fecha)s"
 msgstr "From %(fecha)s"
 
-#: pagos/reporte_pdf.py:157
+#: pagos/reporte_pdf.py:151
 #, python-format
 msgid "Hasta %(fecha)s"
 msgstr "Until %(fecha)s"

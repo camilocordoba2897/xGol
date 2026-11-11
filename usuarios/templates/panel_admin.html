@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/panel_admin.css' %}?v=18">
+<link rel="stylesheet" href="{% static 'css/panel_admin.css' %}?v=19">
 {# Textos traducidos para los scripts del panel (gettext) #}
 <script src="{% url 'TextosJS' %}?idioma={{ LANGUAGE_CODE }}&amp;v={{ VERSION_TEXTOS }}"></script>
 <script>
@@ -212,21 +212,11 @@
 
       <div class="seccion-cabeza"><div class="seccion-titulo">{% translate "Motor de predicción" %}</div></div>
       {% if motor.ligas %}
-      <div class="kpis">
+      <div class="kpis kpis-2">
         <div class="kpi kpi-mini" style="--kpi-color: var(--accent)">
           <div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Acierto 1X2" %}</div></div>
           <div class="kpi-valor">{{ motor.acierto|floatformat:1 }}<small>%</small></div>
           <div class="kpi-pie"><span class="delta {% if motor.comparado.nivel == 'malo' %}delta-baja{% elif motor.comparado.nivel == 'bueno' %}delta-sube{% else %}delta-neutro{% endif %}">{% translate motor.comparado.texto %}</span></div>
-        </div>
-        <div class="kpi kpi-mini" style="--kpi-color: var(--cian)">
-          <div class="kpi-cabeza"><div class="kpi-nombre">{% translate "RPS" %}</div></div>
-          <div class="kpi-valor">{{ motor.rps|floatformat:3 }}</div>
-          <div class="kpi-pie"><span>{% translate "0,19 a 0,21 es un buen modelo" %}</span></div>
-        </div>
-        <div class="kpi kpi-mini" style="--kpi-color: var(--ok)">
-          <div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Log-pérdida" %}</div></div>
-          <div class="kpi-valor">{{ motor.log_perdida|floatformat:3 }}</div>
-          <div class="kpi-pie"><span>{% translate "1,099 es no saber nada" %}</span></div>
         </div>
         <div class="kpi kpi-mini" style="--kpi-color: var(--warn)">
           <div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Partidos medidos" %}</div></div>
@@ -267,7 +257,7 @@
           </div>
           <div class="tabla-marco">
             <table class="tabla">
-              <thead><tr><th>{% translate "Liga" %}</th><th class="td-centro">{% translate "Partidos" %}</th><th>{% translate "Acierto" %}</th><th class="td-derecha">{% translate "RPS" %}</th></tr></thead>
+              <thead><tr><th>{% translate "Liga" %}</th><th class="td-centro">{% translate "Partidos" %}</th><th>{% translate "Acierto" %}</th></tr></thead>
               <tbody>
                 {% for l in motor.ligas %}
                 <tr>
@@ -279,7 +269,6 @@
                     <span class="td-num" style="margin-left:8px">{{ l.acierto|floatformat:1 }}%</span>
                     {% else %}<span class="td-num">—</span>{% endif %}
                   </td>
-                  <td class="td-derecha td-num">{% if l.rps is not None %}{{ l.rps|floatformat:3 }}{% else %}—{% endif %}</td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -314,7 +303,7 @@
       <div class="seccion-cabeza" style="margin-top:28px"><div class="seccion-titulo">{% translate "Seguimiento del analizador" %}</div></div>
       <div id="seguimiento-analizador">
       {% if modelo.total %}
-      <div class="kpis">
+      <div class="kpis kpis-2">
         <div class="kpi kpi-mini" style="--kpi-color: var(--accent)">
           <div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Acierto real" %}</div></div>
           <div class="kpi-valor">{{ modelo.tasa|floatformat:1 }}<small>%</small></div>
@@ -324,16 +313,6 @@
           <div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Sesgo" %}</div></div>
           <div class="kpi-valor">{% if modelo.sesgo >= 0 %}+{% endif %}{{ modelo.sesgo|floatformat:1 }}<small>{% translate "pts" %}</small></div>
           <div class="kpi-pie"><span>{% blocktranslate with p=modelo.esperado|floatformat:1 %}prometía {{ p }}%{% endblocktranslate %}</span></div>
-        </div>
-        <div class="kpi kpi-mini" style="--kpi-color: {% if modelo.roi >= 0 %}var(--ok){% else %}var(--bad){% endif %}">
-          <div class="kpi-cabeza"><div class="kpi-nombre">{% translate "ROI" %}</div></div>
-          <div class="kpi-valor">{% if modelo.roi is not None %}{% if modelo.roi >= 0 %}+{% endif %}{{ modelo.roi|floatformat:1 }}<small>%</small>{% else %}—{% endif %}</div>
-          <div class="kpi-pie"><span>{% blocktranslate with g=modelo.ganancia|floatformat:1 n=modelo.con_cuota %}{{ g }} u. en {{ n }} apuestas{% endblocktranslate %}</span></div>
-        </div>
-        <div class="kpi kpi-mini" style="--kpi-color: var(--warn)">
-          <div class="kpi-cabeza"><div class="kpi-nombre">{% translate "Muestra" %}</div></div>
-          <div class="kpi-valor">{{ modelo.total|pesos }}</div>
-          <div class="kpi-pie"><span>{% blocktranslate with c=modelo.cuota_media|floatformat:2 %}cuota media {{ c }}{% endblocktranslate %}</span></div>
         </div>
       </div>
 
@@ -370,11 +349,11 @@
         <div class="panel">
           <div class="panel-cabeza">
             <div class="panel-titulo">{% translate "Por mercado" %}</div>
-            <p class="panel-explica">{% translate "Qué tipo de apuesta deja plata." %}</p>
+            <p class="panel-explica">{% translate "Qué tanto acierta cada tipo de pronóstico." %}</p>
           </div>
           <div class="tabla-marco">
             <table class="tabla">
-              <thead><tr><th>{% translate "Mercado" %}</th><th class="td-centro">{% translate "Aciertos" %}</th><th>{% translate "Acierto" %}</th><th class="td-derecha">{% translate "ROI" %}</th></tr></thead>
+              <thead><tr><th>{% translate "Mercado" %}</th><th class="td-centro">{% translate "Aciertos" %}</th><th>{% translate "Acierto" %}</th></tr></thead>
               <tbody>
                 {% for m in mercados %}
                 <tr>
@@ -384,16 +363,12 @@
                     <span class="mini-pista"><span class="mini-relleno {% if m.tasa < 50 %}baja{% elif m.tasa < 65 %}media{% endif %}" style="width: {{ m.tasa|floatformat:0 }}%"></span></span>
                     <span class="td-num" style="margin-left:8px">{{ m.tasa|floatformat:0 }}%</span>
                   </td>
-                  <td class="td-derecha">
-                    {% if m.roi is not None %}<span class="marca {% if m.roi >= 0 %}marca-ok{% else %}marca-mala{% endif %}">{% if m.roi >= 0 %}+{% endif %}{{ m.roi|floatformat:1 }}%</span>
-                    {% else %}<span class="td-num">—</span>{% endif %}
-                  </td>
                 </tr>
                 {% endfor %}
               </tbody>
             </table>
           </div>
-          <div class="panel-pie">{% translate "ROI negativo pierde plata aunque acierte mucho: la cuota es muy baja." %}</div>
+          <div class="panel-pie">{% blocktranslate trimmed %}Arriba sale el que más se usa · con <b>pocos datos</b> el porcentaje todavía puede cambiar mucho.{% endblocktranslate %}</div>
         </div>
       </div>
       {% else %}
@@ -806,7 +781,7 @@
   })();
 </script>
 
-<script src="{% static 'js/tour_panel.js' %}?v=6"></script>
+<script src="{% static 'js/tour_panel.js' %}?v=7"></script>
 
 <!-- ============================================================
      CONFIRMAR CANCELACIÓN DE SUSCRIPCIÓN

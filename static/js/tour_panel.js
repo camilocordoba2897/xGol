@@ -49,8 +49,8 @@
     },
     {
       vista: 'modelo', selector: '#seguimiento-analizador .dos-columnas > .panel:last-child',
-      titulo: gettext('6 · Mercados y ROI'),
-      texto: gettext('Qué tipo de apuesta deja plata. Ojo: un mercado puede acertar mucho y aún así <strong>perder dinero</strong> si la cuota es baja. Por eso manda el ROI, no el porcentaje.')
+      titulo: gettext('6 · Por mercado'),
+      texto: gettext('Qué tanto acierta cada tipo de pronóstico. Arriba sale el que más se usa; con <strong>pocos datos</strong> el porcentaje todavía puede cambiar mucho.')
     },
     {
       vista: 'dinero', selector: '.kpis-6',
@@ -75,7 +75,7 @@
     {
       vista: 'resumen', selector: null,
       titulo: gettext('Listo'),
-      texto: gettext('Un recordatorio: las probabilidades son <strong>estimaciones estadísticas</strong>, no certezas. Y en apuestas, el ROI importa más que el porcentaje de acierto.')
+      texto: gettext('Un recordatorio: las probabilidades son <strong>estimaciones estadísticas</strong>, no certezas. Por eso el panel mide si el modelo cumple lo que promete.')
     }
   ];
 

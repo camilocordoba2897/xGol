@@ -193,31 +193,31 @@ msgstr "Ocultar o documento"
 msgid "Mostrar la cédula completa"
 msgstr "Mostrar o documento completo"
 
-#: usuarios/templates/panel_admin.html:771
+#: usuarios/templates/panel_admin.html:746
 msgid "Resumen"
 msgstr "Resumo"
 
-#: usuarios/templates/panel_admin.html:771
+#: usuarios/templates/panel_admin.html:746
 msgid "Modelo"
 msgstr "Modelo"
 
-#: usuarios/templates/panel_admin.html:771
+#: usuarios/templates/panel_admin.html:746
 msgid "Dinero"
 msgstr "Dinheiro"
 
-#: usuarios/templates/panel_admin.html:771
+#: usuarios/templates/panel_admin.html:746
 msgid "Usuarios"
 msgstr "Usuários"
 
-#: usuarios/templates/panel_admin.html:771
+#: usuarios/templates/panel_admin.html:746
 msgid "Accesos"
 msgstr "Acessos"
 
-#: usuarios/templates/panel_admin.html:783
+#: usuarios/templates/panel_admin.html:758
 msgid "Panel"
 msgstr "Painel"
 
-#: usuarios/templates/panel_admin.html:849
+#: usuarios/templates/panel_admin.html:824
 msgid "este usuario"
 msgstr "este usuário"
 
@@ -663,56 +663,52 @@ msgstr "Fonte"
 msgid "Empate"
 msgstr "Empate"
 
-#: static/js/motor.js:225
-msgid "xGol no marca apuestas «de valor»: en temporadas que el motor no había visto, apostar donde veía valor sobre la cuota perdió dinero. El mercado de apuestas es muy difícil de batir."
-msgstr "O xGol não marca apostas “de valor”: em temporadas que o motor não tinha visto, apostar onde ele via valor sobre a odd deu prejuízo. O mercado de apostas é muito difícil de vencer."
-
-#: static/js/motor.js:231
+#: static/js/motor.js:223
 #, python-format
-msgid "Historial del motor: <b>%(partidos)s</b> partidos evaluados &middot; log-pérdida <b>%(perdida)s</b> (menos es mejor &middot; 1.0986 = no saber nada)"
-msgstr "Histórico do motor: <b>%(partidos)s</b> jogos avaliados &middot; log-loss <b>%(perdida)s</b> (menor é melhor &middot; 1.0986 = não saber nada)"
+msgid "Historial del motor: <b>%(partidos)s</b> partidos evaluados"
+msgstr "Histórico do motor: <b>%(partidos)s</b> jogos avaliados"
 
-#: static/js/motor.js:233
+#: static/js/motor.js:225
 msgid "acierto <b>%s%</b>"
 msgstr "acerto <b>%s%</b>"
 
-#: static/js/motor.js:243
+#: static/js/motor.js:235
 msgid "Confianza %s/100"
 msgstr "Confiança %s/100"
 
-#: static/js/motor.js:247
+#: static/js/motor.js:239
 msgid "De dónde sale este pronóstico"
 msgstr "De onde vem esta previsão"
 
-#: static/js/motor.js:250
+#: static/js/motor.js:242
 msgid "Todas las tarjetas de esta pantalla salen de la misma matriz de marcadores, por eso nunca se contradicen entre sí. No es una recomendación de apuesta."
 msgstr "Todos os cartões desta tela vêm da mesma matriz de placares, por isso nunca se contradizem. Não é uma recomendação de aposta."
 
-#: static/js/motor.js:257
+#: static/js/motor.js:249
 msgid "Modo limitado"
 msgstr "Modo limitado"
 
-#: static/js/motor.js:259
+#: static/js/motor.js:251
 msgid "El motor no respondió, así que estos números salen del cálculo local (solo los últimos partidos de cada equipo, sin cuotas). Son menos precisos."
 msgstr "O motor não respondeu, então estes números vêm do cálculo local (apenas os últimos jogos de cada time, sem odds). São menos precisos."
 
-#: static/js/motor.js:261
+#: static/js/motor.js:253
 msgid "Motivo: %s"
 msgstr "Motivo: %s"
 
-#: static/js/motor.js:294
+#: static/js/motor.js:286
 msgid "el partido llegó sin identificador"
 msgstr "o jogo chegou sem identificador"
 
-#: static/js/motor.js:301
+#: static/js/motor.js:293
 msgid "Calculando con el motor…"
 msgstr "Calculando com o motor…"
 
-#: static/js/motor.js:302
+#: static/js/motor.js:294
 msgid "Ajustando la liga completa y consultando el mercado."
 msgstr "Ajustando a liga completa e consultando o mercado."
 
-#: static/js/motor.js:333
+#: static/js/motor.js:325
 msgid "falló la conexión con el backend"
 msgstr "a conexão com o servidor falhou"
 
@@ -1053,12 +1049,12 @@ msgid "Si el modelo dijo 70%, debería acertar 7 de cada 10. La barra gris es lo
 msgstr "Se o modelo disse 70%, deveria acertar 7 de cada 10. A barra cinza é o que prometeu e a verde o que aconteceu. <strong>Otimista</strong> promete demais, <strong>Conservador</strong> fica aquém."
 
 #: static/js/tour_panel.js:52
-msgid "6 · Mercados y ROI"
-msgstr "6 · Mercados e ROI"
+msgid "6 · Por mercado"
+msgstr "6 · Por mercado"
 
 #: static/js/tour_panel.js:53
-msgid "Qué tipo de apuesta deja plata. Ojo: un mercado puede acertar mucho y aún así <strong>perder dinero</strong> si la cuota es baja. Por eso manda el ROI, no el porcentaje."
-msgstr "Que tipo de aposta dá lucro. Atenção: um mercado pode acertar muito e mesmo assim <strong>perder dinheiro</strong> se a odd for baixa. Por isso vale o ROI, não a porcentagem."
+msgid "Qué tanto acierta cada tipo de pronóstico. Arriba sale el que más se usa; con <strong>pocos datos</strong> el porcentaje todavía puede cambiar mucho."
+msgstr "Quanto acerta cada tipo de previsão. No topo fica o mais usado; com <strong>poucos dados</strong> a porcentagem ainda pode mudar muito."
 
 #: static/js/tour_panel.js:57
 msgid "7 · Ingresos por periodo"
@@ -1097,8 +1093,8 @@ msgid "Listo"
 msgstr "Pronto"
 
 #: static/js/tour_panel.js:78
-msgid "Un recordatorio: las probabilidades son <strong>estimaciones estadísticas</strong>, no certezas. Y en apuestas, el ROI importa más que el porcentaje de acierto."
-msgstr "Um lembrete: as probabilidades são <strong>estimativas estatísticas</strong>, não certezas. E nas apostas, o ROI importa mais que a porcentagem de acerto."
+msgid "Un recordatorio: las probabilidades son <strong>estimaciones estadísticas</strong>, no certezas. Por eso el panel mide si el modelo cumple lo que promete."
+msgstr "Um lembrete: as probabilidades são <strong>estimativas estatísticas</strong>, não certezas. Por isso o painel mede se o modelo cumpre o que promete."
 
 #: static/js/vista.js:23
 msgctxt "mes en fecha corta"
