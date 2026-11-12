@@ -13,143 +13,143 @@ msgstr ""
 msgid "Las dos contraseñas no coinciden."
 msgstr "As duas senhas não coincidem."
 
-#: inicio/templates/inicio.html:481
+#: inicio/templates/inicio.html:466
 msgid "Inglaterra"
 msgstr "Inglaterra"
 
-#: inicio/templates/inicio.html:482
+#: inicio/templates/inicio.html:467
 msgid "España"
 msgstr "Espanha"
 
-#: inicio/templates/inicio.html:483
+#: inicio/templates/inicio.html:468
 msgid "Italia"
 msgstr "Itália"
 
-#: inicio/templates/inicio.html:484
+#: inicio/templates/inicio.html:469
 msgid "Alemania"
 msgstr "Alemanha"
 
-#: inicio/templates/inicio.html:485
+#: inicio/templates/inicio.html:470
 msgid "Francia"
 msgstr "França"
 
-#: inicio/templates/inicio.html:486
+#: inicio/templates/inicio.html:471
 msgid "Champions League"
 msgstr "Liga dos Campeões"
 
-#: inicio/templates/inicio.html:486
+#: inicio/templates/inicio.html:471
 msgid "Europa"
 msgstr "Europa"
 
-#: inicio/templates/inicio.html:487
+#: inicio/templates/inicio.html:472
 msgid "Países Bajos"
 msgstr "Países Baixos"
 
-#: inicio/templates/inicio.html:488
+#: inicio/templates/inicio.html:473
 msgid "Portugal"
 msgstr "Portugal"
 
-#: inicio/templates/inicio.html:489
+#: inicio/templates/inicio.html:474
 msgid "Brasil"
 msgstr "Brasil"
 
-#: inicio/templates/inicio.html:536
+#: inicio/templates/inicio.html:521
 msgid "%s equipo"
 msgid_plural "%s equipos"
 msgstr[0] "%s time"
 msgstr[1] "%s times"
 
-#: inicio/templates/inicio.html:558
+#: inicio/templates/inicio.html:543
 msgid "Sin resultados para «%s»."
 msgstr "Nenhum resultado para “%s”."
 
-#: inicio/templates/inicio.html:568
+#: inicio/templates/inicio.html:553
 msgid "Cargando equipos…"
 msgstr "Carregando times…"
 
-#: inicio/templates/inicio.html:570
+#: inicio/templates/inicio.html:555
 msgid "No se pudieron cargar los equipos."
 msgstr "Não foi possível carregar os times."
 
-#: inicio/templates/inicio.html:570
+#: inicio/templates/inicio.html:555
 msgid "Reintentar"
 msgstr "Tentar novamente"
 
-#: inicio/templates/inicio.html:711 inicio/templates/inicio.html:756
+#: inicio/templates/inicio.html:696 inicio/templates/inicio.html:741
 msgid "Ver análisis"
 msgstr "Ver análise"
 
-#: inicio/templates/inicio.html:724
+#: inicio/templates/inicio.html:709
 msgid "EN VIVO"
 msgstr "AO VIVO"
 
-#: inicio/templates/inicio.html:725 inicio/templates/inicio.html:729 inicio/templates/inicio.html:738
+#: inicio/templates/inicio.html:710 inicio/templates/inicio.html:714 inicio/templates/inicio.html:723
 msgid "DESCANSO"
 msgstr "INTERVALO"
 
-#: inicio/templates/inicio.html:734
+#: inicio/templates/inicio.html:719
 #, python-format
 msgid "1ª parte %(local)s–%(visitante)s"
 msgstr "1º tempo %(local)s–%(visitante)s"
 
-#: inicio/templates/inicio.html:738
+#: inicio/templates/inicio.html:723
 msgid "EN DIRECTO"
 msgstr "AO VIVO"
 
-#: inicio/templates/inicio.html:755
+#: inicio/templates/inicio.html:740
 msgid "Primera parte"
 msgstr "Primeiro tempo"
 
-#: inicio/templates/inicio.html:755
+#: inicio/templates/inicio.html:740
 msgid "Segunda parte"
 msgstr "Segundo tempo"
 
-#: inicio/templates/inicio.html:755
+#: inicio/templates/inicio.html:740
 msgid "En juego"
 msgstr "Em andamento"
 
-#: inicio/templates/inicio.html:831
+#: inicio/templates/inicio.html:816
 msgid "Forma"
 msgstr "Forma"
 
-#: inicio/templates/inicio.html:832
+#: inicio/templates/inicio.html:817
 #, python-format
 msgid "%(puesto)s.º · <b>%(puntos)s pts</b>"
 msgstr "%(puesto)sº · <b>%(puntos)s pts</b>"
 
-#: inicio/templates/inicio.html:844 inicio/templates/inicio.html:859 inicio/templates/inicio.html:868
+#: inicio/templates/inicio.html:829 inicio/templates/inicio.html:844 inicio/templates/inicio.html:853
 msgid "Cargando…"
 msgstr "Carregando…"
 
-#: inicio/templates/inicio.html:847
+#: inicio/templates/inicio.html:832
 msgid "No hay partidos hoy en las ligas seguidas"
 msgstr "Não há jogos hoje nas ligas acompanhadas"
 
-#: inicio/templates/inicio.html:848 inicio/templates/inicio.html:863
+#: inicio/templates/inicio.html:833 inicio/templates/inicio.html:848
 msgid "No se pudieron cargar los partidos"
 msgstr "Não foi possível carregar os jogos"
 
-#: inicio/templates/inicio.html:862
+#: inicio/templates/inicio.html:847
 msgid "No hay próximos partidos en las ligas seguidas"
 msgstr "Não há próximos jogos nas ligas acompanhadas"
 
-#: inicio/templates/inicio.html:871
+#: inicio/templates/inicio.html:856
 msgid "No hay partidos en vivo en este momento"
 msgstr "Não há jogos ao vivo neste momento"
 
-#: inicio/templates/inicio.html:877
+#: inicio/templates/inicio.html:862
 msgid "No se pudo cargar el directo"
 msgstr "Não foi possível carregar os jogos ao vivo"
 
-#: inicio/templates/inicio.html:885
+#: inicio/templates/inicio.html:870
 msgid "Tabla no disponible"
 msgstr "Tabela indisponível"
 
-#: inicio/templates/inicio.html:886 inicio/templates/inicio.html:917
+#: inicio/templates/inicio.html:871 inicio/templates/inicio.html:902
 msgid "No se pudo cargar la tabla"
 msgstr "Não foi possível carregar a tabela"
 
-#: inicio/templates/inicio.html:916
+#: inicio/templates/inicio.html:901
 msgid "Tabla no disponible para esta competición"
 msgstr "Tabela indisponível para esta competição"
 
