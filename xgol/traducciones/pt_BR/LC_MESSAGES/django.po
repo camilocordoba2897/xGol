@@ -4910,8 +4910,8 @@ msgstr "Com login"
 
 #: static/manual/manual-de-usuario.html:1017
 msgctxt "manual"
-msgid "<b>Logos.</b> SENA y xGol. El de xGol vuelve al inicio."
-msgstr "<b>Logos.</b> SENA e xGol. O do xGol volta ao início."
+msgid "<b>Logo de xGol.</b> Vuelve al inicio."
+msgstr "<b>Logo do xGol.</b> Volta ao início."
 
 #: static/manual/manual-de-usuario.html:1017
 msgctxt "manual"
@@ -6497,11 +6497,6 @@ msgstr "<b>Redes.</b> Facebook e Instagram."
 msgctxt "manual"
 msgid "<b>Enlaces legales.</b> Cuatro documentos."
 msgstr "<b>Links legais.</b> Quatro documentos."
-
-#: static/manual/manual-de-usuario.html:1338
-msgctxt "manual"
-msgid "Logo del SENA."
-msgstr "Logo do SENA."
 
 #: static/manual/manual-de-usuario.html:1338
 msgctxt "manual"

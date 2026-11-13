@@ -671,9 +671,8 @@ body.home {
   border-top: 1px solid var(--borde-soft);
   padding-top: 18px;
 }
-/* Las dos columnas del pie tienen el mismo alto (stretch): asi la derecha
-   puede repartirse (ver .ft-right) y no deja un hueco debajo de los
-   enlaces legales, que antes llenaba el logo del SENA. */
+/* Las dos columnas del pie tienen el mismo alto (stretch): asi el bloque de
+   la derecha se puede centrar a lo alto (ver .ft-right). */
 .ft-top {
   display: flex; justify-content: space-between; align-items: stretch;
   gap: 30px; flex-wrap: wrap;
@@ -703,14 +702,15 @@ body.home {
   margin-top: 12px;
   margin-bottom: 0;
 }
-/* Redes arriba, a la altura del logo de xGol, y enlaces legales abajo,
-   terminando a la par del texto legal de la izquierda. */
+/* Redes y enlaces legales van juntos, como un solo bloque, centrado en el
+   alto del pie (el de la columna izquierda). Antes las redes iban arriba y
+   los enlaces abajo, y entre los dos quedaba un hueco grande. */
 .ft-right {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: center;
+  gap: 14px;
 }
 .ft-links {
   display: flex;
